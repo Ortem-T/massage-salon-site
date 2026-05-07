@@ -1,5 +1,6 @@
 import { AboutSection } from "@/components/sections/about-section";
 import { BenefitsSection } from "@/components/sections/benefits-section";
+import { BookingSection } from "@/components/sections/booking-section";
 import { ContactSection } from "@/components/sections/contact-section";
 import { CTASection } from "@/components/sections/cta-section";
 import { HeroSection } from "@/components/sections/hero-section";
@@ -21,6 +22,7 @@ export default async function HomePage({ params }: HomePageProps) {
     <main>
       <HeroSection locale={locale} dictionary={dictionary} />
       <ServicesSection dictionary={dictionary} />
+      <BookingSection dictionary={dictionary} />
       <BenefitsSection dictionary={dictionary} />
       <TestimonialsSection dictionary={dictionary} />
       <AboutSection dictionary={dictionary} />

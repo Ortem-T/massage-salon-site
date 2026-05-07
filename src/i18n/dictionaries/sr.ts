@@ -56,6 +56,73 @@ const sr = {
       }
     ]
   },
+  booking: {
+    eyebrow: "Zahtev za termin",
+    title: "Zakažite termin bez pritiska",
+    subtitle:
+      "Izaberite tretman, željeni datum i vreme, ostavite kontakt i jezik komunikacije. Tačan termin potvrđujemo ručno.",
+    aside: {
+      title: "Miran prvi korak",
+      body:
+        "Ovo je MVP forma zahteva. Za sada šalje mock zahtev u browser console; kasnije se isti service layer može povezati sa Supabase."
+    },
+    fields: {
+      service: {
+        label: "Usluga",
+        placeholder: "Izaberite masažu"
+      },
+      date: {
+        label: "Željeni datum"
+      },
+      time: {
+        label: "Željeno vreme",
+        placeholder: "Izaberite vreme"
+      },
+      name: {
+        label: "Ime klijenta",
+        placeholder: "Vaše ime"
+      },
+      phone: {
+        label: "Broj telefona",
+        placeholder: "+381 ..."
+      },
+      language: {
+        label: "Jezik komunikacije",
+        placeholder: "Izaberite jezik"
+      },
+      comment: {
+        label: "Komentar",
+        placeholder: "Šta treba da znamo? Pritisak, fokus zone, detalji rasporeda..."
+      }
+    },
+    languageOptions: [
+      { value: "sr", label: "Srpski" },
+      { value: "ru", label: "Ruski" },
+      { value: "en", label: "Engleski" }
+    ],
+    validation: {
+      service: "Izaberite uslugu.",
+      date: "Izaberite željeni datum.",
+      time: "Izaberite željeno vreme.",
+      name: "Unesite ime.",
+      phone: "Unesite broj telefona.",
+      language: "Izaberite jezik komunikacije.",
+      comment: "Komentar može imati do 500 karaktera."
+    },
+    submit: "Zakaži termin",
+    submitting: "Šaljemo zahtev",
+    formNote: "Bez plaćanja i registracije. Kontaktiraćemo vas radi potvrde.",
+    success: {
+      title: "Zahtev je primljen",
+      message: "Hvala. Proverićemo željeno vreme i uskoro vas kontaktirati."
+    },
+    statuses: {
+      pending: "Na čekanju",
+      confirmed: "Potvrđeno",
+      cancelled: "Otkazano",
+      completed: "Završeno"
+    }
+  },
   benefits: {
     eyebrow: "Zašto Raine",
     title: "Diskretan luksuz, stručna nega",

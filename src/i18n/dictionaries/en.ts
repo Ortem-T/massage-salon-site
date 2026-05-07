@@ -56,6 +56,73 @@ const en = {
       }
     ]
   },
+  booking: {
+    eyebrow: "Booking request",
+    title: "Book an appointment without pressure",
+    subtitle:
+      "Tell us what you would like, when you prefer to come, and which language feels easiest. We will confirm the exact time manually.",
+    aside: {
+      title: "A calm first step",
+      body:
+        "This is an MVP request form. For now it sends a mock request in the browser console; later the same service layer can write to Supabase."
+    },
+    fields: {
+      service: {
+        label: "Service",
+        placeholder: "Choose a massage"
+      },
+      date: {
+        label: "Preferred date"
+      },
+      time: {
+        label: "Preferred time",
+        placeholder: "Choose a time"
+      },
+      name: {
+        label: "Client name",
+        placeholder: "Your name"
+      },
+      phone: {
+        label: "Phone number",
+        placeholder: "+381 ..."
+      },
+      language: {
+        label: "Preferred language",
+        placeholder: "Choose language"
+      },
+      comment: {
+        label: "Comment",
+        placeholder: "Anything we should know? Pressure preference, focus areas, schedule details..."
+      }
+    },
+    languageOptions: [
+      { value: "sr", label: "Serbian" },
+      { value: "ru", label: "Russian" },
+      { value: "en", label: "English" }
+    ],
+    validation: {
+      service: "Please choose a service.",
+      date: "Please choose a preferred date.",
+      time: "Please choose a preferred time.",
+      name: "Please enter your name.",
+      phone: "Please enter a phone number.",
+      language: "Please choose a preferred language.",
+      comment: "Comment can be up to 500 characters."
+    },
+    submit: "Book appointment",
+    submitting: "Sending request",
+    formNote: "No payment or account required. We will contact you to confirm.",
+    success: {
+      title: "Request received",
+      message: "Thank you. We will review your preferred time and contact you shortly."
+    },
+    statuses: {
+      pending: "Pending",
+      confirmed: "Confirmed",
+      cancelled: "Cancelled",
+      completed: "Completed"
+    }
+  },
   benefits: {
     eyebrow: "Why Raine",
     title: "Discreet luxury, expert care",
