@@ -68,19 +68,23 @@ export function BookingForm({ dictionary }: BookingFormProps) {
   }
 
   return (
-    <Card className="border-primary/10 bg-card/92">
-      <CardContent className="p-5 sm:p-7 lg:p-9">
+    <Card className="relative overflow-hidden border-primary/12 bg-card/90 shadow-[0_34px_110px_rgb(27_54_39/0.13)]">
+      <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-accent/55 to-transparent" />
+      <div className="absolute -right-16 -top-20 size-48 rounded-full bg-secondary/40 blur-3xl" />
+      <CardContent className="relative p-5 sm:p-8 lg:p-10">
         {isSuccess ? (
-          <div className="mb-6 rounded-lg border border-primary/20 bg-secondary/55 p-5">
-            <CheckCircle2 className="size-6 text-primary" aria-hidden="true" />
-            <p className="mt-3 font-serif text-2xl leading-tight text-foreground">{booking.success.title}</p>
+          <div className="mb-7 rounded-xl border border-primary/18 bg-secondary/45 p-5 shadow-sm sm:p-6">
+            <div className="flex size-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <CheckCircle2 className="size-6" aria-hidden="true" />
+            </div>
+            <p className="mt-4 font-serif text-2xl leading-tight text-foreground sm:text-3xl">{booking.success.title}</p>
             <p className="mt-2 text-sm leading-7 text-muted-foreground">{booking.success.message}</p>
           </div>
         ) : null}
 
-        <form className="grid gap-5" onSubmit={handleSubmit(onSubmit)} noValidate>
-          <div className="grid gap-5 lg:grid-cols-2">
-            <div className="grid gap-2">
+        <form className="grid gap-6" onSubmit={handleSubmit(onSubmit)} noValidate>
+          <div className="grid gap-4 lg:grid-cols-2 lg:gap-5">
+            <div className="group grid gap-2.5">
               <Label htmlFor="booking-service">{booking.fields.service.label}</Label>
               <div className="relative">
                 <Select id="booking-service" aria-invalid={!!errors.service} {...register("service")}>
@@ -91,15 +95,19 @@ export function BookingForm({ dictionary }: BookingFormProps) {
                     </option>
                   ))}
                 </Select>
-                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
               </div>
               <FieldError message={errors.service?.message} />
             </div>
 
-            <div className="grid gap-2">
+            <div className="group grid gap-2.5">
               <Label htmlFor="booking-language">{booking.fields.language.label}</Label>
               <div className="relative">
-                <Select id="booking-language" aria-invalid={!!errors.preferredLanguage} {...register("preferredLanguage")}>
+                <Select
+                  id="booking-language"
+                  aria-invalid={!!errors.preferredLanguage}
+                  {...register("preferredLanguage")}
+                >
                   <option value="">{booking.fields.language.placeholder}</option>
                   {booking.languageOptions.map((language) => (
                     <option key={language.value} value={language.value}>
@@ -107,20 +115,26 @@ export function BookingForm({ dictionary }: BookingFormProps) {
                     </option>
                   ))}
                 </Select>
-                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
               </div>
               <FieldError message={errors.preferredLanguage?.message} />
             </div>
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2">
-            <div className="grid gap-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:gap-5">
+            <div className="grid gap-2.5">
               <Label htmlFor="booking-date">{booking.fields.date.label}</Label>
-              <Input id="booking-date" type="date" min={today} aria-invalid={!!errors.preferredDate} {...register("preferredDate")} />
+              <Input
+                id="booking-date"
+                type="date"
+                min={today}
+                aria-invalid={!!errors.preferredDate}
+                {...register("preferredDate")}
+              />
               <FieldError message={errors.preferredDate?.message} />
             </div>
 
-            <div className="grid gap-2">
+            <div className="group grid gap-2.5">
               <Label htmlFor="booking-time">{booking.fields.time.label}</Label>
               <div className="relative">
                 <Select id="booking-time" aria-invalid={!!errors.preferredTime} {...register("preferredTime")}>
@@ -131,14 +145,14 @@ export function BookingForm({ dictionary }: BookingFormProps) {
                     </option>
                   ))}
                 </Select>
-                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
               </div>
               <FieldError message={errors.preferredTime?.message} />
             </div>
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2">
-            <div className="grid gap-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:gap-5">
+            <div className="grid gap-2.5">
               <Label htmlFor="booking-name">{booking.fields.name.label}</Label>
               <Input
                 id="booking-name"
@@ -151,7 +165,7 @@ export function BookingForm({ dictionary }: BookingFormProps) {
               <FieldError message={errors.clientName?.message} />
             </div>
 
-            <div className="grid gap-2">
+            <div className="grid gap-2.5">
               <Label htmlFor="booking-phone">{booking.fields.phone.label}</Label>
               <Input
                 id="booking-phone"
@@ -165,7 +179,7 @@ export function BookingForm({ dictionary }: BookingFormProps) {
             </div>
           </div>
 
-          <div className="grid gap-2">
+          <div className="grid gap-2.5">
             <Label htmlFor="booking-comment">{booking.fields.comment.label}</Label>
             <Textarea
               id="booking-comment"
@@ -176,13 +190,16 @@ export function BookingForm({ dictionary }: BookingFormProps) {
             <FieldError message={errors.comment?.message} />
           </div>
 
-          <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm leading-6 text-muted-foreground">{booking.formNote}</p>
+          <div className="flex flex-col gap-5 border-t border-border/60 pt-6 sm:flex-row sm:items-center sm:justify-between">
+            <p className="max-w-md text-sm leading-7 text-muted-foreground">{booking.formNote}</p>
             <Button
               type="submit"
               size="lg"
               disabled={!isValid || isSubmitting}
-              className={cn("w-full sm:w-auto", isSubmitting && "cursor-wait")}
+              className={cn(
+                "min-h-14 w-full px-8 shadow-[0_20px_58px_rgb(20_61_42/0.22)] sm:w-auto",
+                isSubmitting && "cursor-wait"
+              )}
             >
               {isSubmitting ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
               {isSubmitting ? booking.submitting : booking.submit}
