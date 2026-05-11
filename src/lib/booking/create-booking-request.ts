@@ -1,11 +1,16 @@
+import { type Locale } from "@/i18n/config";
 import { type BookingFormValues, type BookingStatus } from "@/lib/booking/booking-schema";
 
-export type BookingRequest = BookingFormValues & {
+export type BookingRequestInput = BookingFormValues & {
+  siteLocale: Locale;
+};
+
+export type BookingRequest = BookingRequestInput & {
   status: BookingStatus;
   createdAt: string;
 };
 
-export async function createBookingRequest(values: BookingFormValues): Promise<BookingRequest> {
+export async function createBookingRequest(values: BookingRequestInput): Promise<BookingRequest> {
   const request: BookingRequest = {
     ...values,
     status: "pending",

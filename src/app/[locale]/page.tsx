@@ -22,7 +22,7 @@ export default async function HomePage({ params }: HomePageProps) {
     <main>
       <HeroSection locale={locale} dictionary={dictionary} />
       <ServicesSection dictionary={dictionary} />
-      <BookingSection dictionary={dictionary} />
+      <BookingSection locale={locale} dictionary={dictionary} />
       <BenefitsSection dictionary={dictionary} />
       <TestimonialsSection dictionary={dictionary} />
       <AboutSection dictionary={dictionary} />
