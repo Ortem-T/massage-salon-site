@@ -1,7 +1,7 @@
 "use client";
 
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { type Locale } from "@/i18n/config";
@@ -68,6 +68,7 @@ export function BookingDatePicker({
   isDateSelectable,
   onChange
 }: BookingDatePickerProps) {
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [visibleMonth, setVisibleMonth] = useState(() => getMonthStart(value || minDate));
   const formatterLocale = localeMap[locale];
@@ -87,13 +88,39 @@ export function BookingDatePicker({
   }, [formatterLocale]);
   const days = useMemo(() => getCalendarDays(visibleMonth), [visibleMonth]);
 
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      if (!wrapperRef.current?.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen]);
+
   function selectDate(nextValue: string) {
     onChange(nextValue);
     setIsOpen(false);
   }
 
   return (
-    <div className="relative">
+    <div ref={wrapperRef} className="relative">
       <Button
         id={id}
         type="button"
@@ -193,4 +220,3 @@ export function BookingDatePicker({
     </div>
   );
 }
-
