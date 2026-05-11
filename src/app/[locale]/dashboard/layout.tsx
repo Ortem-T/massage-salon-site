@@ -21,7 +21,8 @@ export default async function DashboardLayout({ children, params }: DashboardLay
   }
 
   const locale: Locale = rawLocale;
-  const [dictionary, user] = await Promise.all([getDictionary(locale), requireDashboardUser(locale)]);
+  const user = await requireDashboardUser(locale);
+  const dictionary = await getDictionary(locale);
 
   return (
     <DashboardShell dictionary={dictionary} locale={locale} user={user}>

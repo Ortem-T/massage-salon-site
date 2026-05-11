@@ -46,7 +46,7 @@ function isBookingStatus(status: unknown): status is BookingStatus {
   return typeof status === "string" && bookingStatuses.includes(status as BookingStatus);
 }
 
-function toDashboardBooking(row: {
+type DashboardBookingRow = {
   id: string;
   created_at: string;
   service: string;
@@ -59,11 +59,13 @@ function toDashboardBooking(row: {
   locale: Locale;
   status: BookingStatus;
   source: string;
-  client_id: string | null;
-  therapist_id: string | null;
-  internal_notes: string | null;
-  updated_at: string;
-}): DashboardBooking {
+  client_id?: string | null;
+  therapist_id?: string | null;
+  internal_notes?: string | null;
+  updated_at?: string;
+};
+
+function toDashboardBooking(row: DashboardBookingRow): DashboardBooking {
   return {
     id: row.id,
     createdAt: row.created_at,
@@ -77,39 +79,65 @@ function toDashboardBooking(row: {
     locale: row.locale,
     status: row.status,
     source: row.source,
-    clientId: row.client_id,
-    therapistId: row.therapist_id,
-    internalNotes: row.internal_notes,
-    updatedAt: row.updated_at
+    clientId: row.client_id ?? null,
+    therapistId: row.therapist_id ?? null,
+    internalNotes: row.internal_notes ?? null,
+    updatedAt: row.updated_at ?? row.created_at
   };
 }
 
 export async function getDashboardBookingsData(): Promise<DashboardBookingsData> {
   const supabase = await createSupabaseServerClient();
-  const [{ data: bookings, error: bookingsError }, { data: therapists, error: therapistsError }] = await Promise.all([
-    supabase
+
+  try {
+    const [{ data: bookings, error: bookingsError }, { data: therapists, error: therapistsError }] = await Promise.all([
+      supabase
+        .from("bookings")
+        .select(
+          "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source, client_id, therapist_id, internal_notes, updated_at"
+        )
+        .order("preferred_date", { ascending: true })
+        .order("preferred_time", { ascending: true })
+        .limit(400),
+      supabase.from("therapists").select("id, profile_id, display_name, active").order("display_name", { ascending: true })
+    ]);
+
+    if (!bookingsError) {
+      return {
+        bookings: (bookings ?? []).map(toDashboardBooking),
+        therapists: therapistsError
+          ? []
+          : (therapists ?? []).map((therapist) => ({
+              id: therapist.id,
+              profileId: therapist.profile_id,
+              displayName: therapist.display_name,
+              active: therapist.active
+            })),
+        error: Boolean(therapistsError)
+      };
+    }
+
+    const { data: legacyBookings, error: legacyBookingsError } = await supabase
       .from("bookings")
       .select(
-        "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source, client_id, therapist_id, internal_notes, updated_at"
+        "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source"
       )
       .order("preferred_date", { ascending: true })
       .order("preferred_time", { ascending: true })
-      .limit(400),
-    supabase.from("therapists").select("id, profile_id, display_name, active").order("display_name", { ascending: true })
-  ]);
+      .limit(400);
 
-  return {
-    bookings: bookingsError ? [] : bookings.map(toDashboardBooking),
-    therapists: therapistsError
-      ? []
-      : therapists.map((therapist) => ({
-          id: therapist.id,
-          profileId: therapist.profile_id,
-          displayName: therapist.display_name,
-          active: therapist.active
-        })),
-    error: Boolean(bookingsError || therapistsError)
-  };
+    return {
+      bookings: legacyBookingsError ? [] : (legacyBookings ?? []).map(toDashboardBooking),
+      therapists: [],
+      error: Boolean(legacyBookingsError || therapistsError)
+    };
+  } catch {
+    return {
+      bookings: [],
+      therapists: [],
+      error: true
+    };
+  }
 }
 
 export async function updateDashboardBooking(role: DashboardRole, input: UpdateDashboardBookingInput) {
