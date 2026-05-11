@@ -2,9 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2, ChevronDown, Loader2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { BookingDatePicker } from "@/components/booking/booking-date-picker";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,7 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { type Locale } from "@/i18n/config";
 import { type Dictionary } from "@/i18n/dictionaries";
-import { bookingTimeSlots } from "@/lib/booking/booking-options";
+import { getAvailableTimeSlots, getTodayValue, isBookingDateSelectable } from "@/lib/booking/booking-availability";
 import { type BookingFormValues, createBookingFormSchema } from "@/lib/booking/booking-schema";
 import { createBookingRequest } from "@/lib/booking/create-booking-request";
 import { cn } from "@/lib/utils";
@@ -41,23 +42,26 @@ function FieldError({ id, message }: FieldErrorProps) {
   );
 }
 
-function getTodayValue() {
-  const date = new Date();
-  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-  return localDate.toISOString().split("T")[0];
-}
-
 export function BookingForm({ locale, dictionary }: BookingFormProps) {
   const { booking, services } = dictionary;
   const [isSuccess, setIsSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const today = useMemo(() => getTodayValue(), []);
-  const schema = useMemo(() => createBookingFormSchema(booking.validation, { minDate: today }), [booking.validation, today]);
+  const schema = useMemo(
+    () =>
+      createBookingFormSchema(booking.validation, {
+        minDate: today,
+        isDateSelectable: (value) => isBookingDateSelectable(value, today)
+      }),
+    [booking.validation, today]
+  );
 
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors, isSubmitting, isValid }
   } = useForm<BookingFormValues>({
     resolver: zodResolver(schema),
@@ -72,6 +76,19 @@ export function BookingForm({ locale, dictionary }: BookingFormProps) {
       comment: ""
     }
   });
+  const selectedDate = watch("preferredDate");
+  const selectedTime = watch("preferredTime");
+  const availableTimeSlots = useMemo(() => getAvailableTimeSlots(selectedDate), [selectedDate]);
+
+  useEffect(() => {
+    if (selectedTime && !availableTimeSlots.includes(selectedTime as (typeof availableTimeSlots)[number])) {
+      setValue("preferredTime", "", { shouldDirty: true, shouldValidate: true });
+    }
+  }, [availableTimeSlots, selectedTime, setValue]);
+
+  function selectDate(value: string) {
+    setValue("preferredDate", value, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+  }
 
   async function onSubmit(values: BookingFormValues) {
     setIsSuccess(false);
@@ -157,14 +174,22 @@ export function BookingForm({ locale, dictionary }: BookingFormProps) {
 
           <div className="grid gap-4 sm:grid-cols-2 lg:gap-5">
             <div className="grid gap-2.5">
-              <Label htmlFor="booking-date">{booking.fields.date.label}</Label>
-              <Input
-                id="booking-date"
-                type="date"
-                min={today}
-                aria-invalid={!!errors.preferredDate}
-                aria-describedby={errors.preferredDate ? "booking-date-error" : undefined}
+              <Label htmlFor="booking-date-trigger">{booking.fields.date.label}</Label>
+              <input
+                id="booking-date-value"
+                type="hidden"
                 {...register("preferredDate")}
+              />
+              <BookingDatePicker
+                id="booking-date-trigger"
+                value={selectedDate}
+                minDate={today}
+                locale={locale}
+                copy={booking.calendar}
+                invalid={!!errors.preferredDate}
+                errorId={errors.preferredDate ? "booking-date-error" : undefined}
+                isDateSelectable={(value) => isBookingDateSelectable(value, today)}
+                onChange={selectDate}
               />
               <FieldError id="booking-date-error" message={errors.preferredDate?.message} />
             </div>
@@ -176,10 +201,11 @@ export function BookingForm({ locale, dictionary }: BookingFormProps) {
                   id="booking-time"
                   aria-invalid={!!errors.preferredTime}
                   aria-describedby={errors.preferredTime ? "booking-time-error" : undefined}
+                  disabled={!selectedDate}
                   {...register("preferredTime")}
                 >
                   <option value="">{booking.fields.time.placeholder}</option>
-                  {bookingTimeSlots.map((time) => (
+                  {availableTimeSlots.map((time) => (
                     <option key={time} value={time}>
                       {time}
                     </option>

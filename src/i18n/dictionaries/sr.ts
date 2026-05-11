@@ -109,10 +109,17 @@ const sr = {
       specialist: "Izaberite specijalistu.",
       date: "Izaberite željeni datum.",
       datePast: "Izaberite današnji ili neki naredni datum.",
+      dateUnavailable: "Izaberite dostupan radni dan.",
       time: "Izaberite željeno vreme.",
       name: "Unesite ime.",
       phone: "Unesite broj telefona.",
       comment: "Komentar može imati do 500 karaktera."
+    },
+    calendar: {
+      chooseDate: "Izaberite datum",
+      previousMonth: "Prethodni mesec",
+      nextMonth: "Sledeći mesec",
+      unavailable: "Datum nije dostupan"
     },
     error: {
       message: "Zahtev trenutno nije moguće poslati. Pokušajte ponovo ili nas kontaktirajte direktno."

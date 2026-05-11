@@ -109,10 +109,17 @@ const en = {
       specialist: "Please choose a specialist.",
       date: "Please choose a preferred date.",
       datePast: "Please choose today or a future date.",
+      dateUnavailable: "Please choose an available working day.",
       time: "Please choose a preferred time.",
       name: "Please enter your name.",
       phone: "Please enter a phone number.",
       comment: "Comment can be up to 500 characters."
+    },
+    calendar: {
+      chooseDate: "Choose date",
+      previousMonth: "Previous month",
+      nextMonth: "Next month",
+      unavailable: "Date is unavailable"
     },
     error: {
       message: "We could not send your request right now. Please try again or contact us directly."

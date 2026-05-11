@@ -102,6 +102,8 @@ Current state:
 - The booking form is frontend-only.
 - Validation is handled with Zod and React Hook Form.
 - `createBookingRequest()` is a mock service function.
+- Date availability is currently config-driven in `src/lib/booking/booking-availability.ts`.
+- The custom date picker replaces the native browser calendar so the booking UI can stay on-brand.
 - No backend, database, authentication, or admin UI is connected yet.
 
 Next booking steps:
@@ -109,6 +111,7 @@ Next booking steps:
 - Finalize booking request fields and naming.
 - Replace placeholder specialist options with real salon data.
 - Add real contact destinations when available.
+- Replace mock availability config with Supabase-powered working days, closed dates, booked slots, and specialist availability.
 - Connect `createBookingRequest()` to Supabase after the booking MVP is stable.
 - Persist booking status:
   - `pending`

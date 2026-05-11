@@ -41,6 +41,7 @@ The booking form MVP is integrated into the homepage. It is currently frontend-o
 - Passed current route locale into booking request data.
 - Added project documentation system in `docs/`.
 - Applied booking review fixes for stable service ids, accessible validation messages, schema-level date validation, localized submit failure state, and premium-safe booking copy.
+- Replaced the native booking date input with a custom branded calendar popover and added a config-based availability foundation for working days, closed dates, fully booked dates, and available time slots.
 
 ## Current Focus
 
@@ -54,6 +55,7 @@ The current focus is stabilizing the booking MVP and documenting decisions befor
 - Verify mobile booking UX on real viewport sizes.
 - Run a hard UX review of the booking section after real data is added.
 - Define Supabase schema for booking requests.
+- Define Supabase schema for availability rules: working days, closed dates, booked slots, and specialist-specific schedules.
 - Add manual QA checklist for launch.
 
 ## Manual QA Checklist
@@ -62,6 +64,9 @@ The current focus is stabilizing the booking MVP and documenting decisions befor
 - Check mobile widths around 360px, 390px, 430px, 768px, and desktop.
 - Complete the form with keyboard only.
 - Trigger each validation error and confirm layout does not jump awkwardly.
+- Open and use the custom date picker with mouse and keyboard.
+- Confirm unavailable dates cannot be selected.
+- Confirm time slots update when the selected date changes.
 - Confirm validation errors are announced or discoverable by assistive technology.
 - Confirm selected language switcher state remains readable on hover.
 - Hover service rows and confirm background has proper left and right spacing.

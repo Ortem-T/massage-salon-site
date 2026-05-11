@@ -125,6 +125,9 @@ Cards:
 - Use stable ids for submitted values and localized labels only for display.
 - Date and time should be easy to scan.
 - Date validation must exist in schema, not only as browser `min`.
+- Use the branded custom calendar instead of the native browser date picker for premium booking UX.
+- Disabled dates must clearly communicate unavailable working days, closed dates, and fully booked days.
+- Time slots should respond to the selected date and later to selected specialist availability.
 - Phone input should support Serbian-style numbers without over-validation in the MVP.
 - Comment field should be optional and visually secondary.
 - Success state should be calm, confident, and not overly celebratory.
