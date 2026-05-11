@@ -18,6 +18,7 @@ import { createBookingRequest } from "@/lib/booking/create-booking-request";
 import { cn } from "@/lib/utils";
 
 type BookingFormProps = {
+  locale: Locale;
   dictionary: Dictionary;
 };
 
@@ -35,7 +36,7 @@ function getTodayValue() {
   return new Date().toISOString().split("T")[0];
 }
 
-export function BookingForm({ dictionary }: BookingFormProps) {
+export function BookingForm({ locale, dictionary }: BookingFormProps) {
   const { booking, services } = dictionary;
   const [isSuccess, setIsSuccess] = useState(false);
   const schema = useMemo(() => createBookingFormSchema(booking.validation), [booking.validation]);
@@ -51,18 +52,18 @@ export function BookingForm({ dictionary }: BookingFormProps) {
     mode: "onChange",
     defaultValues: {
       service: "",
+      specialist: "",
       preferredDate: "",
       preferredTime: "",
       clientName: "",
       phoneNumber: "",
-      preferredLanguage: "" as Locale,
       comment: ""
     }
   });
 
   async function onSubmit(values: BookingFormValues) {
     setIsSuccess(false);
-    await createBookingRequest(values);
+    await createBookingRequest({ ...values, siteLocale: locale });
     setIsSuccess(true);
     reset();
   }
@@ -101,23 +102,19 @@ export function BookingForm({ dictionary }: BookingFormProps) {
             </div>
 
             <div className="group grid gap-2.5">
-              <Label htmlFor="booking-language">{booking.fields.language.label}</Label>
+              <Label htmlFor="booking-specialist">{booking.fields.specialist.label}</Label>
               <div className="relative">
-                <Select
-                  id="booking-language"
-                  aria-invalid={!!errors.preferredLanguage}
-                  {...register("preferredLanguage")}
-                >
-                  <option value="">{booking.fields.language.placeholder}</option>
-                  {booking.languageOptions.map((language) => (
-                    <option key={language.value} value={language.value}>
-                      {language.label}
+                <Select id="booking-specialist" aria-invalid={!!errors.specialist} {...register("specialist")}>
+                  <option value="">{booking.fields.specialist.placeholder}</option>
+                  {booking.specialistOptions.map((specialist) => (
+                    <option key={specialist.value} value={specialist.value}>
+                      {specialist.label}
                     </option>
                   ))}
                 </Select>
                 <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
               </div>
-              <FieldError message={errors.preferredLanguage?.message} />
+              <FieldError message={errors.specialist?.message} />
             </div>
           </div>
 

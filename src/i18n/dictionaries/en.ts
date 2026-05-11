@@ -60,7 +60,7 @@ const en = {
     eyebrow: "Booking request",
     title: "Book an appointment without pressure",
     subtitle:
-      "Tell us what you would like, when you prefer to come, and which language feels easiest. We will confirm the exact time manually.",
+      "Choose your treatment, specialist, preferred date and time, then leave your contact. We will confirm the exact time manually.",
     aside: {
       title: "A calm first step",
       body:
@@ -70,6 +70,10 @@ const en = {
       service: {
         label: "Service",
         placeholder: "Choose a massage"
+      },
+      specialist: {
+        label: "Specialist",
+        placeholder: "Choose a specialist"
       },
       date: {
         label: "Preferred date"
@@ -86,27 +90,24 @@ const en = {
         label: "Phone number",
         placeholder: "+381 ..."
       },
-      language: {
-        label: "Preferred language",
-        placeholder: "Choose language"
-      },
       comment: {
         label: "Comment",
         placeholder: "Anything we should know? Pressure preference, focus areas, schedule details..."
       }
     },
-    languageOptions: [
-      { value: "sr", label: "Serbian" },
-      { value: "ru", label: "Russian" },
-      { value: "en", label: "English" }
+    specialistOptions: [
+      { value: "any", label: "Any available specialist" },
+      { value: "mila-petrovic", label: "Mila Petrović" },
+      { value: "ana-markovic", label: "Ana Marković" },
+      { value: "nikola-jovanovic", label: "Nikola Jovanović" }
     ],
     validation: {
       service: "Please choose a service.",
+      specialist: "Please choose a specialist.",
       date: "Please choose a preferred date.",
       time: "Please choose a preferred time.",
       name: "Please enter your name.",
       phone: "Please enter a phone number.",
-      language: "Please choose a preferred language.",
       comment: "Comment can be up to 500 characters."
     },
     submit: "Book appointment",

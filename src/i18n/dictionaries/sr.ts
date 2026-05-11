@@ -60,7 +60,7 @@ const sr = {
     eyebrow: "Zahtev za termin",
     title: "Zakažite termin bez pritiska",
     subtitle:
-      "Izaberite tretman, željeni datum i vreme, ostavite kontakt i jezik komunikacije. Tačan termin potvrđujemo ručno.",
+      "Izaberite tretman, stručnjaka, željeni datum i vreme, pa ostavite kontakt. Tačan termin potvrđujemo ručno.",
     aside: {
       title: "Miran prvi korak",
       body:
@@ -70,6 +70,10 @@ const sr = {
       service: {
         label: "Usluga",
         placeholder: "Izaberite masažu"
+      },
+      specialist: {
+        label: "Specijalista",
+        placeholder: "Izaberite specijalistu"
       },
       date: {
         label: "Željeni datum"
@@ -86,27 +90,24 @@ const sr = {
         label: "Broj telefona",
         placeholder: "+381 ..."
       },
-      language: {
-        label: "Jezik komunikacije",
-        placeholder: "Izaberite jezik"
-      },
       comment: {
         label: "Komentar",
         placeholder: "Šta treba da znamo? Pritisak, fokus zone, detalji rasporeda..."
       }
     },
-    languageOptions: [
-      { value: "sr", label: "Srpski" },
-      { value: "ru", label: "Ruski" },
-      { value: "en", label: "Engleski" }
+    specialistOptions: [
+      { value: "any", label: "Bilo koji dostupan specijalista" },
+      { value: "mila-petrovic", label: "Mila Petrović" },
+      { value: "ana-markovic", label: "Ana Marković" },
+      { value: "nikola-jovanovic", label: "Nikola Jovanović" }
     ],
     validation: {
       service: "Izaberite uslugu.",
+      specialist: "Izaberite specijalistu.",
       date: "Izaberite željeni datum.",
       time: "Izaberite željeno vreme.",
       name: "Unesite ime.",
       phone: "Unesite broj telefona.",
-      language: "Izaberite jezik komunikacije.",
       comment: "Komentar može imati do 500 karaktera."
     },
     submit: "Zakaži termin",
