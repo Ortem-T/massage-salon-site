@@ -1,25 +1,34 @@
 import { type Locale } from "@/i18n/config";
 import { type BookingFormValues, type BookingStatus } from "@/lib/booking/booking-schema";
+import { toBookingRequestPayload, type BookingRequestPayload } from "@/lib/booking/booking-request-payload";
 
 export type BookingRequestInput = BookingFormValues & {
   siteLocale: Locale;
 };
 
-export type BookingRequest = BookingRequestInput & {
+export type BookingRequest = BookingRequestPayload & {
   status: BookingStatus;
-  createdAt: string;
 };
 
 export async function createBookingRequest(values: BookingRequestInput): Promise<BookingRequest> {
-  const request: BookingRequest = {
-    ...values,
-    status: "pending",
-    createdAt: new Date().toISOString()
+  const response = await fetch("/api/bookings", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(toBookingRequestPayload(values))
+  });
+
+  if (!response.ok) {
+    throw new Error("Booking request could not be created.");
+  }
+
+  const data = (await response.json()) as {
+    booking: Pick<BookingRequest, "status">;
   };
 
-  console.log("Mock booking request", request);
-
-  await new Promise((resolve) => globalThis.setTimeout(resolve, 700));
-
-  return request;
+  return {
+    ...toBookingRequestPayload(values),
+    ...data.booking
+  };
 }

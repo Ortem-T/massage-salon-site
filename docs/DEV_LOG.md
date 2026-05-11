@@ -8,7 +8,7 @@ This log is shared context for human and AI-assisted development. Update it afte
 
 Raine is a premium multilingual massage salon homepage for Novi Sad, Serbia. The homepage MVP exists and uses locale-based routing for Serbian, Russian, and English. The visual direction has moved toward calm luxury wellness with Japanese spa influence, warm natural colors, refined typography, soft shadows, and gentle motion.
 
-The booking form MVP is integrated into the homepage. It is currently frontend-only and sends a mock request through a service layer. The form collects service, specialist, preferred date, preferred time, client name, phone number, and optional comment. The current site locale is passed into the mock booking request as `siteLocale`.
+The booking form MVP is integrated into the homepage and now submits through a Next API route to Supabase. The form collects service, specialist, preferred date, preferred time, client name, phone number, and optional comment. The current site locale is passed as `siteLocale` and persisted as the booking `locale`.
 
 ## Completed Tasks
 
@@ -43,10 +43,11 @@ The booking form MVP is integrated into the homepage. It is currently frontend-o
 - Applied booking review fixes for stable service ids, accessible validation messages, schema-level date validation, localized submit failure state, and premium-safe booking copy.
 - Replaced the native booking date input with a custom branded calendar popover and added a config-based availability foundation for working days, closed dates, fully booked dates, and available time slots.
 - Switched project workflow from per-task feature branches to a persistent `develop` branch for ongoing development, with milestone PRs from `develop` to `main`.
+- Added Supabase booking persistence MVP behind `createBookingRequest()`, including a public anon insert-only RLS migration, a typed Supabase utility, and `/api/bookings` server-side validation.
 
 ## Current Focus
 
-The current focus is stabilizing the booking MVP and documenting decisions before backend work begins. The next product risk is trust: placeholder contact destinations and placeholder specialists should be replaced with real business data before the site feels production-ready.
+The current focus is stabilizing the Supabase-backed booking MVP and documenting decisions around persistence, availability, and launch readiness. The next product risk is trust: placeholder contact destinations and placeholder specialists should be replaced with real business data before the site feels production-ready.
 
 ## Git Workflow
 
@@ -66,7 +67,7 @@ The current focus is stabilizing the booking MVP and documenting decisions befor
 - Review booking form copy in all locales.
 - Verify mobile booking UX on real viewport sizes.
 - Run a hard UX review of the booking section after real data is added.
-- Define Supabase schema for booking requests.
+- Apply the Supabase booking migration in the hosted project and manually submit a test booking.
 - Define Supabase schema for availability rules: working days, closed dates, booked slots, and specialist-specific schedules.
 - Add manual QA checklist for launch.
 
@@ -82,7 +83,7 @@ The current focus is stabilizing the booking MVP and documenting decisions befor
 - Confirm validation errors are announced or discoverable by assistive technology.
 - Confirm selected language switcher state remains readable on hover.
 - Hover service rows and confirm background has proper left and right spacing.
-- Submit successfully and verify success state.
+- Submit successfully and verify success state plus a new row in Supabase `public.bookings`.
 - Simulate failed submit before Supabase launch and verify localized error state.
 - Verify real WhatsApp, Telegram, Instagram, and contact links before production.
 
@@ -90,7 +91,7 @@ The current focus is stabilizing the booking MVP and documenting decisions befor
 
 - Contact destinations are still placeholders and should not be treated as production-ready.
 - Specialist options are realistic placeholders.
-- Booking request persistence is not implemented.
+- Booking persistence depends on applying the Supabase migration and setting public Supabase env vars locally and in deployment.
 - No admin dashboard exists.
 - No client authentication exists by design.
 - Automated PR creation can fail due GitHub CLI or connector access; branch push still works.
@@ -101,7 +102,8 @@ The current focus is stabilizing the booking MVP and documenting decisions befor
 - Use locale route segments instead of query parameters for SEO-friendly multilingual pages.
 - Keep all translated copy in dictionary files.
 - Keep booking data validation in `src/lib/booking/booking-schema.ts`.
-- Keep booking persistence behind `createBookingRequest()` so Supabase can be connected later without rewriting form UI.
+- Keep booking persistence behind `createBookingRequest()` so storage details can evolve without rewriting form UI.
+- Use a Next API route for public booking inserts, with Supabase RLS allowing anon inserts only and no anon reads or updates.
 - Store current site language as `siteLocale` from the selected route instead of asking users to choose communication language manually.
 - Keep UI primitives local and lightweight rather than pulling in a full component dependency for every shadcn/ui part.
 - Avoid backend, CRM, and authentication until the booking MVP is stable.
