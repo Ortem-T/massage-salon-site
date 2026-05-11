@@ -30,7 +30,7 @@ export function LanguageSwitcher({ currentLocale, label }: LanguageSwitcherProps
           aria-label={localeNames[locale]}
           className={cn(
             "focus-ring rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-primary",
-            locale === currentLocale && "bg-primary text-primary-foreground"
+            locale === currentLocale && "bg-primary text-primary-foreground hover:text-primary-foreground"
           )}
         >
           {localeLabels[locale]}

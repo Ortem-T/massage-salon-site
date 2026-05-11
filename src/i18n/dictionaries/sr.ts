@@ -37,18 +37,21 @@ const sr = {
       "Svaki tretman počinje kratkom konsultacijom, kako bi pritisak, tempo i fokus bili usklađeni sa vašim telom.",
     items: [
       {
+        id: "signature-raine",
         title: "Signature Raine masaža",
         duration: "75 min",
         price: "od 6.500 RSD",
         description: "Kombinacija relaks, deep tissue i aromaterapijskih tehnika za dubok osećaj lakoće."
       },
       {
+        id: "japanese-relax",
         title: "Japanski relax ritual",
         duration: "60 min",
         price: "od 5.200 RSD",
         description: "Spor, fluidan tretman sa toplim peškirima i mirnim pritiskom za potpunu regulaciju."
       },
       {
+        id: "deep-tissue",
         title: "Deep tissue oporavak",
         duration: "50 min",
         price: "od 5.800 RSD",
@@ -64,7 +67,7 @@ const sr = {
     aside: {
       title: "Miran prvi korak",
       body:
-        "Ovo je MVP forma zahteva. Za sada šalje mock zahtev u browser console; kasnije se isti service layer može povezati sa Supabase."
+        "Ostavite zahtev za termin, a mi ćemo pažljivo proveriti raspored i potvrditi tačno vreme direktno sa vama."
     },
     fields: {
       service: {
@@ -105,10 +108,14 @@ const sr = {
       service: "Izaberite uslugu.",
       specialist: "Izaberite specijalistu.",
       date: "Izaberite željeni datum.",
+      datePast: "Izaberite današnji ili neki naredni datum.",
       time: "Izaberite željeno vreme.",
       name: "Unesite ime.",
       phone: "Unesite broj telefona.",
       comment: "Komentar može imati do 500 karaktera."
+    },
+    error: {
+      message: "Zahtev trenutno nije moguće poslati. Pokušajte ponovo ili nas kontaktirajte direktno."
     },
     submit: "Zakaži termin",
     submitting: "Šaljemo zahtev",

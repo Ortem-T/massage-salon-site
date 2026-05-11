@@ -37,18 +37,21 @@ const en = {
       "Every treatment starts with a short consultation so pressure, pace, and focus can match what your body needs.",
     items: [
       {
+        id: "signature-raine",
         title: "Signature Raine massage",
         duration: "75 min",
         price: "from 6,500 RSD",
         description: "A blend of relax, deep tissue, and aromatherapy techniques for a lasting sense of ease."
       },
       {
+        id: "japanese-relax",
         title: "Japanese relax ritual",
         duration: "60 min",
         price: "from 5,200 RSD",
         description: "A slow, fluid treatment with warm towels and calm pressure for full nervous-system reset."
       },
       {
+        id: "deep-tissue",
         title: "Deep tissue recovery",
         duration: "50 min",
         price: "from 5,800 RSD",
@@ -64,7 +67,7 @@ const en = {
     aside: {
       title: "A calm first step",
       body:
-        "This is an MVP request form. For now it sends a mock request in the browser console; later the same service layer can write to Supabase."
+        "Leave an appointment request and we will carefully check the schedule before confirming the exact time with you."
     },
     fields: {
       service: {
@@ -105,10 +108,14 @@ const en = {
       service: "Please choose a service.",
       specialist: "Please choose a specialist.",
       date: "Please choose a preferred date.",
+      datePast: "Please choose today or a future date.",
       time: "Please choose a preferred time.",
       name: "Please enter your name.",
       phone: "Please enter a phone number.",
       comment: "Comment can be up to 500 characters."
+    },
+    error: {
+      message: "We could not send your request right now. Please try again or contact us directly."
     },
     submit: "Book appointment",
     submitting: "Sending request",

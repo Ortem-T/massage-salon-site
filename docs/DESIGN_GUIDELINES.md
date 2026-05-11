@@ -122,10 +122,14 @@ Cards:
 - Booking form should feel like a premium concierge request, not a generic web form.
 - Use clear field labels and simple placeholders.
 - Keep service and specialist selection prominent.
+- Use stable ids for submitted values and localized labels only for display.
 - Date and time should be easy to scan.
+- Date validation must exist in schema, not only as browser `min`.
 - Phone input should support Serbian-style numbers without over-validation in the MVP.
 - Comment field should be optional and visually secondary.
 - Success state should be calm, confident, and not overly celebratory.
+- Failure state should be localized, visible, and reassuring.
+- Do not expose implementation details such as MVP, console logging, database names, or internal services in user-facing form copy.
 
 ## Card Styling
 

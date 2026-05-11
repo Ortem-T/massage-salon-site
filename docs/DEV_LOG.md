@@ -40,6 +40,7 @@ The booking form MVP is integrated into the homepage. It is currently frontend-o
 - Added specialist selection to booking form.
 - Passed current route locale into booking request data.
 - Added project documentation system in `docs/`.
+- Applied booking review fixes for stable service ids, accessible validation messages, schema-level date validation, localized submit failure state, and premium-safe booking copy.
 
 ## Current Focus
 
@@ -54,6 +55,19 @@ The current focus is stabilizing the booking MVP and documenting decisions befor
 - Run a hard UX review of the booking section after real data is added.
 - Define Supabase schema for booking requests.
 - Add manual QA checklist for launch.
+
+## Manual QA Checklist
+
+- Check `/sr`, `/ru`, and `/en` booking form copy.
+- Check mobile widths around 360px, 390px, 430px, 768px, and desktop.
+- Complete the form with keyboard only.
+- Trigger each validation error and confirm layout does not jump awkwardly.
+- Confirm validation errors are announced or discoverable by assistive technology.
+- Confirm selected language switcher state remains readable on hover.
+- Hover service rows and confirm background has proper left and right spacing.
+- Submit successfully and verify success state.
+- Simulate failed submit before Supabase launch and verify localized error state.
+- Verify real WhatsApp, Telegram, Instagram, and contact links before production.
 
 ## Known Issues
 

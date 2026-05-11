@@ -1,0 +1,2 @@
+export const bookingTimeSlots = ["10:00", "11:30", "13:00", "14:30", "16:00", "17:30", "19:00"] as const;
+
