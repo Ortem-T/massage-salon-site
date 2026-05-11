@@ -8,6 +8,7 @@ export const dashboardRoles = ["admin", "therapist"] as const;
 export type DashboardRole = (typeof dashboardRoles)[number];
 
 export type DashboardUser = {
+  id: string;
   email: string;
   role: DashboardRole;
 };
@@ -31,6 +32,7 @@ export async function requireDashboardUser(locale: Locale): Promise<DashboardUse
   }
 
   return {
+    id: data.claims.sub,
     email: data.claims.email ?? "",
     role: getRoleFromAppMetadata(data.claims.app_metadata)
   };

@@ -271,6 +271,57 @@ const sr = {
         title: "Upravljanje terapeutima",
         body: "Admin alati za profile tima, dostupnost i usluge koje terapeut radi biće ovde."
       }
+    },
+    calendar: {
+      eyebrow: "Kalendar termina",
+      title: "Termini po ritmu, ne po tabeli",
+      subtitle: "Pregledajte zahteve po danu, nedelji ili mesecu i menjajte status uz kontekst termina.",
+      dataError: "Dashboard podaci još nisu dostupni. Primenite dashboard schema migraciju i proverite staff RLS podešavanje.",
+      currentRange: "Trenutni period",
+      emptyDay: "Nema termina za ovaj dan.",
+      views: {
+        day: "Dan",
+        week: "Nedelja",
+        month: "Mesec"
+      },
+      controls: {
+        view: "Prikaz kalendara",
+        status: "Filter statusa",
+        therapist: "Filter terapeuta",
+        previous: "Prethodno",
+        today: "Danas",
+        next: "Sledeće"
+      },
+      filters: {
+        allStatuses: "Svi statusi",
+        allTherapists: "Svi terapeuti",
+        unassignedTherapist: "Nije dodeljeno"
+      },
+      details: {
+        title: "Detalji termina",
+        close: "Zatvori",
+        client: "Klijent",
+        phone: "Telefon",
+        service: "Usluga",
+        locale: "Jezik",
+        therapist: "Terapeut",
+        status: "Status",
+        comment: "Komentar klijenta",
+        noComment: "Nema komentara klijenta.",
+        internalNotes: "Interne beleške",
+        assignedTherapist: "Dodeljeni terapeut"
+      },
+      actions: {
+        confirm: "Potvrdi",
+        cancel: "Otkaži",
+        complete: "Završi",
+        markCompleted: "Označi kao završeno",
+        assignTherapist: "Dodeli terapeuta",
+        saveNotes: "Sačuvaj beleške",
+        saving: "Čuvamo...",
+        saved: "Sačuvano.",
+        error: "Izmene nije moguće sačuvati."
+      }
     }
   }
 } as const;

@@ -8,7 +8,7 @@ This log is shared context for human and AI-assisted development. Update it afte
 
 Raine is a premium multilingual massage salon homepage for Novi Sad, Serbia. The homepage MVP exists and uses locale-based routing for Serbian, Russian, and English. The visual direction has moved toward calm luxury wellness with Japanese spa influence, warm natural colors, refined typography, soft shadows, and gentle motion.
 
-The booking form MVP is integrated into the homepage and now submits through a Next API route to Supabase. The form collects service, specialist, preferred date, preferred time, client name, phone number, and optional comment. The current site locale is passed as `siteLocale` and persisted as the booking `locale`. A protected dashboard foundation now exists for Supabase Auth staff users with `admin` and `therapist` roles. A dashboard MVP schema migration has been drafted but still needs to be applied manually in Supabase.
+The booking form MVP is integrated into the homepage and now submits through a Next API route to Supabase. The form collects service, specialist, preferred date, preferred time, client name, phone number, and optional comment. The current site locale is passed as `siteLocale` and persisted as the booking `locale`. A protected dashboard foundation now exists for Supabase Auth staff users with `admin` and `therapist` roles. A dashboard MVP schema migration has been drafted but still needs to be applied manually in Supabase. The first dashboard bookings UI is calendar-first and supports day, week, and month views.
 
 ## Completed Tasks
 
@@ -46,10 +46,11 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Added Supabase booking persistence MVP behind `createBookingRequest()`, including a public anon insert-only RLS migration, a typed Supabase utility, and `/api/bookings` server-side validation.
 - Added a Supabase Auth protected dashboard foundation at `/[locale]/dashboard`, with server-side login, cookie-based SSR auth utilities, role-aware navigation, and placeholder admin/therapist dashboard pages.
 - Added a dashboard MVP Supabase migration draft for `profiles`, `therapists`, `clients`, `services`, additive `bookings` columns, RLS grants, and staff booking update constraints.
+- Added the first calendar-first dashboard bookings UI on `/[locale]/dashboard` and `/[locale]/dashboard/bookings`, including role-aware filters, status overview, booking details modal, and server actions for status, therapist assignment, and internal notes.
 
 ## Current Focus
 
-The current focus is stabilizing the Supabase-backed booking MVP and using the new dashboard foundation for the first internal booking-management views. The next product risk is trust: placeholder contact destinations and placeholder specialists should be replaced with real business data before the site feels production-ready.
+The current focus is validating the dashboard bookings calendar against real Supabase data and applying the dashboard schema migration in the hosted project. The next product risk is trust: placeholder contact destinations and placeholder specialists should be replaced with real business data before the site feels production-ready.
 
 ## Git Workflow
 
@@ -76,6 +77,7 @@ The current focus is stabilizing the Supabase-backed booking MVP and using the n
 - Create Supabase Auth staff users and set `app_metadata.role` to either `admin` or `therapist`.
 - Connect the dashboard bookings page to authenticated Supabase reads with RLS-safe policies.
 - Seed initial `profiles`, `therapists`, and `services` rows after the dashboard schema migration is applied.
+- Test admin status changes, therapist assignment, and therapist-only completion updates against hosted Supabase RLS.
 
 ## Manual QA Checklist
 
@@ -95,13 +97,18 @@ The current focus is stabilizing the Supabase-backed booking MVP and using the n
 - Confirm unauthenticated `/sr/dashboard`, `/ru/dashboard`, and `/en/dashboard` visits redirect to the matching login page.
 - Confirm admin users see overview, bookings, clients, services, and therapists navigation.
 - Confirm therapist users see only overview and bookings navigation.
+- Confirm the dashboard calendar defaults to a usable day view on mobile.
+- Confirm admin users can filter bookings by therapist and status.
+- Confirm therapist users only see their own assigned bookings.
+- Confirm booking details fit mobile screens and allow internal notes editing.
+- Confirm therapist users can mark assigned bookings completed but cannot reassign them.
 
 ## Known Issues
 
 - Contact destinations are still placeholders and should not be treated as production-ready.
 - Specialist options are realistic placeholders.
 - Booking persistence depends on applying the Supabase migration and setting public Supabase env vars locally and in deployment.
-- Dashboard pages are placeholders only; no CRM data views or status workflows exist yet.
+- Clients, services, and therapists dashboard pages are placeholders only; the bookings calendar is the first operational dashboard view.
 - Dashboard schema migration has not been applied to the hosted Supabase project yet.
 - No client authentication exists by design; the new auth flow is for staff dashboard users only.
 - Automated PR creation can fail due GitHub CLI or connector access; branch push still works.
@@ -118,6 +125,7 @@ The current focus is stabilizing the Supabase-backed booking MVP and using the n
 - Use Supabase SSR cookie-based Auth only for staff dashboard routes; public booking remains unauthenticated.
 - Store dashboard authorization roles in Supabase Auth app metadata, using `role: "admin"` or `role: "therapist"`. Unknown or missing role values fall back to therapist-level navigation.
 - Keep dashboard database changes additive: public booking inserts remain anon insert-only, while authenticated dashboard access is controlled by RLS using staff roles from `raw_app_meta_data`.
+- Keep dashboard booking data fetching and updates isolated in `src/lib/dashboard` so UI components can evolve without embedding Supabase query details.
 - Keep UI primitives local and lightweight rather than pulling in a full component dependency for every shadcn/ui part.
 - Avoid full CRM workflows until the booking/dashboard foundation is stable.
 

@@ -271,6 +271,57 @@ const ru = {
         title: "Управление массажистами",
         body: "Админ-инструменты для профилей команды, доступности и услуг специалистов будут здесь."
       }
+    },
+    calendar: {
+      eyebrow: "Календарь записей",
+      title: "Записи по ритму, а не по таблице",
+      subtitle: "Смотрите заявки по дню, неделе или месяцу и меняйте статус прямо в контексте записи.",
+      dataError: "Данные панели пока недоступны. Примените dashboard schema migration и проверьте staff RLS.",
+      currentRange: "Текущий период",
+      emptyDay: "На этот день записей нет.",
+      views: {
+        day: "День",
+        week: "Неделя",
+        month: "Месяц"
+      },
+      controls: {
+        view: "Вид календаря",
+        status: "Фильтр статуса",
+        therapist: "Фильтр массажиста",
+        previous: "Назад",
+        today: "Сегодня",
+        next: "Вперед"
+      },
+      filters: {
+        allStatuses: "Все статусы",
+        allTherapists: "Все массажисты",
+        unassignedTherapist: "Не назначен"
+      },
+      details: {
+        title: "Детали записи",
+        close: "Закрыть",
+        client: "Клиент",
+        phone: "Телефон",
+        service: "Услуга",
+        locale: "Язык",
+        therapist: "Массажист",
+        status: "Статус",
+        comment: "Комментарий клиента",
+        noComment: "Комментария клиента нет.",
+        internalNotes: "Внутренние заметки",
+        assignedTherapist: "Назначенный массажист"
+      },
+      actions: {
+        confirm: "Подтвердить",
+        cancel: "Отменить",
+        complete: "Завершить",
+        markCompleted: "Отметить завершенной",
+        assignTherapist: "Назначить массажиста",
+        saveNotes: "Сохранить заметки",
+        saving: "Сохраняем...",
+        saved: "Сохранено.",
+        error: "Не удалось сохранить изменения."
+      }
     }
   }
 } as const;

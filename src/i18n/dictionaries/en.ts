@@ -271,6 +271,57 @@ const en = {
         title: "Therapist management",
         body: "Admin tools for staff profiles, availability, and service capabilities will live here."
       }
+    },
+    calendar: {
+      eyebrow: "Booking calendar",
+      title: "Appointments by rhythm, not rows",
+      subtitle: "Review requests by day, week, or month and keep status changes close to the appointment context.",
+      dataError: "Dashboard data is not available yet. Apply the dashboard schema migration and check staff RLS setup.",
+      currentRange: "Current range",
+      emptyDay: "No bookings for this day.",
+      views: {
+        day: "Day",
+        week: "Week",
+        month: "Month"
+      },
+      controls: {
+        view: "Calendar view",
+        status: "Status filter",
+        therapist: "Therapist filter",
+        previous: "Previous",
+        today: "Today",
+        next: "Next"
+      },
+      filters: {
+        allStatuses: "All statuses",
+        allTherapists: "All therapists",
+        unassignedTherapist: "Unassigned"
+      },
+      details: {
+        title: "Booking details",
+        close: "Close",
+        client: "Client",
+        phone: "Phone",
+        service: "Service",
+        locale: "Locale",
+        therapist: "Therapist",
+        status: "Status",
+        comment: "Client comment",
+        noComment: "No client comment.",
+        internalNotes: "Internal notes",
+        assignedTherapist: "Assigned therapist"
+      },
+      actions: {
+        confirm: "Confirm",
+        cancel: "Cancel",
+        complete: "Complete",
+        markCompleted: "Mark completed",
+        assignTherapist: "Assign therapist",
+        saveNotes: "Save notes",
+        saving: "Saving...",
+        saved: "Saved.",
+        error: "Could not save changes."
+      }
     }
   }
 } as const;
