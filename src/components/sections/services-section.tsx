@@ -19,8 +19,8 @@ export function ServicesSection({ dictionary }: ServicesSectionProps) {
         </MotionReveal>
         <div className="mt-14 divide-y divide-border/80 border-y border-border/80">
           {services.items.map((service, index) => (
-            <MotionReveal key={service.title} delay={index * 0.08}>
-              <article className="grid gap-6 py-8 transition-colors duration-300 hover:bg-[#fffaf0]/46 sm:py-9 lg:grid-cols-[1fr_1.45fr_auto] lg:items-start lg:gap-10">
+            <MotionReveal key={service.id} delay={index * 0.08}>
+              <article className="-mx-4 grid gap-6 px-4 py-8 transition-colors duration-300 hover:bg-card/46 sm:-mx-6 sm:px-6 sm:py-9 lg:grid-cols-[1fr_1.45fr_auto] lg:items-start lg:gap-10">
                 <div>
                   <p className="text-sm font-semibold text-accent">0{index + 1}</p>
                   <h3 className="mt-4 font-serif text-3xl leading-tight text-foreground sm:text-4xl">{service.title}</h3>

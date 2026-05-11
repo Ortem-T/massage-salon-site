@@ -117,6 +117,20 @@ Next booking steps:
   - `completed`
 - Add email or messaging notification only after persistence is stable.
 
+## Booking MVP Definition Of Done
+
+Booking MVP is considered finished when:
+
+- all user-facing booking copy is production-safe and does not mention internal implementation details
+- all form labels, validation messages, success messages, and error messages are localized
+- service and specialist values use stable ids suitable for database storage
+- date validation prevents past dates in schema, not only through browser attributes
+- submit success and failure states are visible and accessible
+- validation errors are connected to fields with accessible descriptions
+- mobile layout is manually checked at common viewport widths
+- keyboard-only form completion works
+- real contact destinations are available or clearly marked as pending before launch
+
 ## Future CRM/Admin Plan
 
 Do not build CRM/admin too early. Future admin can include:
@@ -129,6 +143,15 @@ Do not build CRM/admin too early. Future admin can include:
 - client notes
 - basic analytics
 - notification history
+
+Minimum future data model:
+
+- `bookings`: service id, specialist id, preferred date, preferred time, client name, phone, comment, site locale, status, timestamps
+- `services`: stable id, localized display data, duration, price range, active flag
+- `specialists`: stable id, public name, active flag, service capabilities
+- `booking_statuses`: pending, confirmed, cancelled, completed
+- `admin_users`: authenticated staff allowed to manage bookings
+- access boundary: Supabase RLS must prevent public reads and restrict writes to intended booking inserts
 
 Authentication should be introduced only when backend requirements are clear.
 
@@ -160,6 +183,7 @@ Near-term:
 - Replace placeholder specialist data with real staff names or labels.
 - Improve real content for services, benefits, testimonials, and about.
 - Manual QA on mobile and tablet.
+- Complete the Booking MVP Definition of Done.
 - Prepare Supabase schema proposal for booking requests.
 
 Later:

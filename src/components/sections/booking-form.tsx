@@ -13,6 +13,7 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { type Locale } from "@/i18n/config";
 import { type Dictionary } from "@/i18n/dictionaries";
+import { bookingTimeSlots } from "@/lib/booking/booking-options";
 import { type BookingFormValues, createBookingFormSchema } from "@/lib/booking/booking-schema";
 import { createBookingRequest } from "@/lib/booking/create-booking-request";
 import { cn } from "@/lib/utils";
@@ -23,24 +24,35 @@ type BookingFormProps = {
 };
 
 type FieldErrorProps = {
+  id: string;
   message?: string;
 };
 
-const timeSlots = ["10:00", "11:30", "13:00", "14:30", "16:00", "17:30", "19:00"];
-
-function FieldError({ message }: FieldErrorProps) {
-  return message ? <p className="text-sm leading-6 text-accent">{message}</p> : null;
+function FieldError({ id, message }: FieldErrorProps) {
+  return (
+    <p
+      id={id}
+      role={message ? "alert" : undefined}
+      aria-live="polite"
+      className={cn("min-h-6 text-sm leading-6 text-accent", !message && "invisible")}
+    >
+      {message || " "}
+    </p>
+  );
 }
 
 function getTodayValue() {
-  return new Date().toISOString().split("T")[0];
+  const date = new Date();
+  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return localDate.toISOString().split("T")[0];
 }
 
 export function BookingForm({ locale, dictionary }: BookingFormProps) {
   const { booking, services } = dictionary;
   const [isSuccess, setIsSuccess] = useState(false);
-  const schema = useMemo(() => createBookingFormSchema(booking.validation), [booking.validation]);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const today = useMemo(() => getTodayValue(), []);
+  const schema = useMemo(() => createBookingFormSchema(booking.validation, { minDate: today }), [booking.validation, today]);
 
   const {
     register,
@@ -63,9 +75,15 @@ export function BookingForm({ locale, dictionary }: BookingFormProps) {
 
   async function onSubmit(values: BookingFormValues) {
     setIsSuccess(false);
-    await createBookingRequest({ ...values, siteLocale: locale });
-    setIsSuccess(true);
-    reset();
+    setSubmitError(null);
+
+    try {
+      await createBookingRequest({ ...values, siteLocale: locale });
+      setIsSuccess(true);
+      reset();
+    } catch {
+      setSubmitError(booking.error.message);
+    }
   }
 
   return (
@@ -83,28 +101,47 @@ export function BookingForm({ locale, dictionary }: BookingFormProps) {
           </div>
         ) : null}
 
+        {submitError ? (
+          <div
+            role="alert"
+            className="mb-7 rounded-xl border border-accent/25 bg-accent/10 p-5 text-sm leading-7 text-accent shadow-sm"
+          >
+            {submitError}
+          </div>
+        ) : null}
+
         <form className="grid gap-6" onSubmit={handleSubmit(onSubmit)} noValidate>
           <div className="grid gap-4 lg:grid-cols-2 lg:gap-5">
             <div className="group grid gap-2.5">
               <Label htmlFor="booking-service">{booking.fields.service.label}</Label>
               <div className="relative">
-                <Select id="booking-service" aria-invalid={!!errors.service} {...register("service")}>
+                <Select
+                  id="booking-service"
+                  aria-invalid={!!errors.service}
+                  aria-describedby={errors.service ? "booking-service-error" : undefined}
+                  {...register("service")}
+                >
                   <option value="">{booking.fields.service.placeholder}</option>
                   {services.items.map((service) => (
-                    <option key={service.title} value={service.title}>
+                    <option key={service.id} value={service.id}>
                       {service.title}
                     </option>
                   ))}
                 </Select>
                 <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
               </div>
-              <FieldError message={errors.service?.message} />
+              <FieldError id="booking-service-error" message={errors.service?.message} />
             </div>
 
             <div className="group grid gap-2.5">
               <Label htmlFor="booking-specialist">{booking.fields.specialist.label}</Label>
               <div className="relative">
-                <Select id="booking-specialist" aria-invalid={!!errors.specialist} {...register("specialist")}>
+                <Select
+                  id="booking-specialist"
+                  aria-invalid={!!errors.specialist}
+                  aria-describedby={errors.specialist ? "booking-specialist-error" : undefined}
+                  {...register("specialist")}
+                >
                   <option value="">{booking.fields.specialist.placeholder}</option>
                   {booking.specialistOptions.map((specialist) => (
                     <option key={specialist.value} value={specialist.value}>
@@ -114,7 +151,7 @@ export function BookingForm({ locale, dictionary }: BookingFormProps) {
                 </Select>
                 <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
               </div>
-              <FieldError message={errors.specialist?.message} />
+              <FieldError id="booking-specialist-error" message={errors.specialist?.message} />
             </div>
           </div>
 
@@ -126,17 +163,23 @@ export function BookingForm({ locale, dictionary }: BookingFormProps) {
                 type="date"
                 min={today}
                 aria-invalid={!!errors.preferredDate}
+                aria-describedby={errors.preferredDate ? "booking-date-error" : undefined}
                 {...register("preferredDate")}
               />
-              <FieldError message={errors.preferredDate?.message} />
+              <FieldError id="booking-date-error" message={errors.preferredDate?.message} />
             </div>
 
             <div className="group grid gap-2.5">
               <Label htmlFor="booking-time">{booking.fields.time.label}</Label>
               <div className="relative">
-                <Select id="booking-time" aria-invalid={!!errors.preferredTime} {...register("preferredTime")}>
+                <Select
+                  id="booking-time"
+                  aria-invalid={!!errors.preferredTime}
+                  aria-describedby={errors.preferredTime ? "booking-time-error" : undefined}
+                  {...register("preferredTime")}
+                >
                   <option value="">{booking.fields.time.placeholder}</option>
-                  {timeSlots.map((time) => (
+                  {bookingTimeSlots.map((time) => (
                     <option key={time} value={time}>
                       {time}
                     </option>
@@ -144,7 +187,7 @@ export function BookingForm({ locale, dictionary }: BookingFormProps) {
                 </Select>
                 <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
               </div>
-              <FieldError message={errors.preferredTime?.message} />
+              <FieldError id="booking-time-error" message={errors.preferredTime?.message} />
             </div>
           </div>
 
@@ -157,9 +200,10 @@ export function BookingForm({ locale, dictionary }: BookingFormProps) {
                 placeholder={booking.fields.name.placeholder}
                 autoComplete="name"
                 aria-invalid={!!errors.clientName}
+                aria-describedby={errors.clientName ? "booking-name-error" : undefined}
                 {...register("clientName")}
               />
-              <FieldError message={errors.clientName?.message} />
+              <FieldError id="booking-name-error" message={errors.clientName?.message} />
             </div>
 
             <div className="grid gap-2.5">
@@ -170,9 +214,10 @@ export function BookingForm({ locale, dictionary }: BookingFormProps) {
                 placeholder={booking.fields.phone.placeholder}
                 autoComplete="tel"
                 aria-invalid={!!errors.phoneNumber}
+                aria-describedby={errors.phoneNumber ? "booking-phone-error" : undefined}
                 {...register("phoneNumber")}
               />
-              <FieldError message={errors.phoneNumber?.message} />
+              <FieldError id="booking-phone-error" message={errors.phoneNumber?.message} />
             </div>
           </div>
 
@@ -182,9 +227,10 @@ export function BookingForm({ locale, dictionary }: BookingFormProps) {
               id="booking-comment"
               placeholder={booking.fields.comment.placeholder}
               aria-invalid={!!errors.comment}
+              aria-describedby={errors.comment ? "booking-comment-error" : undefined}
               {...register("comment")}
             />
-            <FieldError message={errors.comment?.message} />
+            <FieldError id="booking-comment-error" message={errors.comment?.message} />
           </div>
 
           <div className="flex flex-col gap-5 border-t border-border/60 pt-6 sm:flex-row sm:items-center sm:justify-between">
