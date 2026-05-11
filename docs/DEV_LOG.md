@@ -8,7 +8,7 @@ This log is shared context for human and AI-assisted development. Update it afte
 
 Raine is a premium multilingual massage salon homepage for Novi Sad, Serbia. The homepage MVP exists and uses locale-based routing for Serbian, Russian, and English. The visual direction has moved toward calm luxury wellness with Japanese spa influence, warm natural colors, refined typography, soft shadows, and gentle motion.
 
-The booking form MVP is integrated into the homepage and now submits through a Next API route to Supabase. The form collects service, specialist, preferred date, preferred time, client name, phone number, and optional comment. The current site locale is passed as `siteLocale` and persisted as the booking `locale`.
+The booking form MVP is integrated into the homepage and now submits through a Next API route to Supabase. The form collects service, specialist, preferred date, preferred time, client name, phone number, and optional comment. The current site locale is passed as `siteLocale` and persisted as the booking `locale`. A protected dashboard foundation now exists for Supabase Auth staff users with `admin` and `therapist` roles.
 
 ## Completed Tasks
 
@@ -44,10 +44,11 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Replaced the native booking date input with a custom branded calendar popover and added a config-based availability foundation for working days, closed dates, fully booked dates, and available time slots.
 - Switched project workflow from per-task feature branches to a persistent `develop` branch for ongoing development, with milestone PRs from `develop` to `main`.
 - Added Supabase booking persistence MVP behind `createBookingRequest()`, including a public anon insert-only RLS migration, a typed Supabase utility, and `/api/bookings` server-side validation.
+- Added a Supabase Auth protected dashboard foundation at `/[locale]/dashboard`, with server-side login, cookie-based SSR auth utilities, role-aware navigation, and placeholder admin/therapist dashboard pages.
 
 ## Current Focus
 
-The current focus is stabilizing the Supabase-backed booking MVP and documenting decisions around persistence, availability, and launch readiness. The next product risk is trust: placeholder contact destinations and placeholder specialists should be replaced with real business data before the site feels production-ready.
+The current focus is stabilizing the Supabase-backed booking MVP and using the new dashboard foundation for the first internal booking-management views. The next product risk is trust: placeholder contact destinations and placeholder specialists should be replaced with real business data before the site feels production-ready.
 
 ## Git Workflow
 
@@ -70,6 +71,8 @@ The current focus is stabilizing the Supabase-backed booking MVP and documenting
 - Apply the Supabase booking migration in the hosted project and manually submit a test booking.
 - Define Supabase schema for availability rules: working days, closed dates, booked slots, and specialist-specific schedules.
 - Add manual QA checklist for launch.
+- Create Supabase Auth staff users and set `app_metadata.role` to either `admin` or `therapist`.
+- Connect the dashboard bookings page to authenticated Supabase reads with RLS-safe policies.
 
 ## Manual QA Checklist
 
@@ -86,14 +89,17 @@ The current focus is stabilizing the Supabase-backed booking MVP and documenting
 - Submit successfully and verify success state plus a new row in Supabase `public.bookings`.
 - Simulate failed submit before Supabase launch and verify localized error state.
 - Verify real WhatsApp, Telegram, Instagram, and contact links before production.
+- Confirm unauthenticated `/sr/dashboard`, `/ru/dashboard`, and `/en/dashboard` visits redirect to the matching login page.
+- Confirm admin users see overview, bookings, clients, services, and therapists navigation.
+- Confirm therapist users see only overview and bookings navigation.
 
 ## Known Issues
 
 - Contact destinations are still placeholders and should not be treated as production-ready.
 - Specialist options are realistic placeholders.
 - Booking persistence depends on applying the Supabase migration and setting public Supabase env vars locally and in deployment.
-- No admin dashboard exists.
-- No client authentication exists by design.
+- Dashboard pages are placeholders only; no CRM data views or status workflows exist yet.
+- No client authentication exists by design; the new auth flow is for staff dashboard users only.
 - Automated PR creation can fail due GitHub CLI or connector access; branch push still works.
 - Local Next.js dev server may need a restart after production build.
 
@@ -105,8 +111,10 @@ The current focus is stabilizing the Supabase-backed booking MVP and documenting
 - Keep booking persistence behind `createBookingRequest()` so storage details can evolve without rewriting form UI.
 - Use a Next API route for public booking inserts, with Supabase RLS allowing anon inserts only and no anon reads or updates.
 - Store current site language as `siteLocale` from the selected route instead of asking users to choose communication language manually.
+- Use Supabase SSR cookie-based Auth only for staff dashboard routes; public booking remains unauthenticated.
+- Store dashboard authorization roles in Supabase Auth app metadata, using `role: "admin"` or `role: "therapist"`. Unknown or missing role values fall back to therapist-level navigation.
 - Keep UI primitives local and lightweight rather than pulling in a full component dependency for every shadcn/ui part.
-- Avoid backend, CRM, and authentication until the booking MVP is stable.
+- Avoid full CRM workflows until the booking/dashboard foundation is stable.
 
 ## Update Rule
 

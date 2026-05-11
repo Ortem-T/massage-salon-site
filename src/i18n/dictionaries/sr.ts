@@ -206,6 +206,72 @@ const sr = {
   footer: {
     text: "Premium masažni salon u Novom Sadu.",
     rights: "Sva prava zadržana."
+  },
+  auth: {
+    login: {
+      eyebrow: "Pristup za tim",
+      title: "Prijava u Raine",
+      subtitle: "Koristite svoj nalog za osoblje da otvorite zaštićeni dashboard.",
+      fields: {
+        email: {
+          label: "Email",
+          placeholder: "ime@raine.rs"
+        },
+        password: {
+          label: "Lozinka",
+          placeholder: "Unesite lozinku"
+        }
+      },
+      errors: {
+        missing: "Unesite email i lozinku.",
+        invalid: "Email ili lozinka nisu ispravni."
+      },
+      submit: "Prijavi se"
+    }
+  },
+  dashboard: {
+    title: "Dashboard",
+    navigationLabel: "Dashboard navigacija",
+    signedInAs: "Prijavljeni ste kao",
+    unknownEmail: "Nalog osoblja",
+    roles: {
+      admin: "Admin",
+      therapist: "Terapeut"
+    },
+    navigation: {
+      overview: "Pregled",
+      bookings: "Termini",
+      clients: "Klijenti",
+      services: "Usluge",
+      therapists: "Terapeuti"
+    },
+    pages: {
+      overview: {
+        eyebrow: "Dashboard",
+        title: "Mirna operativa počinje ovde",
+        body: "Ova zaštićena zona je spremna za tokove termina, raspored i alate za tim."
+      },
+      bookings: {
+        eyebrow: "Termini",
+        title: "Radni prostor za termine",
+        body: "Zahtevi za termine će biti prikazani ovde kada povežemo dashboard prikaze podataka."
+      },
+      clients: {
+        eyebrow: "Klijenti",
+        title: "Evidencija klijenata",
+        body: "Detalji o klijentima i beleške biće dodati u kasnijoj CRM fazi."
+      },
+      services: {
+        eyebrow: "Usluge",
+        title: "Katalog usluga",
+        body: "Admin alati za tretmane, cene, trajanje i aktivan status biće ovde."
+      },
+      therapists: {
+        eyebrow: "Terapeuti",
+        title: "Upravljanje terapeutima",
+        body: "Admin alati za profile tima, dostupnost i usluge koje terapeut radi biće ovde."
+      }
+    }
   }
 } as const;
 

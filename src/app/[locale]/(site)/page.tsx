@@ -6,12 +6,16 @@ import { CTASection } from "@/components/sections/cta-section";
 import { HeroSection } from "@/components/sections/hero-section";
 import { ServicesSection } from "@/components/sections/services-section";
 import { TestimonialsSection } from "@/components/sections/testimonials-section";
-import { isLocale, type Locale } from "@/i18n/config";
+import { isLocale, locales, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 
 type HomePageProps = {
   params: Promise<{ locale: string }>;
 };
+
+export function generateStaticParams() {
+  return locales.map((locale) => ({ locale }));
+}
 
 export default async function HomePage({ params }: HomePageProps) {
   const { locale: rawLocale } = await params;

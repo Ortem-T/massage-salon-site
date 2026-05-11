@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { defaultLocale, locales, type Locale } from "@/i18n/config";
+import { updateSupabaseSession } from "@/lib/supabase/middleware";
 
 const PUBLIC_FILE = /\.(.*)$/;
 
@@ -20,9 +21,12 @@ export function middleware(request: NextRequest) {
   const pathnameHasLocale = locales.some(
     (locale: Locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`)
   );
+  const pathnameNeedsAuthSession = locales.some(
+    (locale: Locale) => pathname === `/${locale}/login` || pathname.startsWith(`/${locale}/dashboard`)
+  );
 
   if (pathnameHasLocale) {
-    return NextResponse.next();
+    return pathnameNeedsAuthSession ? updateSupabaseSession(request) : NextResponse.next();
   }
 
   const nextUrl = request.nextUrl.clone();

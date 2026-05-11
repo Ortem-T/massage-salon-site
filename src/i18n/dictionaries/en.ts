@@ -206,6 +206,72 @@ const en = {
   footer: {
     text: "Premium massage salon in Novi Sad.",
     rights: "All rights reserved."
+  },
+  auth: {
+    login: {
+      eyebrow: "Staff access",
+      title: "Sign in to Raine",
+      subtitle: "Use your staff account to open the protected dashboard.",
+      fields: {
+        email: {
+          label: "Email",
+          placeholder: "name@raine.rs"
+        },
+        password: {
+          label: "Password",
+          placeholder: "Enter password"
+        }
+      },
+      errors: {
+        missing: "Enter your email and password.",
+        invalid: "The email or password is not valid."
+      },
+      submit: "Sign in"
+    }
+  },
+  dashboard: {
+    title: "Dashboard",
+    navigationLabel: "Dashboard navigation",
+    signedInAs: "Signed in as",
+    unknownEmail: "Staff account",
+    roles: {
+      admin: "Admin",
+      therapist: "Therapist"
+    },
+    navigation: {
+      overview: "Overview",
+      bookings: "Bookings",
+      clients: "Clients",
+      services: "Services",
+      therapists: "Therapists"
+    },
+    pages: {
+      overview: {
+        eyebrow: "Dashboard",
+        title: "Calm operations start here",
+        body: "This protected area is ready for booking workflows, schedule views, and staff tools."
+      },
+      bookings: {
+        eyebrow: "Bookings",
+        title: "Booking workspace",
+        body: "Booking requests will appear here after the dashboard data views are connected."
+      },
+      clients: {
+        eyebrow: "Clients",
+        title: "Client records",
+        body: "Client details and notes will be added in a later CRM stage."
+      },
+      services: {
+        eyebrow: "Services",
+        title: "Service catalog",
+        body: "Admin tools for treatments, pricing, duration, and active status will live here."
+      },
+      therapists: {
+        eyebrow: "Therapists",
+        title: "Therapist management",
+        body: "Admin tools for staff profiles, availability, and service capabilities will live here."
+      }
+    }
   }
 } as const;
 

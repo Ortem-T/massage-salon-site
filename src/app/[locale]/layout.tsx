@@ -11,8 +11,6 @@ import "@fontsource/cormorant-garamond/600.css";
 import "@fontsource/cormorant-garamond/700.css";
 import "../globals.css";
 
-import { Footer } from "@/components/layout/footer";
-import { Navbar } from "@/components/layout/navbar";
 import { defaultLocale, isLocale, locales, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 
@@ -22,10 +20,6 @@ type LocaleLayoutProps = {
 };
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://raine-spa.rs";
-
-export function generateStaticParams() {
-  return locales.map((locale) => ({ locale }));
-}
 
 export async function generateMetadata({ params }: LocaleLayoutProps): Promise<Metadata> {
   const { locale: rawLocale } = await params;
@@ -90,15 +84,10 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   }
 
   const locale: Locale = rawLocale;
-  const dictionary = await getDictionary(locale);
 
   return (
     <html lang={locale}>
-      <body>
-        <Navbar locale={locale} dictionary={dictionary} />
-        {children}
-        <Footer locale={locale} dictionary={dictionary} />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
