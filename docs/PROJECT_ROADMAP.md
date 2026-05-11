@@ -166,6 +166,7 @@ Authentication should be introduced only when backend requirements are clear.
 - Changes should be incremental and focused.
 - Review findings should be converted into small, scoped tasks.
 - After each major development stage, update `docs/DEV_LOG.md`.
+- Ongoing implementation should happen on `develop` unless a feature branch is explicitly requested.
 
 ## Development Milestones
 
@@ -210,12 +211,15 @@ Later:
 
 ## Git Workflow
 
-- Work on a separate branch for every task.
+- `main` is the stable production-ready branch.
+- `develop` is the active development branch.
+- Ongoing development happens directly on `develop`.
+- Avoid creating feature branches unless explicitly requested.
 - Keep changes scoped to the task.
 - Run lint and build before commit.
 - Use clear commit messages.
-- Push feature branches, not `main`.
-- Open a pull request when GitHub access allows it.
+- Push `develop`, never push directly to `main`.
+- Open a pull request from `develop` to `main` only when a milestone is ready.
 - If automated PR creation fails, provide a direct compare link.
 
 ## Future Ideas

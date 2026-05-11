@@ -42,10 +42,22 @@ The booking form MVP is integrated into the homepage. It is currently frontend-o
 - Added project documentation system in `docs/`.
 - Applied booking review fixes for stable service ids, accessible validation messages, schema-level date validation, localized submit failure state, and premium-safe booking copy.
 - Replaced the native booking date input with a custom branded calendar popover and added a config-based availability foundation for working days, closed dates, fully booked dates, and available time slots.
+- Switched project workflow from per-task feature branches to a persistent `develop` branch for ongoing development, with milestone PRs from `develop` to `main`.
 
 ## Current Focus
 
 The current focus is stabilizing the booking MVP and documenting decisions before backend work begins. The next product risk is trust: placeholder contact destinations and placeholder specialists should be replaced with real business data before the site feels production-ready.
+
+## Git Workflow
+
+- `main` is stable and production-ready.
+- `develop` is the active development branch.
+- Commit ongoing work directly to `develop`.
+- Do not push directly to `main`.
+- Create a pull request from `develop` to `main` only when a milestone is ready.
+- Avoid feature branches unless explicitly requested.
+- Run lint/build before commit when available.
+- Update this log after meaningful milestones.
 
 ## Next Tasks
 
