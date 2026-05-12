@@ -279,6 +279,7 @@ const en = {
       dataError: "Dashboard data is not available yet. Apply the dashboard schema migration and check staff RLS setup.",
       currentRange: "Current range",
       emptyDay: "No bookings for this day.",
+      emptyCompact: "Free",
       views: {
         day: "Day",
         week: "Week",

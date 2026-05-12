@@ -279,6 +279,7 @@ const sr = {
       dataError: "Dashboard podaci još nisu dostupni. Primenite dashboard schema migraciju i proverite staff RLS podešavanje.",
       currentRange: "Trenutni period",
       emptyDay: "Nema termina za ovaj dan.",
+      emptyCompact: "Slobodno",
       views: {
         day: "Dan",
         week: "Nedelja",

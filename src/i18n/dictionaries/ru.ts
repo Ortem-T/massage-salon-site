@@ -279,6 +279,7 @@ const ru = {
       dataError: "Данные панели пока недоступны. Примените dashboard schema migration и проверьте staff RLS.",
       currentRange: "Текущий период",
       emptyDay: "На этот день записей нет.",
+      emptyCompact: "Свободно",
       views: {
         day: "День",
         week: "Неделя",

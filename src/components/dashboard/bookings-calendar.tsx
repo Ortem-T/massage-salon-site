@@ -95,6 +95,10 @@ function formatDate(value: string, locale: Locale, options: Intl.DateTimeFormatO
   return new Intl.DateTimeFormat(locale, options).format(parseDateKey(value));
 }
 
+function formatCompactWeekday(value: string, locale: Locale) {
+  return formatDate(value, locale, { weekday: "short" }).replace(".", "").slice(0, 2);
+}
+
 function sortBookings(bookings: DashboardBooking[]) {
   return [...bookings].sort((a, b) => {
     const dateCompare = a.preferredDate.localeCompare(b.preferredDate);
@@ -162,6 +166,13 @@ export function BookingsCalendar({
     } else {
       setSelectedDate((current) => addMonths(current, direction));
     }
+  }
+
+  function openDay(day: string) {
+    setSelectedDate(day);
+    setView("day");
+    setSelectedBookingId(null);
+    setMessage(null);
   }
 
   function openBooking(booking: DashboardBooking) {
@@ -299,55 +310,105 @@ export function BookingsCalendar({
           </div>
         </div>
 
-        <div className={cn("mt-4 grid gap-3", view === "day" ? "grid-cols-1" : "grid-cols-1 md:grid-cols-7")}>
+        <div
+          className={cn(
+            "mt-4 grid gap-3",
+            view === "day" ? "grid-cols-1" : "grid-cols-1 md:grid-cols-7",
+            view === "month" && "md:auto-rows-[8.5rem]",
+            view === "week" && "md:auto-rows-[12rem]"
+          )}
+        >
           {visibleDays.map((day) => {
             const dayBookings = visibleBookings.filter((booking) => booking.preferredDate === day);
+            const isCompactView = view !== "day";
 
             return (
               <article
                 key={day}
+                role={isCompactView ? "button" : undefined}
+                tabIndex={isCompactView ? 0 : undefined}
+                onClick={isCompactView ? () => openDay(day) : undefined}
+                onKeyDown={
+                  isCompactView
+                    ? (event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          openDay(day);
+                        }
+                      }
+                    : undefined
+                }
                 className={cn(
-                  "min-h-44 rounded-2xl border border-border/70 bg-background/45 p-3",
-                  view === "month" ? "min-h-36" : "min-h-64"
+                  "rounded-2xl border border-border/70 bg-background/45 p-3",
+                  view === "day" && "min-h-64",
+                  view === "week" && "min-h-40 cursor-pointer overflow-hidden transition hover:border-primary/25 hover:bg-background/70",
+                  view === "month" && "min-h-32 cursor-pointer overflow-hidden transition hover:border-primary/25 hover:bg-background/70"
                 )}
               >
                 <div className="flex items-baseline justify-between gap-2">
                   <h3 className="text-sm font-semibold text-primary">
-                    {formatDate(day, locale, { weekday: view === "month" ? "short" : "long", day: "numeric" })}
+                    {view === "day"
+                      ? formatDate(day, locale, { weekday: "long", day: "numeric" })
+                      : `${formatCompactWeekday(day, locale)} ${formatDate(day, locale, { day: "numeric" })}`}
                   </h3>
                   <span className="text-xs text-muted-foreground">{dayBookings.length}</span>
                 </div>
 
-                <div className="mt-3 space-y-2">
+                <div className={cn("mt-3 space-y-2", isCompactView && "max-h-[calc(100%-2rem)] overflow-hidden")}>
                   {dayBookings.length > 0 ? (
-                    dayBookings.map((booking) => (
-                      <button
-                        key={booking.id}
-                        type="button"
-                        onClick={() => openBooking(booking)}
-                        className={cn(
-                          "focus-ring w-full rounded-xl border p-3 text-left text-sm transition hover:-translate-y-0.5 hover:shadow-sm",
-                          statusStyles[booking.status]
-                        )}
-                      >
-                        <span className="block text-xs font-semibold uppercase tracking-[0.12em]">
-                          {booking.preferredTime}
-                        </span>
-                        <span className="mt-1 block font-semibold text-foreground">
-                          {serviceLabels.get(booking.service) ?? booking.service}
-                        </span>
-                        <span className="mt-1 block text-xs text-muted-foreground">{booking.clientName}</span>
-                        <span className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                          <span>{dictionary.booking.statuses[booking.status]}</span>
-                          {role === "admin" ? (
-                            <span>{therapistNames.get(booking.therapistId ?? "") ?? booking.specialist}</span>
-                          ) : null}
-                        </span>
-                      </button>
-                    ))
+                    <>
+                      {dayBookings.slice(0, isCompactView ? 4 : dayBookings.length).map((booking) =>
+                        isCompactView ? (
+                          <div
+                            key={booking.id}
+                            className={cn(
+                              "w-full truncate rounded-lg border px-2 py-1 text-left text-xs font-semibold leading-5",
+                              statusStyles[booking.status]
+                            )}
+                          >
+                            <span className="mr-1 tabular-nums">{booking.preferredTime}</span>
+                            <span>{serviceLabels.get(booking.service) ?? booking.service}</span>
+                          </div>
+                        ) : (
+                          <button
+                            key={booking.id}
+                            type="button"
+                            onClick={() => openBooking(booking)}
+                            className={cn(
+                              "focus-ring w-full rounded-xl border p-3 text-left text-sm transition hover:-translate-y-0.5 hover:shadow-sm",
+                              statusStyles[booking.status]
+                            )}
+                          >
+                            <span className="block text-xs font-semibold uppercase tracking-[0.12em]">
+                              {booking.preferredTime}
+                            </span>
+                            <span className="mt-1 block font-semibold text-foreground">
+                              {serviceLabels.get(booking.service) ?? booking.service}
+                            </span>
+                            <span className="mt-1 block text-xs text-muted-foreground">{booking.clientName}</span>
+                            <span className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                              <span>{dictionary.booking.statuses[booking.status]}</span>
+                              {role === "admin" ? (
+                                <span>{therapistNames.get(booking.therapistId ?? "") ?? booking.specialist}</span>
+                              ) : null}
+                            </span>
+                          </button>
+                        )
+                      )}
+                      {isCompactView && dayBookings.length > 4 ? (
+                        <p className="px-2 text-xs font-semibold text-muted-foreground">
+                          +{dayBookings.length - 4}
+                        </p>
+                      ) : null}
+                    </>
                   ) : (
-                    <p className="rounded-xl border border-dashed border-border/80 px-3 py-5 text-sm leading-6 text-muted-foreground">
-                      {calendar.emptyDay}
+                    <p
+                      className={cn(
+                        "rounded-xl border border-dashed border-border/80 text-sm leading-6 text-muted-foreground",
+                        isCompactView ? "px-2 py-2 text-xs" : "px-3 py-5"
+                      )}
+                    >
+                      {isCompactView ? calendar.emptyCompact : calendar.emptyDay}
                     </p>
                   )}
                 </div>
