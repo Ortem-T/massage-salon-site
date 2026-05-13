@@ -17,10 +17,10 @@ function isDashboardRole(role: unknown): role is DashboardRole {
   return typeof role === "string" && dashboardRoles.includes(role as DashboardRole);
 }
 
-function getRoleFromAppMetadata(appMetadata: Record<string, unknown> | undefined): DashboardRole {
-  const role = appMetadata?.role ?? appMetadata?.dashboard_role;
+export function getDashboardRoleFromAppMetadata(appMetadata: Record<string, unknown> | undefined): DashboardRole | null {
+  const role = appMetadata?.role;
 
-  return isDashboardRole(role) ? role : "therapist";
+  return isDashboardRole(role) ? role : null;
 }
 
 export async function requireDashboardUser(locale: Locale): Promise<DashboardUser> {
@@ -31,10 +31,16 @@ export async function requireDashboardUser(locale: Locale): Promise<DashboardUse
     redirect(`/${locale}/login`);
   }
 
+  const role = getDashboardRoleFromAppMetadata(data.claims.app_metadata);
+
+  if (!role) {
+    redirect(`/${locale}/login?error=forbidden`);
+  }
+
   return {
     id: data.claims.sub,
     email: data.claims.email ?? "",
-    role: getRoleFromAppMetadata(data.claims.app_metadata)
+    role
   };
 }
 

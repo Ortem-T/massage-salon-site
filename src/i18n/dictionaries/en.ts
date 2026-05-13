@@ -224,7 +224,8 @@ const en = {
       },
       errors: {
         missing: "Enter your email and password.",
-        invalid: "The email or password is not valid."
+        invalid: "The email or password is not valid.",
+        forbidden: "This account does not have dashboard access. Ask an admin to set a staff role."
       },
       submit: "Sign in"
     }
@@ -280,6 +281,12 @@ const en = {
       currentRange: "Current range",
       emptyDay: "No bookings for this day.",
       emptyCompact: "Free",
+      statusShort: {
+        pending: "Pend",
+        confirmed: "Conf",
+        cancelled: "Canc",
+        completed: "Done"
+      },
       views: {
         day: "Day",
         week: "Week",

@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 
 import { isLocale } from "@/i18n/config";
+import { getDashboardRoleFromAppMetadata } from "@/lib/dashboard/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function getSafeRedirect(locale: string, next: string | null) {
@@ -34,6 +35,14 @@ export async function signInDashboard(locale: string, next: string | null, formD
 
   if (error) {
     redirect(`/${safeLocale}/login?error=invalid`);
+  }
+
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const role = getDashboardRoleFromAppMetadata(claimsData?.claims?.app_metadata);
+
+  if (!role) {
+    await supabase.auth.signOut();
+    redirect(`/${safeLocale}/login?error=forbidden`);
   }
 
   redirect(getSafeRedirect(safeLocale, next));

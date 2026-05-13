@@ -48,6 +48,7 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Added a dashboard MVP Supabase migration draft for `profiles`, `therapists`, `clients`, `services`, additive `bookings` columns, RLS grants, and staff booking update constraints.
 - Added the first calendar-first dashboard bookings UI on `/[locale]/dashboard` and `/[locale]/dashboard/bookings`, including role-aware filters, status overview, booking details modal, and server actions for status, therapist assignment, and internal notes.
 - Added role-based booking management actions: admin can update status, assign therapists, and edit notes for all bookings; therapists can update status and notes only for assigned bookings. Added a follow-up RLS migration for therapist status permissions.
+- Hardened dashboard review findings: invalid staff roles are blocked at login/dashboard entry, booking details trap keyboard focus and support Escape close, admin updates verify affected rows, compact calendar events show text status cues, and dashboard dates use the Belgrade salon timezone with Serbian Latin formatting.
 
 ## Current Focus
 
@@ -101,8 +102,11 @@ The current focus is applying the dashboard schema and booking permissions migra
 - Confirm admin users can filter bookings by therapist and status.
 - Confirm therapist users only see their own assigned bookings.
 - Confirm booking details fit mobile screens and allow internal notes editing.
+- Confirm booking details trap Tab focus, close with Escape, and return focus to the opened booking.
 - Confirm cancelling a booking shows a confirmation dialog.
 - Confirm therapist users can mark assigned bookings confirmed, cancelled, or completed, but cannot reassign them or set them back to pending.
+- Confirm a signed-in Auth user without `app_metadata.role` is redirected to login with a staff-access error.
+- Confirm Serbian dashboard dates render in Latin script.
 
 ## Known Issues
 
@@ -124,7 +128,7 @@ The current focus is applying the dashboard schema and booking permissions migra
 - Use a Next API route for public booking inserts, with Supabase RLS allowing anon inserts only and no anon reads or updates.
 - Store current site language as `siteLocale` from the selected route instead of asking users to choose communication language manually.
 - Use Supabase SSR cookie-based Auth only for staff dashboard routes; public booking remains unauthenticated.
-- Store dashboard authorization roles in Supabase Auth app metadata, using `role: "admin"` or `role: "therapist"`. Unknown or missing role values fall back to therapist-level navigation.
+- Store dashboard authorization roles in Supabase Auth app metadata, using `role: "admin"` or `role: "therapist"`. Unknown or missing role values are blocked from dashboard access.
 - Keep dashboard database changes additive: public booking inserts remain anon insert-only, while authenticated dashboard access is controlled by RLS using staff roles from `raw_app_meta_data`.
 - Keep dashboard booking data fetching and updates isolated in `src/lib/dashboard` so UI components can evolve without embedding Supabase query details.
 - Keep dashboard booking actions role-aware in the service layer and rely on Supabase RLS as the real data boundary.

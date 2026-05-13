@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { type KeyboardEvent, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -37,39 +37,59 @@ const statusStyles: Record<BookingStatus, string> = {
   cancelled: "border-[#b47c72]/35 bg-[#f1ded9] text-[#7b3c34]",
   completed: "border-[#8f9d86]/35 bg-[#e7eadf] text-[#46543d]"
 };
+const salonTimeZone = "Europe/Belgrade";
+const dateLocales: Record<Locale, string> = {
+  sr: "sr-Latn-RS",
+  ru: "ru-RU",
+  en: "en-GB"
+};
+const focusableSelector = [
+  "a[href]",
+  "button:not([disabled])",
+  "textarea:not([disabled])",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "[tabindex]:not([tabindex='-1'])"
+].join(",");
 
 function todayKey() {
   return toDateKey(new Date());
 }
 
 function toDateKey(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
+  const parts = new Intl.DateTimeFormat("en-US", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: salonTimeZone,
+    year: "numeric"
+  }).formatToParts(date);
+  const values = new Map(parts.map((part) => [part.type, part.value]));
 
-  return `${year}-${month}-${day}`;
+  return `${values.get("year")}-${values.get("month")}-${values.get("day")}`;
 }
 
 function parseDateKey(value: string) {
-  return new Date(`${value}T00:00:00`);
+  const [year, month, day] = value.split("-").map(Number);
+
+  return new Date(Date.UTC(year, month - 1, day, 12));
 }
 
 function addDays(value: string, amount: number) {
   const date = parseDateKey(value);
-  date.setDate(date.getDate() + amount);
+  date.setUTCDate(date.getUTCDate() + amount);
   return toDateKey(date);
 }
 
 function addMonths(value: string, amount: number) {
   const date = parseDateKey(value);
-  date.setMonth(date.getMonth() + amount);
+  date.setUTCMonth(date.getUTCMonth() + amount);
   return toDateKey(date);
 }
 
 function startOfWeek(value: string) {
   const date = parseDateKey(value);
-  const day = date.getDay() || 7;
-  date.setDate(date.getDate() - day + 1);
+  const day = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() - day + 1);
   return toDateKey(date);
 }
 
@@ -80,8 +100,8 @@ function getWeekDays(value: string) {
 
 function getMonthDays(value: string) {
   const date = parseDateKey(value);
-  const first = new Date(date.getFullYear(), date.getMonth(), 1);
-  const last = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  const first = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1, 12));
+  const last = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0, 12));
   const start = startOfWeek(toDateKey(first));
   const lastWeek = getWeekDays(toDateKey(last));
   const end = lastWeek[lastWeek.length - 1];
@@ -97,7 +117,7 @@ function getMonthDays(value: string) {
 }
 
 function formatDate(value: string, locale: Locale, options: Intl.DateTimeFormatOptions) {
-  return new Intl.DateTimeFormat(locale, options).format(parseDateKey(value));
+  return new Intl.DateTimeFormat(dateLocales[locale], { ...options, timeZone: salonTimeZone }).format(parseDateKey(value));
 }
 
 function formatCompactWeekday(value: string, locale: Locale) {
@@ -109,6 +129,16 @@ function sortBookings(bookings: DashboardBooking[]) {
     const dateCompare = a.preferredDate.localeCompare(b.preferredDate);
     return dateCompare === 0 ? a.preferredTime.localeCompare(b.preferredTime) : dateCompare;
   });
+}
+
+function getFocusableElements(container: HTMLElement | null) {
+  if (!container) {
+    return [];
+  }
+
+  return Array.from(container.querySelectorAll<HTMLElement>(focusableSelector)).filter(
+    (element) => !element.hasAttribute("disabled") && element.getAttribute("aria-hidden") !== "true"
+  );
 }
 
 export function BookingsCalendar({
@@ -130,6 +160,8 @@ export function BookingsCalendar({
   const [assignedTherapistId, setAssignedTherapistId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const dialogRef = useRef<HTMLElement | null>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   const therapistNames = useMemo(
     () => new Map(therapists.map((therapist) => [therapist.id, therapist.displayName])),
@@ -163,6 +195,26 @@ export function BookingsCalendar({
     count: bookings.filter((booking) => booking.status === status).length
   }));
 
+  useEffect(() => {
+    if (!selectedBookingId) {
+      return;
+    }
+
+    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const frame = window.requestAnimationFrame(() => {
+      const dialog = dialogRef.current;
+      const focusableElements = getFocusableElements(dialog);
+      const target = focusableElements[0] ?? dialog;
+
+      target?.focus();
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      previousFocusRef.current?.focus();
+    };
+  }, [selectedBookingId]);
+
   function shiftDate(direction: -1 | 1) {
     if (view === "day") {
       setSelectedDate((current) => addDays(current, direction));
@@ -192,6 +244,38 @@ export function BookingsCalendar({
     setMessage(null);
   }
 
+  function handleDialogKeyDown(event: KeyboardEvent<HTMLElement>) {
+    if (event.key === "Escape") {
+      event.stopPropagation();
+      closeBooking();
+      return;
+    }
+
+    if (event.key !== "Tab") {
+      return;
+    }
+
+    const dialog = dialogRef.current;
+    const focusableElements = getFocusableElements(dialog);
+
+    if (!dialog || focusableElements.length === 0) {
+      event.preventDefault();
+      dialog?.focus();
+      return;
+    }
+
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    if (event.shiftKey && document.activeElement === firstElement) {
+      event.preventDefault();
+      lastElement.focus();
+    } else if (!event.shiftKey && document.activeElement === lastElement) {
+      event.preventDefault();
+      firstElement.focus();
+    }
+  }
+
   function showActionResult(result: DashboardActionResult) {
     if (result.ok) {
       setMessage(calendar.actions.saved);
@@ -214,31 +298,49 @@ export function BookingsCalendar({
   }
 
   function runStatusUpdate(status: BookingStatus) {
+    if (!selectedBooking) {
+      return;
+    }
+
     if (status === "cancelled" && !window.confirm(calendar.actions.confirmCancel)) {
       return;
     }
 
+    const bookingId = selectedBooking.id;
+
     runAction(() =>
       updateBookingStatusAction(locale, {
-        bookingId: selectedBooking?.id ?? "",
+        bookingId,
         status
       })
     );
   }
 
   function runNotesUpdate() {
+    if (!selectedBooking) {
+      return;
+    }
+
+    const bookingId = selectedBooking.id;
+
     runAction(() =>
       updateBookingInternalNotesAction(locale, {
-        bookingId: selectedBooking?.id ?? "",
+        bookingId,
         internalNotes
       })
     );
   }
 
   function runTherapistAssignment() {
+    if (!selectedBooking) {
+      return;
+    }
+
+    const bookingId = selectedBooking.id;
+
     runAction(() =>
       assignTherapistToBookingAction(locale, {
-        bookingId: selectedBooking?.id ?? "",
+        bookingId,
         therapistId: assignedTherapistId
       })
     );
@@ -378,8 +480,8 @@ export function BookingsCalendar({
                 className={cn(
                   "rounded-2xl border border-border/70 bg-background/45 p-3",
                   view === "day" && "min-h-64",
-                  view === "week" && "min-h-40 cursor-pointer overflow-hidden transition hover:border-primary/25 hover:bg-background/70",
-                  view === "month" && "min-h-32 cursor-pointer overflow-hidden transition hover:border-primary/25 hover:bg-background/70"
+                  view === "week" && "focus-ring min-h-40 cursor-pointer overflow-hidden transition hover:border-primary/25 hover:bg-background/70",
+                  view === "month" && "focus-ring min-h-32 cursor-pointer overflow-hidden transition hover:border-primary/25 hover:bg-background/70"
                 )}
               >
                 <div className="flex items-baseline justify-between gap-2">
@@ -403,6 +505,9 @@ export function BookingsCalendar({
                               statusStyles[booking.status]
                             )}
                           >
+                            <span className="mr-1 uppercase tracking-[0.08em]">
+                              {calendar.statusShort[booking.status]}
+                            </span>
                             <span className="mr-1 tabular-nums">{booking.preferredTime}</span>
                             <span>{serviceLabels.get(booking.service) ?? booking.service}</span>
                           </div>
@@ -458,9 +563,12 @@ export function BookingsCalendar({
       {selectedBooking ? (
         <div className="fixed inset-0 z-50 flex items-end bg-primary/25 px-3 py-3 backdrop-blur-sm sm:items-center sm:justify-center sm:p-6">
           <section
+            ref={dialogRef}
             aria-modal="true"
+            aria-labelledby="booking-details-title"
             role="dialog"
-            aria-label={calendar.details.title}
+            tabIndex={-1}
+            onKeyDown={handleDialogKeyDown}
             className="max-h-[92vh] w-full overflow-y-auto rounded-3xl border border-border/80 bg-card p-5 shadow-[0_30px_90px_rgb(20_61_42/0.24)] sm:max-w-2xl sm:p-6"
           >
             <div className="flex items-start justify-between gap-4">
@@ -468,7 +576,7 @@ export function BookingsCalendar({
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
                   {dictionary.booking.statuses[selectedBooking.status]}
                 </p>
-                <h2 className="mt-2 font-serif text-3xl font-semibold leading-tight text-primary">
+                <h2 id="booking-details-title" className="mt-2 font-serif text-3xl font-semibold leading-tight text-primary">
                   {selectedBooking.clientName}
                 </h2>
                 <p className="mt-1 text-sm text-muted-foreground">

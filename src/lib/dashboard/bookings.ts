@@ -265,6 +265,16 @@ async function assertCanManageBooking(user: DashboardUser, bookingId: string) {
   return booking;
 }
 
+function assertUpdatedBooking(data: { id: string } | null, error: { message: string } | null) {
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!data) {
+    throw new DashboardForbiddenError();
+  }
+}
+
 export async function updateBookingStatus(user: DashboardUser, bookingId: string, status: BookingStatus) {
   if (!isBookingStatus(status)) {
     throw new Error("Invalid booking status.");
@@ -292,22 +302,13 @@ export async function updateBookingStatus(user: DashboardUser, bookingId: string
       .select("id")
       .maybeSingle();
 
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    if (!data) {
-      throw new DashboardForbiddenError();
-    }
+    assertUpdatedBooking(data, error);
 
     return;
   }
 
-  const { error } = await supabase.from("bookings").update({ status }).eq("id", bookingId);
-
-  if (error) {
-    throw new Error(error.message);
-  }
+  const { data, error } = await supabase.from("bookings").update({ status }).eq("id", bookingId).select("id").maybeSingle();
+  assertUpdatedBooking(data, error);
 }
 
 export async function updateBookingInternalNotes(user: DashboardUser, bookingId: string, internalNotes: string | null) {
@@ -330,22 +331,18 @@ export async function updateBookingInternalNotes(user: DashboardUser, bookingId:
       .select("id")
       .maybeSingle();
 
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    if (!data) {
-      throw new DashboardForbiddenError();
-    }
+    assertUpdatedBooking(data, error);
 
     return;
   }
 
-  const { error } = await supabase.from("bookings").update({ internal_notes: notes }).eq("id", bookingId);
-
-  if (error) {
-    throw new Error(error.message);
-  }
+  const { data, error } = await supabase
+    .from("bookings")
+    .update({ internal_notes: notes })
+    .eq("id", bookingId)
+    .select("id")
+    .maybeSingle();
+  assertUpdatedBooking(data, error);
 }
 
 export async function assignTherapistToBooking(user: DashboardUser, bookingId: string, therapistId: string | null) {
@@ -368,9 +365,11 @@ export async function assignTherapistToBooking(user: DashboardUser, bookingId: s
     }
   }
 
-  const { error } = await supabase.from("bookings").update({ therapist_id: therapistId }).eq("id", bookingId);
-
-  if (error) {
-    throw new Error(error.message);
-  }
+  const { data, error } = await supabase
+    .from("bookings")
+    .update({ therapist_id: therapistId })
+    .eq("id", bookingId)
+    .select("id")
+    .maybeSingle();
+  assertUpdatedBooking(data, error);
 }

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
+import { getDashboardRoleFromAppMetadata } from "@/lib/dashboard/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 import { signInDashboard } from "./actions";
@@ -22,14 +23,16 @@ export default async function LoginPage({ params, searchParams }: LoginPageProps
   const [{ error, next }, dictionary] = await Promise.all([searchParams, getDictionary(locale)]);
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase.auth.getClaims();
+  const role = getDashboardRoleFromAppMetadata(data?.claims?.app_metadata);
 
-  if (data?.claims) {
+  if (data?.claims && role) {
     redirect(`/${locale}/dashboard`);
   }
 
   const login = dictionary.auth.login;
   const action = signInDashboard.bind(null, locale, next ?? null);
-  const errorMessage = error ? login.errors[error as keyof typeof login.errors] ?? login.errors.invalid : null;
+  const errorKey = error ?? (data?.claims && !role ? "forbidden" : null);
+  const errorMessage = errorKey ? login.errors[errorKey as keyof typeof login.errors] ?? login.errors.invalid : null;
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10 text-foreground">

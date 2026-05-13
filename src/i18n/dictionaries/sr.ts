@@ -224,7 +224,8 @@ const sr = {
       },
       errors: {
         missing: "Unesite email i lozinku.",
-        invalid: "Email ili lozinka nisu ispravni."
+        invalid: "Email ili lozinka nisu ispravni.",
+        forbidden: "Ovaj nalog nema pristup dashboardu. Zamolite admina da dodeli ulogu osoblja."
       },
       submit: "Prijavi se"
     }
@@ -280,6 +281,12 @@ const sr = {
       currentRange: "Trenutni period",
       emptyDay: "Nema termina za ovaj dan.",
       emptyCompact: "Slobodno",
+      statusShort: {
+        pending: "Čeka",
+        confirmed: "Potv",
+        cancelled: "Otk",
+        completed: "Got"
+      },
       views: {
         day: "Dan",
         week: "Nedelja",

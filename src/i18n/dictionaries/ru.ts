@@ -224,7 +224,8 @@ const ru = {
       },
       errors: {
         missing: "Введите email и пароль.",
-        invalid: "Email или пароль неверны."
+        invalid: "Email или пароль неверны.",
+        forbidden: "У этого аккаунта нет доступа к панели. Попросите администратора назначить роль сотрудника."
       },
       submit: "Войти"
     }
@@ -280,6 +281,12 @@ const ru = {
       currentRange: "Текущий период",
       emptyDay: "На этот день записей нет.",
       emptyCompact: "Свободно",
+      statusShort: {
+        pending: "Ожид",
+        confirmed: "Подтв",
+        cancelled: "Отм",
+        completed: "Гот"
+      },
       views: {
         day: "День",
         week: "Неделя",
