@@ -4,7 +4,7 @@ import { BookingsCalendar } from "@/components/dashboard/bookings-calendar";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { requireDashboardUser } from "@/lib/dashboard/auth";
-import { getDashboardBookingsData } from "@/lib/dashboard/bookings";
+import { getBookingsForDashboard } from "@/lib/dashboard/bookings";
 
 type DashboardPageProps = {
   params: Promise<{ locale: string }>;
@@ -19,7 +19,7 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
 
   const locale: Locale = rawLocale;
   const user = await requireDashboardUser(locale);
-  const [dictionary, data] = await Promise.all([getDictionary(locale), getDashboardBookingsData()]);
+  const [dictionary, data] = await Promise.all([getDictionary(locale), getBookingsForDashboard(user)]);
 
   return (
     <BookingsCalendar

@@ -47,10 +47,11 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Added a Supabase Auth protected dashboard foundation at `/[locale]/dashboard`, with server-side login, cookie-based SSR auth utilities, role-aware navigation, and placeholder admin/therapist dashboard pages.
 - Added a dashboard MVP Supabase migration draft for `profiles`, `therapists`, `clients`, `services`, additive `bookings` columns, RLS grants, and staff booking update constraints.
 - Added the first calendar-first dashboard bookings UI on `/[locale]/dashboard` and `/[locale]/dashboard/bookings`, including role-aware filters, status overview, booking details modal, and server actions for status, therapist assignment, and internal notes.
+- Added role-based booking management actions: admin can update status, assign therapists, and edit notes for all bookings; therapists can update status and notes only for assigned bookings. Added a follow-up RLS migration for therapist status permissions.
 
 ## Current Focus
 
-The current focus is validating the dashboard bookings calendar against real Supabase data and applying the dashboard schema migration in the hosted project. The next product risk is trust: placeholder contact destinations and placeholder specialists should be replaced with real business data before the site feels production-ready.
+The current focus is applying the dashboard schema and booking permissions migrations in the hosted Supabase project, then validating admin and therapist booking actions against real RLS. The next product risk is trust: placeholder contact destinations and placeholder specialists should be replaced with real business data before the site feels production-ready.
 
 ## Git Workflow
 
@@ -75,9 +76,8 @@ The current focus is validating the dashboard bookings calendar against real Sup
 - Define Supabase schema for availability rules: working days, closed dates, booked slots, and therapist-specific schedules.
 - Add manual QA checklist for launch.
 - Create Supabase Auth staff users and set `app_metadata.role` to either `admin` or `therapist`.
-- Connect the dashboard bookings page to authenticated Supabase reads with RLS-safe policies.
 - Seed initial `profiles`, `therapists`, and `services` rows after the dashboard schema migration is applied.
-- Test admin status changes, therapist assignment, and therapist-only completion updates against hosted Supabase RLS.
+- Test admin status changes, therapist assignment, therapist status changes, and internal notes updates against hosted Supabase RLS.
 
 ## Manual QA Checklist
 
@@ -101,7 +101,8 @@ The current focus is validating the dashboard bookings calendar against real Sup
 - Confirm admin users can filter bookings by therapist and status.
 - Confirm therapist users only see their own assigned bookings.
 - Confirm booking details fit mobile screens and allow internal notes editing.
-- Confirm therapist users can mark assigned bookings completed but cannot reassign them.
+- Confirm cancelling a booking shows a confirmation dialog.
+- Confirm therapist users can mark assigned bookings confirmed, cancelled, or completed, but cannot reassign them or set them back to pending.
 
 ## Known Issues
 
@@ -126,6 +127,7 @@ The current focus is validating the dashboard bookings calendar against real Sup
 - Store dashboard authorization roles in Supabase Auth app metadata, using `role: "admin"` or `role: "therapist"`. Unknown or missing role values fall back to therapist-level navigation.
 - Keep dashboard database changes additive: public booking inserts remain anon insert-only, while authenticated dashboard access is controlled by RLS using staff roles from `raw_app_meta_data`.
 - Keep dashboard booking data fetching and updates isolated in `src/lib/dashboard` so UI components can evolve without embedding Supabase query details.
+- Keep dashboard booking actions role-aware in the service layer and rely on Supabase RLS as the real data boundary.
 - Keep UI primitives local and lightweight rather than pulling in a full component dependency for every shadcn/ui part.
 - Avoid full CRM workflows until the booking/dashboard foundation is stable.
 

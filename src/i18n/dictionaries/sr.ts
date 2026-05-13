@@ -313,6 +313,7 @@ const sr = {
         assignedTherapist: "Dodeljeni terapeut"
       },
       actions: {
+        pending: "Vrati na čekanje",
         confirm: "Potvrdi",
         cancel: "Otkaži",
         complete: "Završi",
@@ -321,6 +322,8 @@ const sr = {
         saveNotes: "Sačuvaj beleške",
         saving: "Čuvamo...",
         saved: "Sačuvano.",
+        forbidden: "Ova radnja nije dostupna za vašu ulogu.",
+        confirmCancel: "Otkazati ovaj termin?",
         error: "Izmene nije moguće sačuvati."
       }
     }

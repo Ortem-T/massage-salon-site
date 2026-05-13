@@ -313,6 +313,7 @@ const en = {
         assignedTherapist: "Assigned therapist"
       },
       actions: {
+        pending: "Set pending",
         confirm: "Confirm",
         cancel: "Cancel",
         complete: "Complete",
@@ -321,6 +322,8 @@ const en = {
         saveNotes: "Save notes",
         saving: "Saving...",
         saved: "Saved.",
+        forbidden: "This action is not available for your role.",
+        confirmCancel: "Cancel this booking?",
         error: "Could not save changes."
       }
     }

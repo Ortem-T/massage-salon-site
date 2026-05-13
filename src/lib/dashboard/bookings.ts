@@ -1,6 +1,6 @@
 import { type Locale } from "@/i18n/config";
 import { bookingStatuses, type BookingStatus } from "@/lib/booking/booking-schema";
-import { type DashboardRole } from "@/lib/dashboard/auth";
+import { type DashboardUser } from "@/lib/dashboard/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type DashboardBooking = {
@@ -41,6 +41,13 @@ export type UpdateDashboardBookingInput = {
   therapistId?: string | null;
   internalNotes?: string | null;
 };
+
+export class DashboardForbiddenError extends Error {
+  constructor() {
+    super("Dashboard action is not allowed for this user.");
+    this.name = "DashboardForbiddenError";
+  }
+}
 
 function isBookingStatus(status: unknown): status is BookingStatus {
   return typeof status === "string" && bookingStatuses.includes(status as BookingStatus);
@@ -86,34 +93,91 @@ function toDashboardBooking(row: DashboardBookingRow): DashboardBooking {
   };
 }
 
-export async function getDashboardBookingsData(): Promise<DashboardBookingsData> {
+function toDashboardTherapists(therapists: DashboardTherapistRow[] | null): DashboardTherapist[] {
+  return (therapists ?? []).map((therapist) => ({
+    id: therapist.id,
+    profileId: therapist.profile_id,
+    displayName: therapist.display_name,
+    active: therapist.active
+  }));
+}
+
+type DashboardTherapistRow = {
+  id: string;
+  profile_id: string | null;
+  display_name: string;
+  active: boolean;
+};
+
+async function getTherapistIdsForUser(userId: string) {
   const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("therapists")
+    .select("id")
+    .eq("profile_id", userId)
+    .eq("active", true);
+
+  if (error) {
+    return [];
+  }
+
+  return (data ?? []).map((therapist) => therapist.id);
+}
+
+function normalizeInternalNotes(notes: string | null | undefined) {
+  return notes?.trim() ? notes.trim() : null;
+}
+
+async function getDashboardTherapists(role: DashboardUser["role"], userId: string) {
+  const supabase = await createSupabaseServerClient();
+  const query = supabase.from("therapists").select("id, profile_id, display_name, active").order("display_name", { ascending: true });
+  const { data, error } =
+    role === "admin" ? await query : await query.eq("profile_id", userId).eq("active", true);
+
+  return {
+    therapists: error ? [] : toDashboardTherapists(data),
+    error: Boolean(error)
+  };
+}
+
+export async function getBookingsForDashboard(user: DashboardUser): Promise<DashboardBookingsData> {
+  const supabase = await createSupabaseServerClient();
+  const therapistIds = user.role === "therapist" ? await getTherapistIdsForUser(user.id) : [];
+  const therapistResult = await getDashboardTherapists(user.role, user.id);
+
+  if (user.role === "therapist" && therapistIds.length === 0) {
+    return {
+      bookings: [],
+      therapists: therapistResult.therapists,
+      error: therapistResult.error
+    };
+  }
 
   try {
-    const [{ data: bookings, error: bookingsError }, { data: therapists, error: therapistsError }] = await Promise.all([
-      supabase
+    const bookingsQuery = supabase
         .from("bookings")
         .select(
           "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source, client_id, therapist_id, internal_notes, updated_at"
         )
         .order("preferred_date", { ascending: true })
         .order("preferred_time", { ascending: true })
-        .limit(400),
-      supabase.from("therapists").select("id, profile_id, display_name, active").order("display_name", { ascending: true })
-    ]);
+      .limit(400);
+    const { data: bookings, error: bookingsError } =
+      user.role === "admin" ? await bookingsQuery : await bookingsQuery.in("therapist_id", therapistIds);
 
     if (!bookingsError) {
       return {
         bookings: (bookings ?? []).map(toDashboardBooking),
-        therapists: therapistsError
-          ? []
-          : (therapists ?? []).map((therapist) => ({
-              id: therapist.id,
-              profileId: therapist.profile_id,
-              displayName: therapist.display_name,
-              active: therapist.active
-            })),
-        error: Boolean(therapistsError)
+        therapists: therapistResult.therapists,
+        error: therapistResult.error
+      };
+    }
+
+    if (user.role === "therapist") {
+      return {
+        bookings: [],
+        therapists: therapistResult.therapists,
+        error: true
       };
     }
 
@@ -129,7 +193,7 @@ export async function getDashboardBookingsData(): Promise<DashboardBookingsData>
     return {
       bookings: legacyBookingsError ? [] : (legacyBookings ?? []).map(toDashboardBooking),
       therapists: [],
-      error: Boolean(legacyBookingsError || therapistsError)
+      error: Boolean(legacyBookingsError || therapistResult.error)
     };
   } catch {
     return {
@@ -140,39 +204,171 @@ export async function getDashboardBookingsData(): Promise<DashboardBookingsData>
   }
 }
 
-export async function updateDashboardBooking(role: DashboardRole, input: UpdateDashboardBookingInput) {
+export async function getDashboardBookingsData(user: DashboardUser): Promise<DashboardBookingsData> {
+  return getBookingsForDashboard(user);
+}
+
+export async function getBookingById(user: DashboardUser, bookingId: string): Promise<DashboardBooking | null> {
   const supabase = await createSupabaseServerClient();
-  const update: {
-    status?: BookingStatus;
-    therapist_id?: string | null;
-    internal_notes?: string | null;
-  } = {};
 
-  if (input.status !== undefined) {
-    if (!isBookingStatus(input.status)) {
-      throw new Error("Invalid booking status.");
+  try {
+    if (user.role === "therapist") {
+      const therapistIds = await getTherapistIdsForUser(user.id);
+
+      if (therapistIds.length === 0) {
+        return null;
+      }
+
+      const { data, error } = await supabase
+        .from("bookings")
+        .select(
+          "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source, client_id, therapist_id, internal_notes, updated_at"
+        )
+        .eq("id", bookingId)
+        .in("therapist_id", therapistIds)
+        .maybeSingle();
+
+      return error || !data ? null : toDashboardBooking(data);
     }
 
-    if (role === "therapist" && input.status !== "completed") {
-      throw new Error("Therapists can only mark bookings as completed.");
+    const { data, error } = await supabase
+      .from("bookings")
+      .select(
+        "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source, client_id, therapist_id, internal_notes, updated_at"
+      )
+      .eq("id", bookingId)
+      .maybeSingle();
+
+    if (!error && data) {
+      return toDashboardBooking(data);
     }
 
-    update.status = input.status;
+    const { data: legacyData, error: legacyError } = await supabase
+      .from("bookings")
+      .select("id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source")
+      .eq("id", bookingId)
+      .maybeSingle();
+
+    return legacyError || !legacyData ? null : toDashboardBooking(legacyData);
+  } catch {
+    return null;
+  }
+}
+
+async function assertCanManageBooking(user: DashboardUser, bookingId: string) {
+  const booking = await getBookingById(user, bookingId);
+
+  if (!booking) {
+    throw new DashboardForbiddenError();
   }
 
-  if (input.internalNotes !== undefined) {
-    update.internal_notes = input.internalNotes?.trim() ? input.internalNotes.trim() : null;
+  return booking;
+}
+
+export async function updateBookingStatus(user: DashboardUser, bookingId: string, status: BookingStatus) {
+  if (!isBookingStatus(status)) {
+    throw new Error("Invalid booking status.");
   }
 
-  if (role === "admin" && input.therapistId !== undefined) {
-    update.therapist_id = input.therapistId;
+  if (user.role === "therapist" && status === "pending") {
+    throw new DashboardForbiddenError();
   }
 
-  if (Object.keys(update).length === 0) {
+  const supabase = await createSupabaseServerClient();
+
+  if (user.role === "therapist") {
+    const therapistIds = await getTherapistIdsForUser(user.id);
+
+    if (therapistIds.length === 0) {
+      throw new DashboardForbiddenError();
+    }
+
+    await assertCanManageBooking(user, bookingId);
+    const { data, error } = await supabase
+      .from("bookings")
+      .update({ status })
+      .eq("id", bookingId)
+      .in("therapist_id", therapistIds)
+      .select("id")
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if (!data) {
+      throw new DashboardForbiddenError();
+    }
+
     return;
   }
 
-  const { error } = await supabase.from("bookings").update(update).eq("id", input.bookingId);
+  const { error } = await supabase.from("bookings").update({ status }).eq("id", bookingId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function updateBookingInternalNotes(user: DashboardUser, bookingId: string, internalNotes: string | null) {
+  const supabase = await createSupabaseServerClient();
+  const notes = normalizeInternalNotes(internalNotes);
+
+  if (user.role === "therapist") {
+    const therapistIds = await getTherapistIdsForUser(user.id);
+
+    if (therapistIds.length === 0) {
+      throw new DashboardForbiddenError();
+    }
+
+    await assertCanManageBooking(user, bookingId);
+    const { data, error } = await supabase
+      .from("bookings")
+      .update({ internal_notes: notes })
+      .eq("id", bookingId)
+      .in("therapist_id", therapistIds)
+      .select("id")
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if (!data) {
+      throw new DashboardForbiddenError();
+    }
+
+    return;
+  }
+
+  const { error } = await supabase.from("bookings").update({ internal_notes: notes }).eq("id", bookingId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function assignTherapistToBooking(user: DashboardUser, bookingId: string, therapistId: string | null) {
+  if (user.role !== "admin") {
+    throw new DashboardForbiddenError();
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  if (therapistId) {
+    const { data: therapist, error: therapistError } = await supabase
+      .from("therapists")
+      .select("id")
+      .eq("id", therapistId)
+      .eq("active", true)
+      .maybeSingle();
+
+    if (therapistError || !therapist) {
+      throw new DashboardForbiddenError();
+    }
+  }
+
+  const { error } = await supabase.from("bookings").update({ therapist_id: therapistId }).eq("id", bookingId);
 
   if (error) {
     throw new Error(error.message);

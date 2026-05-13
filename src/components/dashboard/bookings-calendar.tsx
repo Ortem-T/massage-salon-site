@@ -9,7 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { type Locale } from "@/i18n/config";
 import { type Dictionary } from "@/i18n/dictionaries";
 import { type BookingStatus, bookingStatuses } from "@/lib/booking/booking-schema";
-import { updateDashboardBookingAction } from "@/lib/dashboard/actions";
+import {
+  assignTherapistToBookingAction,
+  type DashboardActionResult,
+  updateBookingInternalNotesAction,
+  updateBookingStatusAction
+} from "@/lib/dashboard/actions";
 import { type DashboardRole } from "@/lib/dashboard/auth";
 import { type DashboardBooking, type DashboardTherapist } from "@/lib/dashboard/bookings";
 import { cn } from "@/lib/utils";
@@ -187,24 +192,56 @@ export function BookingsCalendar({
     setMessage(null);
   }
 
-  function runUpdate(input: { status?: BookingStatus; therapistId?: string | null; internalNotes?: string | null }) {
+  function showActionResult(result: DashboardActionResult) {
+    if (result.ok) {
+      setMessage(calendar.actions.saved);
+      router.refresh();
+      return;
+    }
+
+    setMessage(result.reason === "forbidden" ? calendar.actions.forbidden : calendar.actions.error);
+  }
+
+  function runAction(action: () => Promise<DashboardActionResult>) {
     if (!selectedBooking) {
       return;
     }
 
     setMessage(null);
     startTransition(async () => {
-      try {
-        await updateDashboardBookingAction(locale, {
-          bookingId: selectedBooking.id,
-          ...input
-        });
-        setMessage(calendar.actions.saved);
-        router.refresh();
-      } catch {
-        setMessage(calendar.actions.error);
-      }
+      showActionResult(await action());
     });
+  }
+
+  function runStatusUpdate(status: BookingStatus) {
+    if (status === "cancelled" && !window.confirm(calendar.actions.confirmCancel)) {
+      return;
+    }
+
+    runAction(() =>
+      updateBookingStatusAction(locale, {
+        bookingId: selectedBooking?.id ?? "",
+        status
+      })
+    );
+  }
+
+  function runNotesUpdate() {
+    runAction(() =>
+      updateBookingInternalNotesAction(locale, {
+        bookingId: selectedBooking?.id ?? "",
+        internalNotes
+      })
+    );
+  }
+
+  function runTherapistAssignment() {
+    runAction(() =>
+      assignTherapistToBookingAction(locale, {
+        bookingId: selectedBooking?.id ?? "",
+        therapistId: assignedTherapistId
+      })
+    );
   }
 
   return (
@@ -490,7 +527,7 @@ export function BookingsCalendar({
                       </option>
                     ))}
                   </Select>
-                  <Button type="button" variant="outline" size="sm" onClick={() => runUpdate({ therapistId: assignedTherapistId })}>
+                  <Button type="button" variant="outline" size="sm" onClick={runTherapistAssignment} disabled={isPending}>
                     {calendar.actions.assignTherapist}
                   </Button>
                 </div>
@@ -501,7 +538,7 @@ export function BookingsCalendar({
                   {calendar.details.internalNotes}
                 </label>
                 <Textarea id="booking-notes" value={internalNotes} onChange={(event) => setInternalNotes(event.target.value)} />
-                <Button type="button" variant="outline" size="sm" onClick={() => runUpdate({ internalNotes })}>
+                <Button type="button" variant="outline" size="sm" onClick={runNotesUpdate} disabled={isPending}>
                   {calendar.actions.saveNotes}
                 </Button>
               </div>
@@ -510,20 +547,31 @@ export function BookingsCalendar({
             <div className="mt-6 flex flex-wrap gap-2 border-t border-border/70 pt-5">
               {role === "admin" ? (
                 <>
-                  <Button type="button" size="sm" onClick={() => runUpdate({ status: "confirmed" })}>
+                  <Button type="button" variant="outline" size="sm" onClick={() => runStatusUpdate("pending")} disabled={isPending}>
+                    {calendar.actions.pending}
+                  </Button>
+                  <Button type="button" size="sm" onClick={() => runStatusUpdate("confirmed")} disabled={isPending}>
                     {calendar.actions.confirm}
                   </Button>
-                  <Button type="button" variant="secondary" size="sm" onClick={() => runUpdate({ status: "completed" })}>
+                  <Button type="button" variant="secondary" size="sm" onClick={() => runStatusUpdate("completed")} disabled={isPending}>
                     {calendar.actions.complete}
                   </Button>
-                  <Button type="button" variant="outline" size="sm" onClick={() => runUpdate({ status: "cancelled" })}>
+                  <Button type="button" variant="outline" size="sm" onClick={() => runStatusUpdate("cancelled")} disabled={isPending}>
                     {calendar.actions.cancel}
                   </Button>
                 </>
               ) : (
-                <Button type="button" size="sm" onClick={() => runUpdate({ status: "completed" })}>
-                  {calendar.actions.markCompleted}
-                </Button>
+                <>
+                  <Button type="button" size="sm" onClick={() => runStatusUpdate("confirmed")} disabled={isPending}>
+                    {calendar.actions.confirm}
+                  </Button>
+                  <Button type="button" variant="secondary" size="sm" onClick={() => runStatusUpdate("completed")} disabled={isPending}>
+                    {calendar.actions.markCompleted}
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" onClick={() => runStatusUpdate("cancelled")} disabled={isPending}>
+                    {calendar.actions.cancel}
+                  </Button>
+                </>
               )}
             </div>
 
