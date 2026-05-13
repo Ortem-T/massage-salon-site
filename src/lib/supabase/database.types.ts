@@ -1,5 +1,6 @@
 import { type Locale } from "@/i18n/config";
 import { type BookingStatus } from "@/lib/booking/booking-schema";
+import { type ManualBookingSourceChannel } from "@/lib/dashboard/constants";
 
 export type Database = {
   public: {
@@ -18,6 +19,8 @@ export type Database = {
           locale: Locale;
           status: BookingStatus;
           source: string;
+          source_channel: ManualBookingSourceChannel | null;
+          duration_minutes: number | null;
           client_id: string | null;
           therapist_id: string | null;
           internal_notes: string | null;
@@ -36,6 +39,8 @@ export type Database = {
           locale: Locale;
           status?: BookingStatus;
           source?: string;
+          source_channel?: ManualBookingSourceChannel | null;
+          duration_minutes?: number | null;
           client_id?: string | null;
           therapist_id?: string | null;
           internal_notes?: string | null;

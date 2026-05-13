@@ -1,6 +1,11 @@
-import { type Locale } from "@/i18n/config";
+import { isLocale, type Locale } from "@/i18n/config";
 import { bookingStatuses, type BookingStatus } from "@/lib/booking/booking-schema";
 import { type DashboardUser } from "@/lib/dashboard/auth";
+import {
+  manualBookingCreateStatuses,
+  manualBookingSourceChannels,
+  type ManualBookingSourceChannel
+} from "@/lib/dashboard/constants";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type DashboardBooking = {
@@ -16,6 +21,8 @@ export type DashboardBooking = {
   locale: Locale;
   status: BookingStatus;
   source: string;
+  sourceChannel: ManualBookingSourceChannel | null;
+  durationMinutes: number | null;
   clientId: string | null;
   therapistId: string | null;
   internalNotes: string | null;
@@ -42,6 +49,21 @@ export type UpdateDashboardBookingInput = {
   internalNotes?: string | null;
 };
 
+export type CreateManualBookingInput = {
+  service: string;
+  preferredDate: string;
+  preferredTime: string;
+  durationMinutes?: number | null;
+  clientName: string;
+  clientPhone: string;
+  clientComment?: string | null;
+  internalNotes?: string | null;
+  locale: Locale;
+  therapistId?: string | null;
+  status: BookingStatus;
+  sourceChannel: ManualBookingSourceChannel;
+};
+
 export class DashboardForbiddenError extends Error {
   constructor() {
     super("Dashboard action is not allowed for this user.");
@@ -51,6 +73,14 @@ export class DashboardForbiddenError extends Error {
 
 function isBookingStatus(status: unknown): status is BookingStatus {
   return typeof status === "string" && bookingStatuses.includes(status as BookingStatus);
+}
+
+function isManualBookingSourceChannel(channel: unknown): channel is ManualBookingSourceChannel {
+  return typeof channel === "string" && manualBookingSourceChannels.includes(channel as ManualBookingSourceChannel);
+}
+
+function isManualCreateStatus(status: unknown): status is (typeof manualBookingCreateStatuses)[number] {
+  return typeof status === "string" && manualBookingCreateStatuses.includes(status as (typeof manualBookingCreateStatuses)[number]);
 }
 
 type DashboardBookingRow = {
@@ -66,6 +96,8 @@ type DashboardBookingRow = {
   locale: Locale;
   status: BookingStatus;
   source: string;
+  source_channel?: ManualBookingSourceChannel | null;
+  duration_minutes?: number | null;
   client_id?: string | null;
   therapist_id?: string | null;
   internal_notes?: string | null;
@@ -86,6 +118,8 @@ function toDashboardBooking(row: DashboardBookingRow): DashboardBooking {
     locale: row.locale,
     status: row.status,
     source: row.source,
+    sourceChannel: row.source_channel ?? null,
+    durationMinutes: row.duration_minutes ?? null,
     clientId: row.client_id ?? null,
     therapistId: row.therapist_id ?? null,
     internalNotes: row.internal_notes ?? null,
@@ -128,6 +162,14 @@ function normalizeInternalNotes(notes: string | null | undefined) {
   return notes?.trim() ? notes.trim() : null;
 }
 
+function normalizeOptionalText(value: string | null | undefined) {
+  return value?.trim() ? value.trim() : null;
+}
+
+function normalizeRequiredText(value: string | null | undefined) {
+  return value?.trim() ?? "";
+}
+
 async function getDashboardTherapists(role: DashboardUser["role"], userId: string) {
   const supabase = await createSupabaseServerClient();
   const query = supabase.from("therapists").select("id, profile_id, display_name, active").order("display_name", { ascending: true });
@@ -157,7 +199,7 @@ export async function getBookingsForDashboard(user: DashboardUser): Promise<Dash
     const bookingsQuery = supabase
         .from("bookings")
         .select(
-          "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source, client_id, therapist_id, internal_notes, updated_at"
+          "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source, source_channel, duration_minutes, client_id, therapist_id, internal_notes, updated_at"
         )
         .order("preferred_date", { ascending: true })
         .order("preferred_time", { ascending: true })
@@ -222,7 +264,7 @@ export async function getBookingById(user: DashboardUser, bookingId: string): Pr
       const { data, error } = await supabase
         .from("bookings")
         .select(
-          "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source, client_id, therapist_id, internal_notes, updated_at"
+          "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source, source_channel, duration_minutes, client_id, therapist_id, internal_notes, updated_at"
         )
         .eq("id", bookingId)
         .in("therapist_id", therapistIds)
@@ -234,7 +276,7 @@ export async function getBookingById(user: DashboardUser, bookingId: string): Pr
     const { data, error } = await supabase
       .from("bookings")
       .select(
-        "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source, client_id, therapist_id, internal_notes, updated_at"
+        "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source, source_channel, duration_minutes, client_id, therapist_id, internal_notes, updated_at"
       )
       .eq("id", bookingId)
       .maybeSingle();
@@ -273,6 +315,117 @@ function assertUpdatedBooking(data: { id: string } | null, error: { message: str
   if (!data) {
     throw new DashboardForbiddenError();
   }
+}
+
+async function getActiveTherapistById(therapistId: string) {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("therapists")
+    .select("id, profile_id, display_name, active")
+    .eq("id", therapistId)
+    .eq("active", true)
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return {
+    id: data.id,
+    profileId: data.profile_id,
+    displayName: data.display_name,
+    active: data.active
+  };
+}
+
+function validateManualBookingInput(input: CreateManualBookingInput) {
+  const service = normalizeRequiredText(input.service);
+  const preferredDate = normalizeRequiredText(input.preferredDate);
+  const preferredTime = normalizeRequiredText(input.preferredTime);
+  const clientName = normalizeRequiredText(input.clientName);
+  const clientPhone = normalizeRequiredText(input.clientPhone);
+
+  if (
+    !service ||
+    !preferredDate ||
+    !preferredTime ||
+    clientName.length < 2 ||
+    clientPhone.length < 6 ||
+    !isLocale(input.locale) ||
+    !isManualBookingSourceChannel(input.sourceChannel) ||
+    !isManualCreateStatus(input.status)
+  ) {
+    throw new Error("Invalid manual booking.");
+  }
+
+  if (input.durationMinutes !== undefined && input.durationMinutes !== null && input.durationMinutes <= 0) {
+    throw new Error("Invalid manual booking duration.");
+  }
+
+  return {
+    service,
+    preferredDate,
+    preferredTime,
+    clientName,
+    clientPhone
+  };
+}
+
+export async function createManualBooking(user: DashboardUser, input: CreateManualBookingInput) {
+  const supabase = await createSupabaseServerClient();
+  const normalized = validateManualBookingInput(input);
+  let therapistId = input.therapistId ?? null;
+
+  if (user.role === "therapist") {
+    const therapistIds = await getTherapistIdsForUser(user.id);
+
+    if (!therapistId || !therapistIds.includes(therapistId) || input.status !== "confirmed") {
+      throw new DashboardForbiddenError();
+    }
+  }
+
+  if (user.role === "admin" && input.status !== "pending" && input.status !== "confirmed") {
+    throw new DashboardForbiddenError();
+  }
+
+  let specialist = "unassigned";
+
+  if (therapistId) {
+    const therapist = await getActiveTherapistById(therapistId);
+
+    if (!therapist) {
+      if (user.role === "therapist") {
+        throw new DashboardForbiddenError();
+      }
+
+      therapistId = null;
+    } else {
+      specialist = therapist.displayName;
+    }
+  }
+
+  const { data, error } = await supabase
+    .from("bookings")
+    .insert({
+      service: normalized.service,
+      specialist,
+      preferred_date: normalized.preferredDate,
+      preferred_time: normalized.preferredTime,
+      duration_minutes: input.durationMinutes ?? null,
+      client_name: normalized.clientName,
+      client_phone: normalized.clientPhone,
+      client_comment: normalizeOptionalText(input.clientComment),
+      internal_notes: normalizeInternalNotes(input.internalNotes),
+      locale: input.locale,
+      therapist_id: therapistId,
+      status: input.status,
+      source: "dashboard",
+      source_channel: input.sourceChannel
+    })
+    .select("id")
+    .maybeSingle();
+
+  assertUpdatedBooking(data, error);
 }
 
 export async function updateBookingStatus(user: DashboardUser, bookingId: string, status: BookingStatus) {

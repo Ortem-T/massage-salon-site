@@ -1,9 +1,10 @@
 "use client";
 
-import { type KeyboardEvent, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { type FormEvent, type KeyboardEvent, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { type Locale } from "@/i18n/config";
@@ -11,16 +12,40 @@ import { type Dictionary } from "@/i18n/dictionaries";
 import { type BookingStatus, bookingStatuses } from "@/lib/booking/booking-schema";
 import {
   assignTherapistToBookingAction,
+  createManualBookingAction,
   type DashboardActionResult,
   updateBookingInternalNotesAction,
   updateBookingStatusAction
 } from "@/lib/dashboard/actions";
 import { type DashboardRole } from "@/lib/dashboard/auth";
+import {
+  manualBookingCreateStatuses,
+  manualBookingSourceChannels,
+  type ManualBookingSourceChannel
+} from "@/lib/dashboard/constants";
 import { type DashboardBooking, type DashboardTherapist } from "@/lib/dashboard/bookings";
 import { cn } from "@/lib/utils";
 
 type CalendarView = "day" | "week" | "month";
 type StatusFilter = BookingStatus | "all";
+type CreateBookingStatus = (typeof manualBookingCreateStatuses)[number];
+
+type ManualBookingFormState = {
+  service: string;
+  preferredDate: string;
+  preferredTime: string;
+  durationMinutes: string;
+  clientName: string;
+  clientPhone: string;
+  clientComment: string;
+  internalNotes: string;
+  locale: Locale;
+  therapistId: string;
+  status: CreateBookingStatus;
+  sourceChannel: ManualBookingSourceChannel;
+};
+
+type ManualBookingFormErrors = Partial<Record<keyof ManualBookingFormState, string>>;
 
 type BookingsCalendarProps = {
   bookings: DashboardBooking[];
@@ -131,6 +156,12 @@ function sortBookings(bookings: DashboardBooking[]) {
   });
 }
 
+function parseDurationMinutes(duration: string) {
+  const match = duration.match(/\d+/);
+
+  return match?.[0] ?? "";
+}
+
 function getFocusableElements(container: HTMLElement | null) {
   if (!container) {
     return [];
@@ -158,6 +189,22 @@ export function BookingsCalendar({
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   const [internalNotes, setInternalNotes] = useState("");
   const [assignedTherapistId, setAssignedTherapistId] = useState<string | null>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [manualBookingForm, setManualBookingForm] = useState<ManualBookingFormState>(() => ({
+    service: "",
+    preferredDate: todayKey(),
+    preferredTime: "",
+    durationMinutes: "",
+    clientName: "",
+    clientPhone: "",
+    clientComment: "",
+    internalNotes: "",
+    locale,
+    therapistId: "",
+    status: "confirmed",
+    sourceChannel: "phone"
+  }));
+  const [manualBookingErrors, setManualBookingErrors] = useState<ManualBookingFormErrors>({});
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const dialogRef = useRef<HTMLElement | null>(null);
@@ -169,6 +216,10 @@ export function BookingsCalendar({
   );
   const serviceLabels = useMemo(
     () => new Map(dictionary.services.items.map((service) => [service.id, service.title])),
+    [dictionary.services.items]
+  );
+  const serviceDurations = useMemo(
+    () => new Map(dictionary.services.items.map((service) => [service.id, parseDurationMinutes(service.duration)])),
     [dictionary.services.items]
   );
 
@@ -196,7 +247,7 @@ export function BookingsCalendar({
   }));
 
   useEffect(() => {
-    if (!selectedBookingId) {
+    if (!selectedBookingId && !isCreateOpen) {
       return;
     }
 
@@ -213,7 +264,7 @@ export function BookingsCalendar({
       window.cancelAnimationFrame(frame);
       previousFocusRef.current?.focus();
     };
-  }, [selectedBookingId]);
+  }, [isCreateOpen, selectedBookingId]);
 
   function shiftDate(direction: -1 | 1) {
     if (view === "day") {
@@ -233,6 +284,7 @@ export function BookingsCalendar({
   }
 
   function openBooking(booking: DashboardBooking) {
+    setIsCreateOpen(false);
     setSelectedBookingId(booking.id);
     setInternalNotes(booking.internalNotes ?? "");
     setAssignedTherapistId(booking.therapistId);
@@ -244,10 +296,124 @@ export function BookingsCalendar({
     setMessage(null);
   }
 
+  function openCreateBooking() {
+    const ownTherapistId = role === "therapist" ? (therapists[0]?.id ?? "") : "";
+
+    setSelectedBookingId(null);
+    setManualBookingForm({
+      service: "",
+      preferredDate: selectedDate,
+      preferredTime: "",
+      durationMinutes: "",
+      clientName: "",
+      clientPhone: "",
+      clientComment: "",
+      internalNotes: "",
+      locale,
+      therapistId: ownTherapistId,
+      status: "confirmed",
+      sourceChannel: "phone"
+    });
+    setManualBookingErrors({});
+    setMessage(null);
+    setIsCreateOpen(true);
+  }
+
+  function closeCreateBooking() {
+    setIsCreateOpen(false);
+    setManualBookingErrors({});
+  }
+
+  function closeActiveDialog() {
+    if (isCreateOpen) {
+      closeCreateBooking();
+      return;
+    }
+
+    closeBooking();
+  }
+
+  function updateManualBookingField<K extends keyof ManualBookingFormState>(
+    field: K,
+    value: ManualBookingFormState[K]
+  ) {
+    setManualBookingForm((current) => ({
+      ...current,
+      [field]: value
+    }));
+    setManualBookingErrors((current) => {
+      if (!current[field]) {
+        return current;
+      }
+
+      const next = { ...current };
+      delete next[field];
+      return next;
+    });
+  }
+
+  function updateManualBookingService(service: string) {
+    setManualBookingForm((current) => ({
+      ...current,
+      service,
+      durationMinutes: serviceDurations.get(service) ?? current.durationMinutes
+    }));
+    setManualBookingErrors((current) => {
+      if (!current.service) {
+        return current;
+      }
+
+      const next = { ...current };
+      delete next.service;
+      return next;
+    });
+  }
+
+  function validateManualBookingForm() {
+    const create = calendar.create;
+    const errors: ManualBookingFormErrors = {};
+
+    if (!manualBookingForm.service) {
+      errors.service = create.errors.service;
+    }
+
+    if (!manualBookingForm.preferredDate) {
+      errors.preferredDate = create.errors.date;
+    }
+
+    if (!manualBookingForm.preferredTime) {
+      errors.preferredTime = create.errors.time;
+    }
+
+    if (manualBookingForm.durationMinutes && Number(manualBookingForm.durationMinutes) <= 0) {
+      errors.durationMinutes = create.errors.duration;
+    }
+
+    if (manualBookingForm.clientName.trim().length < 2) {
+      errors.clientName = create.errors.clientName;
+    }
+
+    if (manualBookingForm.clientPhone.trim().length < 6) {
+      errors.clientPhone = create.errors.clientPhone;
+    }
+
+    if (!manualBookingForm.sourceChannel) {
+      errors.sourceChannel = create.errors.sourceChannel;
+    }
+
+    if (role === "therapist" && !manualBookingForm.therapistId) {
+      errors.therapistId = create.errors.therapist;
+    }
+
+    setManualBookingErrors(errors);
+
+    return Object.keys(errors).length === 0;
+  }
+
   function handleDialogKeyDown(event: KeyboardEvent<HTMLElement>) {
     if (event.key === "Escape") {
       event.stopPropagation();
-      closeBooking();
+      closeActiveDialog();
       return;
     }
 
@@ -346,6 +512,42 @@ export function BookingsCalendar({
     );
   }
 
+  function submitManualBooking(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!validateManualBookingForm()) {
+      return;
+    }
+
+    setMessage(null);
+    startTransition(async () => {
+      const durationMinutes = manualBookingForm.durationMinutes ? Number(manualBookingForm.durationMinutes) : null;
+      const result = await createManualBookingAction(locale, {
+        service: manualBookingForm.service,
+        preferredDate: manualBookingForm.preferredDate,
+        preferredTime: manualBookingForm.preferredTime,
+        durationMinutes,
+        clientName: manualBookingForm.clientName,
+        clientPhone: manualBookingForm.clientPhone,
+        clientComment: manualBookingForm.clientComment,
+        internalNotes: manualBookingForm.internalNotes,
+        locale: manualBookingForm.locale,
+        therapistId: manualBookingForm.therapistId || null,
+        status: role === "therapist" ? "confirmed" : manualBookingForm.status,
+        sourceChannel: manualBookingForm.sourceChannel
+      });
+
+      if (result.ok) {
+        closeCreateBooking();
+        setMessage(calendar.create.success);
+        router.refresh();
+        return;
+      }
+
+      setMessage(result.reason === "forbidden" ? calendar.actions.forbidden : calendar.create.error);
+    });
+  }
+
   return (
     <section className="space-y-6">
       <div className="rounded-3xl border border-border/70 bg-card/82 p-5 shadow-soft sm:p-6">
@@ -358,7 +560,11 @@ export function BookingsCalendar({
             <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">{calendar.subtitle}</p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3 xl:min-w-[34rem]">
+          <div className="grid gap-3 sm:grid-cols-2 xl:min-w-[42rem] xl:grid-cols-4">
+            <Button type="button" onClick={openCreateBooking}>
+              {calendar.create.action}
+            </Button>
+
             <Select
               aria-label={calendar.controls.view}
               value={view}
@@ -404,6 +610,8 @@ export function BookingsCalendar({
             {calendar.dataError}
           </p>
         ) : null}
+
+        {message ? <p className="mt-5 rounded-2xl border border-primary/15 bg-secondary/60 px-4 py-3 text-sm font-semibold text-primary">{message}</p> : null}
 
         {role === "admin" ? (
           <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -560,6 +768,256 @@ export function BookingsCalendar({
         </div>
       </div>
 
+      {isCreateOpen ? (
+        <div className="fixed inset-0 z-50 flex items-end bg-primary/25 px-3 py-3 backdrop-blur-sm sm:items-center sm:justify-center sm:p-6">
+          <section
+            ref={dialogRef}
+            aria-modal="true"
+            aria-labelledby="manual-booking-title"
+            role="dialog"
+            tabIndex={-1}
+            onKeyDown={handleDialogKeyDown}
+            className="max-h-[92vh] w-full overflow-y-auto rounded-3xl border border-border/80 bg-card p-5 shadow-[0_30px_90px_rgb(20_61_42/0.24)] sm:max-w-3xl sm:p-6"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
+                  {calendar.create.eyebrow}
+                </p>
+                <h2 id="manual-booking-title" className="mt-2 font-serif text-3xl font-semibold leading-tight text-primary">
+                  {calendar.create.title}
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{calendar.create.subtitle}</p>
+              </div>
+              <Button type="button" variant="ghost" size="sm" onClick={closeCreateBooking}>
+                {calendar.details.close}
+              </Button>
+            </div>
+
+            <form className="mt-6 space-y-5" onSubmit={submitManualBooking}>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label htmlFor="manual-service" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                    {calendar.create.fields.service}
+                  </label>
+                  <Select
+                    id="manual-service"
+                    value={manualBookingForm.service}
+                    onChange={(event) => updateManualBookingService(event.target.value)}
+                    aria-invalid={Boolean(manualBookingErrors.service)}
+                  >
+                    <option value="">{calendar.create.placeholders.service}</option>
+                    {dictionary.services.items.map((service) => (
+                      <option key={service.id} value={service.id}>
+                        {service.title}
+                      </option>
+                    ))}
+                  </Select>
+                  {manualBookingErrors.service ? <p className="text-sm text-accent">{manualBookingErrors.service}</p> : null}
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="manual-source-channel" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                    {calendar.create.fields.sourceChannel}
+                  </label>
+                  <Select
+                    id="manual-source-channel"
+                    value={manualBookingForm.sourceChannel}
+                    onChange={(event) =>
+                      updateManualBookingField("sourceChannel", event.target.value as ManualBookingSourceChannel)
+                    }
+                    aria-invalid={Boolean(manualBookingErrors.sourceChannel)}
+                  >
+                    {manualBookingSourceChannels.map((channel) => (
+                      <option key={channel} value={channel}>
+                        {calendar.create.sourceChannels[channel]}
+                      </option>
+                    ))}
+                  </Select>
+                  {manualBookingErrors.sourceChannel ? <p className="text-sm text-accent">{manualBookingErrors.sourceChannel}</p> : null}
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="manual-date" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                    {calendar.create.fields.date}
+                  </label>
+                  <Input
+                    id="manual-date"
+                    type="date"
+                    value={manualBookingForm.preferredDate}
+                    onChange={(event) => updateManualBookingField("preferredDate", event.target.value)}
+                    aria-invalid={Boolean(manualBookingErrors.preferredDate)}
+                  />
+                  {manualBookingErrors.preferredDate ? <p className="text-sm text-accent">{manualBookingErrors.preferredDate}</p> : null}
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="manual-time" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                    {calendar.create.fields.time}
+                  </label>
+                  <Input
+                    id="manual-time"
+                    type="time"
+                    value={manualBookingForm.preferredTime}
+                    onChange={(event) => updateManualBookingField("preferredTime", event.target.value)}
+                    aria-invalid={Boolean(manualBookingErrors.preferredTime)}
+                  />
+                  {manualBookingErrors.preferredTime ? <p className="text-sm text-accent">{manualBookingErrors.preferredTime}</p> : null}
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="manual-duration" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                    {calendar.create.fields.duration}
+                  </label>
+                  <Input
+                    id="manual-duration"
+                    type="number"
+                    min={1}
+                    inputMode="numeric"
+                    value={manualBookingForm.durationMinutes}
+                    onChange={(event) => updateManualBookingField("durationMinutes", event.target.value)}
+                    placeholder={calendar.create.placeholders.duration}
+                    aria-invalid={Boolean(manualBookingErrors.durationMinutes)}
+                  />
+                  {manualBookingErrors.durationMinutes ? <p className="text-sm text-accent">{manualBookingErrors.durationMinutes}</p> : null}
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="manual-locale" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                    {calendar.create.fields.locale}
+                  </label>
+                  <Select
+                    id="manual-locale"
+                    value={manualBookingForm.locale}
+                    onChange={(event) => updateManualBookingField("locale", event.target.value as Locale)}
+                  >
+                    <option value="sr">SR</option>
+                    <option value="ru">RU</option>
+                    <option value="en">EN</option>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label htmlFor="manual-client-name" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                    {calendar.create.fields.clientName}
+                  </label>
+                  <Input
+                    id="manual-client-name"
+                    value={manualBookingForm.clientName}
+                    onChange={(event) => updateManualBookingField("clientName", event.target.value)}
+                    placeholder={calendar.create.placeholders.clientName}
+                    aria-invalid={Boolean(manualBookingErrors.clientName)}
+                  />
+                  {manualBookingErrors.clientName ? <p className="text-sm text-accent">{manualBookingErrors.clientName}</p> : null}
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="manual-client-phone" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                    {calendar.create.fields.clientPhone}
+                  </label>
+                  <Input
+                    id="manual-client-phone"
+                    value={manualBookingForm.clientPhone}
+                    onChange={(event) => updateManualBookingField("clientPhone", event.target.value)}
+                    placeholder={calendar.create.placeholders.clientPhone}
+                    aria-invalid={Boolean(manualBookingErrors.clientPhone)}
+                  />
+                  {manualBookingErrors.clientPhone ? <p className="text-sm text-accent">{manualBookingErrors.clientPhone}</p> : null}
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                {role === "admin" ? (
+                  <>
+                    <div className="space-y-2">
+                      <label htmlFor="manual-therapist" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                        {calendar.create.fields.therapist}
+                      </label>
+                      <Select
+                        id="manual-therapist"
+                        value={manualBookingForm.therapistId}
+                        onChange={(event) => updateManualBookingField("therapistId", event.target.value)}
+                      >
+                        <option value="">{calendar.filters.unassignedTherapist}</option>
+                        {therapists.map((therapist) => (
+                          <option key={therapist.id} value={therapist.id}>
+                            {therapist.displayName}
+                          </option>
+                        ))}
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="manual-status" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                        {calendar.create.fields.status}
+                      </label>
+                      <Select
+                        id="manual-status"
+                        value={manualBookingForm.status}
+                        onChange={(event) => updateManualBookingField("status", event.target.value as CreateBookingStatus)}
+                      >
+                        {manualBookingCreateStatuses.map((status) => (
+                          <option key={status} value={status}>
+                            {dictionary.booking.statuses[status]}
+                          </option>
+                        ))}
+                      </Select>
+                    </div>
+                  </>
+                ) : (
+                  <div className="rounded-2xl border border-border/70 bg-background/50 p-3 sm:col-span-2">
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                      {calendar.create.fields.therapist}
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-primary">
+                      {therapistNames.get(manualBookingForm.therapistId) ?? calendar.create.ownTherapistFallback}
+                    </p>
+                    {manualBookingErrors.therapistId ? <p className="mt-2 text-sm text-accent">{manualBookingErrors.therapistId}</p> : null}
+                  </div>
+                )}
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label htmlFor="manual-client-comment" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                    {calendar.create.fields.clientComment}
+                  </label>
+                  <Textarea
+                    id="manual-client-comment"
+                    value={manualBookingForm.clientComment}
+                    onChange={(event) => updateManualBookingField("clientComment", event.target.value)}
+                    placeholder={calendar.create.placeholders.clientComment}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="manual-internal-notes" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                    {calendar.create.fields.internalNotes}
+                  </label>
+                  <Textarea
+                    id="manual-internal-notes"
+                    value={manualBookingForm.internalNotes}
+                    onChange={(event) => updateManualBookingField("internalNotes", event.target.value)}
+                    placeholder={calendar.create.placeholders.internalNotes}
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 border-t border-border/70 pt-5 sm:flex-row sm:justify-end">
+                <Button type="button" variant="outline" onClick={closeCreateBooking}>
+                  {calendar.create.cancel}
+                </Button>
+                <Button type="submit" disabled={isPending}>
+                  {isPending ? calendar.create.saving : calendar.create.submit}
+                </Button>
+              </div>
+            </form>
+          </section>
+        </div>
+      ) : null}
+
       {selectedBooking ? (
         <div className="fixed inset-0 z-50 flex items-end bg-primary/25 px-3 py-3 backdrop-blur-sm sm:items-center sm:justify-center sm:p-6">
           <section
@@ -597,6 +1055,12 @@ export function BookingsCalendar({
                 [calendar.details.client, selectedBooking.clientName],
                 [calendar.details.phone, selectedBooking.clientPhone],
                 [calendar.details.service, serviceLabels.get(selectedBooking.service) ?? selectedBooking.service],
+                ...(selectedBooking.durationMinutes
+                  ? [[calendar.details.duration, `${selectedBooking.durationMinutes} ${calendar.create.durationUnit}`]]
+                  : []),
+                ...(selectedBooking.sourceChannel
+                  ? [[calendar.details.sourceChannel, calendar.create.sourceChannels[selectedBooking.sourceChannel]]]
+                  : []),
                 [calendar.details.locale, selectedBooking.locale.toUpperCase()],
                 [calendar.details.therapist, therapistNames.get(selectedBooking.therapistId ?? "") ?? selectedBooking.specialist],
                 [calendar.details.status, dictionary.booking.statuses[selectedBooking.status]]

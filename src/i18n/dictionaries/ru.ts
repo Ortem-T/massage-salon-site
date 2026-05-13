@@ -287,6 +287,60 @@ const ru = {
         cancelled: "Отм",
         completed: "Гот"
       },
+      create: {
+        action: "Создать запись",
+        eyebrow: "Ручная запись",
+        title: "Создать запись",
+        subtitle: "Добавьте запись, если клиент написал, позвонил или пришел лично.",
+        fields: {
+          service: "Услуга",
+          sourceChannel: "Источник",
+          date: "Дата",
+          time: "Время",
+          duration: "Длительность, минуты",
+          locale: "Язык клиента",
+          clientName: "Имя клиента",
+          clientPhone: "Телефон клиента",
+          therapist: "Массажист",
+          status: "Статус",
+          clientComment: "Комментарий клиента",
+          internalNotes: "Внутренние заметки"
+        },
+        placeholders: {
+          service: "Выберите услугу",
+          duration: "Необязательно",
+          clientName: "Имя клиента",
+          clientPhone: "+381 ...",
+          clientComment: "Детали запроса, предпочтения, контекст...",
+          internalNotes: "Приватные заметки команды..."
+        },
+        sourceChannels: {
+          instagram: "Instagram",
+          whatsapp: "WhatsApp",
+          telegram: "Telegram",
+          viber: "Viber",
+          phone: "Телефон",
+          walk_in: "Лично",
+          other: "Другое"
+        },
+        ownTherapistFallback: "Ваш профиль массажиста пока не подключен.",
+        errors: {
+          service: "Выберите услугу.",
+          date: "Выберите дату.",
+          time: "Выберите время.",
+          duration: "Длительность должна быть больше нуля.",
+          clientName: "Введите имя клиента.",
+          clientPhone: "Введите телефон клиента.",
+          therapist: "Чтобы создать запись, нужен ваш профиль массажиста.",
+          sourceChannel: "Выберите источник."
+        },
+        submit: "Создать запись",
+        saving: "Создаем...",
+        cancel: "Отмена",
+        durationUnit: "мин",
+        success: "Запись создана.",
+        error: "Не удалось создать запись."
+      },
       views: {
         day: "День",
         week: "Неделя",
@@ -311,6 +365,8 @@ const ru = {
         client: "Клиент",
         phone: "Телефон",
         service: "Услуга",
+        duration: "Длительность",
+        sourceChannel: "Источник",
         locale: "Язык",
         therapist: "Массажист",
         status: "Статус",

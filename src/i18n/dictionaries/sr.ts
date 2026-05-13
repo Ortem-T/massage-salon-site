@@ -287,6 +287,60 @@ const sr = {
         cancelled: "Otk",
         completed: "Got"
       },
+      create: {
+        action: "Napravi termin",
+        eyebrow: "Ručni unos",
+        title: "Napravi termin",
+        subtitle: "Dodajte termin kada se klijent javi porukom, pozivom ili dođe lično.",
+        fields: {
+          service: "Usluga",
+          sourceChannel: "Izvor",
+          date: "Datum",
+          time: "Vreme",
+          duration: "Trajanje, minuti",
+          locale: "Jezik klijenta",
+          clientName: "Ime klijenta",
+          clientPhone: "Telefon klijenta",
+          therapist: "Terapeut",
+          status: "Status",
+          clientComment: "Komentar klijenta",
+          internalNotes: "Interne beleške"
+        },
+        placeholders: {
+          service: "Izaberite uslugu",
+          duration: "Opcionalno",
+          clientName: "Ime klijenta",
+          clientPhone: "+381 ...",
+          clientComment: "Detalji zahteva, preferencije, kontekst...",
+          internalNotes: "Privatne beleške tima..."
+        },
+        sourceChannels: {
+          instagram: "Instagram",
+          whatsapp: "WhatsApp",
+          telegram: "Telegram",
+          viber: "Viber",
+          phone: "Telefon",
+          walk_in: "Lično",
+          other: "Drugo"
+        },
+        ownTherapistFallback: "Vaš profil terapeuta još nije povezan.",
+        errors: {
+          service: "Izaberite uslugu.",
+          date: "Izaberite datum.",
+          time: "Izaberite vreme.",
+          duration: "Trajanje mora biti veće od nule.",
+          clientName: "Unesite ime klijenta.",
+          clientPhone: "Unesite telefon klijenta.",
+          therapist: "Za kreiranje termina potreban je vaš profil terapeuta.",
+          sourceChannel: "Izaberite izvor."
+        },
+        submit: "Napravi termin",
+        saving: "Kreiramo...",
+        cancel: "Otkaži",
+        durationUnit: "min",
+        success: "Termin je napravljen.",
+        error: "Termin nije moguće napraviti."
+      },
       views: {
         day: "Dan",
         week: "Nedelja",
@@ -311,6 +365,8 @@ const sr = {
         client: "Klijent",
         phone: "Telefon",
         service: "Usluga",
+        duration: "Trajanje",
+        sourceChannel: "Izvor",
         locale: "Jezik",
         therapist: "Terapeut",
         status: "Status",

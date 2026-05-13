@@ -287,6 +287,60 @@ const en = {
         cancelled: "Canc",
         completed: "Done"
       },
+      create: {
+        action: "Create booking",
+        eyebrow: "Manual booking",
+        title: "Create booking",
+        subtitle: "Add appointments that arrive through messages, calls, or walk-ins.",
+        fields: {
+          service: "Service",
+          sourceChannel: "Source channel",
+          date: "Date",
+          time: "Time",
+          duration: "Duration, minutes",
+          locale: "Client language",
+          clientName: "Client name",
+          clientPhone: "Client phone",
+          therapist: "Therapist",
+          status: "Status",
+          clientComment: "Client comment",
+          internalNotes: "Internal notes"
+        },
+        placeholders: {
+          service: "Choose service",
+          duration: "Optional",
+          clientName: "Client name",
+          clientPhone: "+381 ...",
+          clientComment: "Request details, preferences, context...",
+          internalNotes: "Private staff notes..."
+        },
+        sourceChannels: {
+          instagram: "Instagram",
+          whatsapp: "WhatsApp",
+          telegram: "Telegram",
+          viber: "Viber",
+          phone: "Phone",
+          walk_in: "Walk-in",
+          other: "Other"
+        },
+        ownTherapistFallback: "Your therapist profile is not connected yet.",
+        errors: {
+          service: "Choose a service.",
+          date: "Choose a date.",
+          time: "Choose a time.",
+          duration: "Duration must be greater than zero.",
+          clientName: "Enter the client name.",
+          clientPhone: "Enter the client phone.",
+          therapist: "Your therapist profile is required to create bookings.",
+          sourceChannel: "Choose a source channel."
+        },
+        submit: "Create booking",
+        saving: "Creating...",
+        cancel: "Cancel",
+        durationUnit: "min",
+        success: "Booking created.",
+        error: "Could not create booking."
+      },
       views: {
         day: "Day",
         week: "Week",
@@ -311,6 +365,8 @@ const en = {
         client: "Client",
         phone: "Phone",
         service: "Service",
+        duration: "Duration",
+        sourceChannel: "Source",
         locale: "Locale",
         therapist: "Therapist",
         status: "Status",

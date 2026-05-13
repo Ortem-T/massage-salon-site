@@ -49,6 +49,7 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Added the first calendar-first dashboard bookings UI on `/[locale]/dashboard` and `/[locale]/dashboard/bookings`, including role-aware filters, status overview, booking details modal, and server actions for status, therapist assignment, and internal notes.
 - Added role-based booking management actions: admin can update status, assign therapists, and edit notes for all bookings; therapists can update status and notes only for assigned bookings. Added a follow-up RLS migration for therapist status permissions.
 - Hardened dashboard review findings: invalid staff roles are blocked at login/dashboard entry, booking details trap keyboard focus and support Escape close, admin updates verify affected rows, compact calendar events show text status cues, and dashboard dates use the Belgrade salon timezone with Serbian Latin formatting.
+- Added manual dashboard booking creation for staff-originated requests, including role-aware create permissions, source channel capture, optional duration, localized validation, and a follow-up RLS migration for authenticated staff inserts.
 
 ## Current Focus
 
@@ -74,11 +75,13 @@ The current focus is applying the dashboard schema and booking permissions migra
 - Run a hard UX review of the booking section after real data is added.
 - Apply the Supabase booking migration in the hosted project and manually submit a test booking.
 - Apply the dashboard MVP schema migration in the hosted Supabase project and verify RLS with one admin user and one therapist user.
+- Apply the dashboard manual booking migration in the hosted Supabase project and verify admin/therapist insert policies.
 - Define Supabase schema for availability rules: working days, closed dates, booked slots, and therapist-specific schedules.
 - Add manual QA checklist for launch.
 - Create Supabase Auth staff users and set `app_metadata.role` to either `admin` or `therapist`.
 - Seed initial `profiles`, `therapists`, and `services` rows after the dashboard schema migration is applied.
 - Test admin status changes, therapist assignment, therapist status changes, and internal notes updates against hosted Supabase RLS.
+- Test manual booking creation for admin assigned, admin unassigned, therapist own, and therapist direct-request attempts against hosted Supabase RLS.
 
 ## Manual QA Checklist
 
@@ -100,13 +103,16 @@ The current focus is applying the dashboard schema and booking permissions migra
 - Confirm therapist users see only overview and bookings navigation.
 - Confirm the dashboard calendar defaults to a usable day view on mobile.
 - Confirm admin users can filter bookings by therapist and status.
+- Confirm admin users can create manual bookings assigned to any therapist or temporarily unassigned.
 - Confirm therapist users only see their own assigned bookings.
+- Confirm therapist users can create manual bookings only for their own therapist profile.
 - Confirm booking details fit mobile screens and allow internal notes editing.
 - Confirm booking details trap Tab focus, close with Escape, and return focus to the opened booking.
 - Confirm cancelling a booking shows a confirmation dialog.
 - Confirm therapist users can mark assigned bookings confirmed, cancelled, or completed, but cannot reassign them or set them back to pending.
 - Confirm a signed-in Auth user without `app_metadata.role` is redirected to login with a staff-access error.
 - Confirm Serbian dashboard dates render in Latin script.
+- Confirm manual booking source channel and duration are visible after creation.
 
 ## Known Issues
 
@@ -115,6 +121,7 @@ The current focus is applying the dashboard schema and booking permissions migra
 - Booking persistence depends on applying the Supabase migration and setting public Supabase env vars locally and in deployment.
 - Clients, services, and therapists dashboard pages are placeholders only; the bookings calendar is the first operational dashboard view.
 - Dashboard schema migration has not been applied to the hosted Supabase project yet.
+- Manual booking creation requires applying `20260513130000_dashboard_manual_bookings.sql` in the hosted Supabase project.
 - No client authentication exists by design; the new auth flow is for staff dashboard users only.
 - Automated PR creation can fail due GitHub CLI or connector access; branch push still works.
 - Local Next.js dev server may need a restart after production build.
@@ -132,6 +139,7 @@ The current focus is applying the dashboard schema and booking permissions migra
 - Keep dashboard database changes additive: public booking inserts remain anon insert-only, while authenticated dashboard access is controlled by RLS using staff roles from `raw_app_meta_data`.
 - Keep dashboard booking data fetching and updates isolated in `src/lib/dashboard` so UI components can evolve without embedding Supabase query details.
 - Keep dashboard booking actions role-aware in the service layer and rely on Supabase RLS as the real data boundary.
+- Keep manual booking creation as dashboard-only staff workflow with `source = 'dashboard'` and a captured `source_channel`; public booking remains `source = 'website'`.
 - Keep UI primitives local and lightweight rather than pulling in a full component dependency for every shadcn/ui part.
 - Avoid full CRM workflows until the booking/dashboard foundation is stable.
 

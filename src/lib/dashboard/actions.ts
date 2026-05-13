@@ -6,6 +6,8 @@ import { type Locale } from "@/i18n/config";
 import { requireDashboardUser } from "@/lib/dashboard/auth";
 import {
   assignTherapistToBooking,
+  createManualBooking,
+  type CreateManualBookingInput,
   DashboardForbiddenError,
   updateBookingInternalNotes,
   updateBookingStatus
@@ -69,6 +71,20 @@ export async function assignTherapistToBookingAction(
   try {
     const user = await requireDashboardUser(locale);
     await assignTherapistToBooking(user, input.bookingId, input.therapistId);
+    revalidateDashboard(locale);
+    return { ok: true };
+  } catch (error) {
+    return toActionResult(error);
+  }
+}
+
+export async function createManualBookingAction(
+  locale: Locale,
+  input: CreateManualBookingInput
+): Promise<DashboardActionResult> {
+  try {
+    const user = await requireDashboardUser(locale);
+    await createManualBooking(user, input);
     revalidateDashboard(locale);
     return { ok: true };
   } catch (error) {
