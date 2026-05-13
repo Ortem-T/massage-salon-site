@@ -103,7 +103,7 @@ const ru = {
       selectDateFirst: "Сначала выберите дату",
       loadingTimes: "Загружаем доступное время",
       noAvailableTimes: "На эту дату нет свободного времени",
-      otherTherapistBookings: "У другого массажиста есть записи в этот день, но выбранный массажист может быть свободен",
+      otherTherapistBookings: "У другого массажиста есть записи в этот день",
       calendarAfterTherapist: "Выберите услугу и массажиста.",
       availableTimes: "Доступное время для записи"
     },

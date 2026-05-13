@@ -103,7 +103,7 @@ const en = {
       selectDateFirst: "Select a date first",
       loadingTimes: "Loading available times",
       noAvailableTimes: "No available times for this date",
-      otherTherapistBookings: "Another therapist has bookings on this date, but your selected therapist may still be available",
+      otherTherapistBookings: "Another therapist has bookings on this date",
       calendarAfterTherapist: "Choose a service and therapist.",
       availableTimes: "Available booking times"
     },

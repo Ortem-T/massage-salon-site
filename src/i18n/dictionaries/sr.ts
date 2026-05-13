@@ -103,7 +103,7 @@ const sr = {
       selectDateFirst: "Prvo izaberite datum",
       loadingTimes: "Učitavamo dostupna vremena",
       noAvailableTimes: "Nema slobodnih termina za ovaj datum",
-      otherTherapistBookings: "Drugi terapeut ima termine tog dana, ali izabrani terapeut može biti dostupan",
+      otherTherapistBookings: "Drugi terapeut ima termine tog dana",
       calendarAfterTherapist: "Izaberite uslugu i terapeuta.",
       availableTimes: "Dostupna vremena za termin"
     },

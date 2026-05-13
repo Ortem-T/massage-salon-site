@@ -273,7 +273,7 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
   function getDateHint(value: string) {
     const day = availabilityByDate[value];
 
-    if (!day || day.selectedTherapistBookingCount > 0 || day.otherTherapistBookingCount === 0) {
+    if (!day || day.selectedTherapistBookingCount !== 0 || day.otherTherapistBookingCount === 0) {
       return null;
     }
 
