@@ -1,4 +1,10 @@
 import { isLocale, type Locale } from "@/i18n/config";
+import {
+  isSlotAvailableBeforeSubmit,
+  type AvailabilityBooking,
+  type AvailabilityScheduleBlock
+} from "@/lib/booking/booking-availability";
+import { defaultBookingAvailability } from "@/lib/booking/booking-options";
 import { bookingStatuses, type BookingStatus } from "@/lib/booking/booking-schema";
 import { type DashboardUser } from "@/lib/dashboard/auth";
 import {
@@ -7,6 +13,7 @@ import {
   type ManualBookingSourceChannel
 } from "@/lib/dashboard/constants";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export type DashboardBooking = {
   id: string;
@@ -68,6 +75,13 @@ export class DashboardForbiddenError extends Error {
   constructor() {
     super("Dashboard action is not allowed for this user.");
     this.name = "DashboardForbiddenError";
+  }
+}
+
+export class DashboardBlockedTimeError extends Error {
+  constructor() {
+    super("Dashboard booking time is unavailable.");
+    this.name = "DashboardBlockedTimeError";
   }
 }
 
@@ -148,6 +162,23 @@ type ActiveServiceRow = {
   duration_minutes: number;
 };
 
+type PublicAvailabilityRow = {
+  booking_date: string;
+  preferred_time: string;
+  therapist_id: string | null;
+  duration_minutes: number | null;
+  status: AvailabilityBooking["status"];
+};
+
+type PublicScheduleBlockRow = {
+  block_date: string;
+  therapist_id: string | null;
+  block_type: AvailabilityScheduleBlock["blockType"];
+  block_scope: AvailabilityScheduleBlock["blockScope"];
+  start_time: string | null;
+  end_time: string | null;
+};
+
 const fullBookingColumns =
   "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source, source_channel, duration_minutes, client_id, therapist_id, internal_notes, updated_at";
 const dashboardBookingColumns =
@@ -180,6 +211,67 @@ function normalizeOptionalText(value: string | null | undefined) {
 
 function normalizeRequiredText(value: string | null | undefined) {
   return value?.trim() ?? "";
+}
+
+function toAvailabilityBooking(row: PublicAvailabilityRow): AvailabilityBooking {
+  return {
+    bookingDate: row.booking_date,
+    preferredTime: row.preferred_time,
+    therapistId: row.therapist_id,
+    durationMinutes: row.duration_minutes,
+    status: row.status
+  };
+}
+
+function toAvailabilityScheduleBlock(row: PublicScheduleBlockRow): AvailabilityScheduleBlock {
+  return {
+    blockDate: row.block_date,
+    therapistId: row.therapist_id,
+    blockType: row.block_type,
+    blockScope: row.block_scope,
+    startTime: row.start_time,
+    endTime: row.end_time
+  };
+}
+
+async function isManualBookingSlotAvailable(input: {
+  therapistId: string;
+  serviceDurationMinutes: number;
+  date: string;
+  preferredTime: string;
+}) {
+  const publicSupabase = createSupabaseBrowserClient();
+  const { data: availabilityRows, error: availabilityError } = await publicSupabase
+    .from("public_booking_availability")
+    .select("booking_date, preferred_time, therapist_id, duration_minutes, status")
+    .eq("booking_date", input.date);
+
+  if (availabilityError) {
+    throw new Error(availabilityError.message);
+  }
+
+  const { data: blockRows, error: blocksError } = await publicSupabase
+    .from("public_schedule_block_availability")
+    .select("block_date, therapist_id, block_type, block_scope, start_time, end_time")
+    .eq("block_date", input.date);
+
+  if (blocksError) {
+    throw new Error(blocksError.message);
+  }
+
+  return isSlotAvailableBeforeSubmit({
+    therapistId: input.therapistId,
+    serviceDurationMinutes: input.serviceDurationMinutes,
+    date: input.date,
+    preferredTime: input.preferredTime,
+    bookings: ((availabilityRows ?? []) as PublicAvailabilityRow[]).map(toAvailabilityBooking),
+    scheduleBlocks: ((blockRows ?? []) as PublicScheduleBlockRow[]).map(toAvailabilityScheduleBlock),
+    workingHours: {
+      start: defaultBookingAvailability.workdayStart,
+      end: defaultBookingAvailability.workdayEnd
+    },
+    breakMinutes: defaultBookingAvailability.breakMinutes
+  });
 }
 
 async function getDashboardTherapists(role: DashboardUser["role"], userId: string) {
@@ -436,6 +528,19 @@ export async function createManualBooking(user: DashboardUser, input: CreateManu
       therapistId = null;
     } else {
       specialist = therapist.displayName;
+    }
+  }
+
+  if (therapistId) {
+    const isAvailable = await isManualBookingSlotAvailable({
+      therapistId,
+      serviceDurationMinutes: input.durationMinutes ?? service.duration_minutes,
+      date: normalized.preferredDate,
+      preferredTime: normalized.preferredTime
+    });
+
+    if (!isAvailable) {
+      throw new DashboardBlockedTimeError();
     }
   }
 

@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 
 import {
   isSlotAvailableBeforeSubmit,
-  type AvailabilityBooking
+  type AvailabilityBooking,
+  type AvailabilityScheduleBlock
 } from "@/lib/booking/booking-availability";
 import { bookingRequestPayloadSchema } from "@/lib/booking/booking-request-payload";
 import { defaultBookingAvailability } from "@/lib/booking/booking-options";
@@ -16,6 +17,15 @@ type PublicAvailabilityRow = {
   status: AvailabilityBooking["status"];
 };
 
+type PublicScheduleBlockRow = {
+  block_date: string;
+  therapist_id: string | null;
+  block_type: AvailabilityScheduleBlock["blockType"];
+  block_scope: AvailabilityScheduleBlock["blockScope"];
+  start_time: string | null;
+  end_time: string | null;
+};
+
 function toAvailabilityBooking(row: PublicAvailabilityRow): AvailabilityBooking {
   return {
     bookingDate: row.booking_date,
@@ -23,6 +33,17 @@ function toAvailabilityBooking(row: PublicAvailabilityRow): AvailabilityBooking 
     therapistId: row.therapist_id,
     durationMinutes: row.duration_minutes,
     status: row.status
+  };
+}
+
+function toAvailabilityScheduleBlock(row: PublicScheduleBlockRow): AvailabilityScheduleBlock {
+  return {
+    blockDate: row.block_date,
+    therapistId: row.therapist_id,
+    blockType: row.block_type,
+    blockScope: row.block_scope,
+    startTime: row.start_time,
+    endTime: row.end_time
   };
 }
 
@@ -74,12 +95,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Booking availability could not be checked." }, { status: 500 });
   }
 
+  const { data: blockRows, error: blocksError } = await supabase
+    .from("public_schedule_block_availability")
+    .select("block_date, therapist_id, block_type, block_scope, start_time, end_time")
+    .eq("block_date", payload.data.preferred_date);
+
+  if (blocksError) {
+    return NextResponse.json({ error: "Booking availability could not be checked." }, { status: 500 });
+  }
+
   const isAvailable = isSlotAvailableBeforeSubmit({
     therapistId: therapist.id,
     serviceDurationMinutes: service.duration_minutes,
     date: payload.data.preferred_date,
     preferredTime: payload.data.preferred_time,
     bookings: ((availabilityRows ?? []) as PublicAvailabilityRow[]).map(toAvailabilityBooking),
+    scheduleBlocks: ((blockRows ?? []) as PublicScheduleBlockRow[]).map(toAvailabilityScheduleBlock),
     workingHours: {
       start: defaultBookingAvailability.workdayStart,
       end: defaultBookingAvailability.workdayEnd

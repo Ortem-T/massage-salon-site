@@ -229,6 +229,7 @@ const sr = {
     navigation: {
       overview: "Pregled",
       bookings: "Termini",
+      schedule: "Raspored",
       clients: "Klijenti",
       services: "Usluge",
       therapists: "Terapeuti"
@@ -295,6 +296,7 @@ const sr = {
         },
         placeholders: {
           service: "Izaberite uslugu",
+          therapist: "Izaberite terapeuta",
           duration: "Opcionalno",
           clientName: "Ime klijenta",
           clientPhone: "+381 ...",
@@ -319,7 +321,8 @@ const sr = {
           clientName: "Unesite ime klijenta.",
           clientPhone: "Unesite telefon klijenta.",
           therapist: "Za kreiranje termina potreban je vaš profil terapeuta.",
-          sourceChannel: "Izaberite izvor."
+          sourceChannel: "Izaberite izvor.",
+          blocked: "Ovo vreme je blokirano."
         },
         submit: "Napravi termin",
         saving: "Kreiramo...",
@@ -375,6 +378,67 @@ const sr = {
         forbidden: "Ova radnja nije dostupna za vašu ulogu.",
         confirmCancel: "Otkazati ovaj termin?",
         error: "Izmene nije moguće sačuvati."
+      }
+    },
+    schedule: {
+      eyebrow: "Raspored",
+      title: "Blokade dostupnosti",
+      subtitle: "Blokirajte ceo dan ili određeno vreme da klijenti i tim ne mogu da naprave termin u nedostupnim periodima.",
+      availability: "Dostupnost",
+      addBlock: "Dodaj blokadu",
+      editBlock: "Izmeni blokadu",
+      deleteBlock: "Obriši blokadu",
+      cancelEdit: "Otkaži izmenu",
+      saving: "Čuvamo...",
+      dataError: "Blokade rasporeda trenutno nisu dostupne. Proverite migraciju i RLS.",
+      existingBlockHint: "Ovaj datum ima blokade",
+      noBlocks: "Nema blokada rasporeda za ovaj datum.",
+      confirmDelete: "Da li ste sigurni da želite da obrišete ovu blokadu?",
+      ownTherapistFallback: "Vaš profil terapeuta još nije povezan.",
+      fields: {
+        date: "Datum",
+        blockType: "Tip blokade",
+        scope: "Obuhvat",
+        therapist: "Terapeut",
+        startTime: "Početak",
+        endTime: "Kraj",
+        reason: "Razlog"
+      },
+      placeholders: {
+        therapist: "Izaberite terapeuta",
+        reason: "Na primer: slobodan dan, lična pauza, privatni termin..."
+      },
+      types: {
+        fullDay: "Ceo dan",
+        timeRange: "Vremenski interval"
+      },
+      scope: {
+        therapist: "Terapeut",
+        salon: "Ceo salon"
+      },
+      filters: {
+        therapist: "Filter terapeuta",
+        allTherapists: "Svi terapeuti"
+      },
+      messages: {
+        created: "Blokada je napravljena.",
+        updated: "Blokada je ažurirana.",
+        deleted: "Blokada je obrisana.",
+        error: "Blokadu nije moguće sačuvati."
+      },
+      errors: {
+        date: "Izaberite datum.",
+        therapist: "Izaberite terapeuta.",
+        ownOnly: "Možete menjati samo svoje blokade rasporeda.",
+        endAfterStart: "Vreme završetka mora biti posle početka.",
+        overlap: "Vremenska blokada se preklapa sa postojećom blokadom.",
+        blocked: "Ovo vreme je blokirano.",
+        dayUnavailable: "Ovaj dan nije dostupan."
+      },
+      reasons: {
+        dayOff: "Slobodan dan",
+        personalBreak: "Lična pauza",
+        privateAppointment: "Privatni termin"
       }
     }
   }

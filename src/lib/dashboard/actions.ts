@@ -8,15 +8,23 @@ import {
   assignTherapistToBooking,
   createManualBooking,
   type CreateManualBookingInput,
+  DashboardBlockedTimeError,
   DashboardForbiddenError,
   updateBookingInternalNotes,
   updateBookingStatus
 } from "@/lib/dashboard/bookings";
+import {
+  createScheduleBlock,
+  deleteScheduleBlock,
+  ScheduleBlockValidationError,
+  type ScheduleBlockInput,
+  updateScheduleBlock
+} from "@/lib/dashboard/schedule-blocks";
 import { type BookingStatus } from "@/lib/booking/booking-schema";
 
 export type DashboardActionResult = {
   ok: boolean;
-  reason?: "forbidden" | "error";
+  reason?: "forbidden" | "error" | "invalid" | "invalid_time" | "overlap" | "blocked";
 };
 
 type BookingActionInput = {
@@ -26,6 +34,14 @@ type BookingActionInput = {
 function toActionResult(error: unknown): DashboardActionResult {
   if (error instanceof DashboardForbiddenError) {
     return { ok: false, reason: "forbidden" };
+  }
+
+  if (error instanceof ScheduleBlockValidationError) {
+    return { ok: false, reason: error.reason };
+  }
+
+  if (error instanceof DashboardBlockedTimeError) {
+    return { ok: false, reason: "blocked" };
   }
 
   if (process.env.NODE_ENV !== "production") {
@@ -38,6 +54,7 @@ function toActionResult(error: unknown): DashboardActionResult {
 function revalidateDashboard(locale: Locale) {
   revalidatePath(`/${locale}/dashboard`);
   revalidatePath(`/${locale}/dashboard/bookings`);
+  revalidatePath(`/${locale}/dashboard/schedule`);
 }
 
 export async function updateBookingStatusAction(
@@ -89,6 +106,48 @@ export async function createManualBookingAction(
   try {
     const user = await requireDashboardUser(locale);
     await createManualBooking(user, input);
+    revalidateDashboard(locale);
+    return { ok: true };
+  } catch (error) {
+    return toActionResult(error);
+  }
+}
+
+export async function createScheduleBlockAction(
+  locale: Locale,
+  input: ScheduleBlockInput
+): Promise<DashboardActionResult> {
+  try {
+    const user = await requireDashboardUser(locale);
+    await createScheduleBlock(user, input);
+    revalidateDashboard(locale);
+    return { ok: true };
+  } catch (error) {
+    return toActionResult(error);
+  }
+}
+
+export async function updateScheduleBlockAction(
+  locale: Locale,
+  input: ScheduleBlockInput & { id: string }
+): Promise<DashboardActionResult> {
+  try {
+    const user = await requireDashboardUser(locale);
+    await updateScheduleBlock(user, input);
+    revalidateDashboard(locale);
+    return { ok: true };
+  } catch (error) {
+    return toActionResult(error);
+  }
+}
+
+export async function deleteScheduleBlockAction(
+  locale: Locale,
+  id: string
+): Promise<DashboardActionResult> {
+  try {
+    const user = await requireDashboardUser(locale);
+    await deleteScheduleBlock(user, id);
     revalidateDashboard(locale);
     return { ok: true };
   } catch (error) {

@@ -229,6 +229,7 @@ const en = {
     navigation: {
       overview: "Overview",
       bookings: "Bookings",
+      schedule: "Schedule",
       clients: "Clients",
       services: "Services",
       therapists: "Therapists"
@@ -295,6 +296,7 @@ const en = {
         },
         placeholders: {
           service: "Choose service",
+          therapist: "Choose therapist",
           duration: "Optional",
           clientName: "Client name",
           clientPhone: "+381 ...",
@@ -319,7 +321,8 @@ const en = {
           clientName: "Enter the client name.",
           clientPhone: "Enter the client phone.",
           therapist: "Your therapist profile is required to create bookings.",
-          sourceChannel: "Choose a source channel."
+          sourceChannel: "Choose a source channel.",
+          blocked: "This time is blocked."
         },
         submit: "Create booking",
         saving: "Creating...",
@@ -375,6 +378,67 @@ const en = {
         forbidden: "This action is not available for your role.",
         confirmCancel: "Cancel this booking?",
         error: "Could not save changes."
+      }
+    },
+    schedule: {
+      eyebrow: "Schedule",
+      title: "Availability blocks",
+      subtitle: "Block full days or specific times so clients and staff cannot book unavailable windows.",
+      availability: "Availability",
+      addBlock: "Add block",
+      editBlock: "Edit block",
+      deleteBlock: "Delete block",
+      cancelEdit: "Cancel edit",
+      saving: "Saving...",
+      dataError: "Schedule blocks are not available right now. Check the migration and RLS setup.",
+      existingBlockHint: "This date has schedule blocks",
+      noBlocks: "No schedule blocks for this date.",
+      confirmDelete: "Are you sure you want to delete this block?",
+      ownTherapistFallback: "Your therapist profile is not connected yet.",
+      fields: {
+        date: "Date",
+        blockType: "Block type",
+        scope: "Scope",
+        therapist: "Therapist",
+        startTime: "Start time",
+        endTime: "End time",
+        reason: "Reason"
+      },
+      placeholders: {
+        therapist: "Choose therapist",
+        reason: "For example: day off, personal break, private appointment..."
+      },
+      types: {
+        fullDay: "Full day",
+        timeRange: "Time range"
+      },
+      scope: {
+        therapist: "Therapist",
+        salon: "Salon"
+      },
+      filters: {
+        therapist: "Therapist filter",
+        allTherapists: "All therapists"
+      },
+      messages: {
+        created: "Block created.",
+        updated: "Block updated.",
+        deleted: "Block deleted.",
+        error: "Could not save block."
+      },
+      errors: {
+        date: "Choose a date.",
+        therapist: "Choose a therapist.",
+        ownOnly: "Only your own schedule blocks can be edited.",
+        endAfterStart: "End time must be after start time.",
+        overlap: "Time block overlaps with an existing block.",
+        blocked: "This time is blocked.",
+        dayUnavailable: "This day is unavailable."
+      },
+      reasons: {
+        dayOff: "Day off",
+        personalBreak: "Personal break",
+        privateAppointment: "Private appointment"
       }
     }
   }

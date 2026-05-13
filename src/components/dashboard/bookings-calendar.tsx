@@ -10,7 +10,7 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { type Locale } from "@/i18n/config";
 import { type Dictionary } from "@/i18n/dictionaries";
-import { getAvailableTimeSlots, getTodayValue, isBookingDateSelectable } from "@/lib/booking/booking-availability";
+import { getTodayValue, isBookingDateSelectable } from "@/lib/booking/booking-availability";
 import { type BookingStatus, bookingStatuses } from "@/lib/booking/booking-schema";
 import {
   assignTherapistToBookingAction,
@@ -58,6 +58,10 @@ type BookingsCalendarProps = {
   role: DashboardRole;
   serviceCatalog: ServiceCatalogItem[];
   therapists: DashboardTherapist[];
+};
+
+type AvailabilityResponse = {
+  days: Record<string, { availableTimeSlots: string[] }>;
 };
 
 const statusStyles: Record<BookingStatus, string> = {
@@ -205,6 +209,8 @@ export function BookingsCalendar({
     sourceChannel: "phone"
   }));
   const [manualBookingErrors, setManualBookingErrors] = useState<ManualBookingFormErrors>({});
+  const [manualAvailableTimeSlots, setManualAvailableTimeSlots] = useState<string[]>([]);
+  const [isManualAvailabilityLoading, setIsManualAvailabilityLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const dialogRef = useRef<HTMLElement | null>(null);
@@ -222,9 +228,10 @@ export function BookingsCalendar({
     () => new Map(serviceCatalog.map((service) => [service.slug, String(service.durationMinutes)])),
     [serviceCatalog]
   );
-  const manualAvailableTimeSlots = useMemo(
-    () => getAvailableTimeSlots(manualBookingForm.preferredDate),
-    [manualBookingForm.preferredDate]
+  const manualCanLoadAvailability = Boolean(
+    manualBookingForm.service &&
+    manualBookingForm.therapistId &&
+    manualBookingForm.preferredDate
   );
 
   const filteredBookings = useMemo(() => {
@@ -271,9 +278,60 @@ export function BookingsCalendar({
   }, [isCreateOpen, selectedBookingId]);
 
   useEffect(() => {
+    if (!manualCanLoadAvailability) {
+      setManualAvailableTimeSlots([]);
+      setIsManualAvailabilityLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const params = new URLSearchParams({
+      therapistId: manualBookingForm.therapistId,
+      serviceSlug: manualBookingForm.service,
+      startDate: manualBookingForm.preferredDate,
+      endDate: manualBookingForm.preferredDate
+    });
+
+    setIsManualAvailabilityLoading(true);
+
+    fetch(`/api/booking-availability?${params.toString()}`, {
+      signal: controller.signal
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("Manual booking availability could not be loaded.");
+        }
+
+        return (await response.json()) as AvailabilityResponse;
+      })
+      .then((data) => {
+        setManualAvailableTimeSlots(data.days[manualBookingForm.preferredDate]?.availableTimeSlots ?? []);
+      })
+      .catch((error) => {
+        if ((error as Error).name !== "AbortError") {
+          setManualAvailableTimeSlots([]);
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setIsManualAvailabilityLoading(false);
+        }
+      });
+
+    return () => {
+      controller.abort();
+    };
+  }, [
+    manualBookingForm.preferredDate,
+    manualBookingForm.service,
+    manualBookingForm.therapistId,
+    manualCanLoadAvailability
+  ]);
+
+  useEffect(() => {
     if (
       manualBookingForm.preferredTime &&
-      !manualAvailableTimeSlots.includes(manualBookingForm.preferredTime as (typeof manualAvailableTimeSlots)[number])
+      !manualAvailableTimeSlots.includes(manualBookingForm.preferredTime)
     ) {
       setManualBookingForm((current) => ({
         ...current,
@@ -391,7 +449,8 @@ export function BookingsCalendar({
     setManualBookingForm((current) => ({
       ...current,
       service,
-      durationMinutes: serviceDurations.get(service) ?? current.durationMinutes
+      durationMinutes: serviceDurations.get(service) ?? current.durationMinutes,
+      preferredTime: ""
     }));
     setManualBookingErrors((current) => {
       if (!current.service) {
@@ -436,7 +495,7 @@ export function BookingsCalendar({
       errors.sourceChannel = create.errors.sourceChannel;
     }
 
-    if (role === "therapist" && !manualBookingForm.therapistId) {
+    if (!manualBookingForm.therapistId) {
       errors.therapistId = create.errors.therapist;
     }
 
@@ -576,6 +635,15 @@ export function BookingsCalendar({
         closeCreateBooking();
         setMessage(calendar.create.success);
         router.refresh();
+        return;
+      }
+
+      if (result.reason === "blocked") {
+        setManualBookingErrors((current) => ({
+          ...current,
+          preferredTime: calendar.create.errors.blocked
+        }));
+        setMessage(calendar.create.errors.blocked);
         return;
       }
 
@@ -900,13 +968,19 @@ export function BookingsCalendar({
                   </label>
                   <Select
                     id="manual-time"
-                    disabled={!manualBookingForm.preferredDate}
+                    disabled={!manualCanLoadAvailability || isManualAvailabilityLoading || manualAvailableTimeSlots.length === 0}
                     value={manualBookingForm.preferredTime}
                     onChange={(event) => updateManualBookingField("preferredTime", event.target.value)}
                     aria-invalid={Boolean(manualBookingErrors.preferredTime)}
                     aria-describedby={manualBookingErrors.preferredTime ? "manual-time-error" : undefined}
                   >
-                    <option value="">{dictionary.booking.fields.time.placeholder}</option>
+                    <option value="">
+                      {isManualAvailabilityLoading
+                        ? dictionary.booking.availability.loadingTimes
+                        : manualCanLoadAvailability && manualAvailableTimeSlots.length === 0
+                          ? dictionary.booking.availability.noAvailableTimes
+                          : dictionary.booking.fields.time.placeholder}
+                    </option>
                     {manualAvailableTimeSlots.map((time) => (
                       <option key={time} value={time}>
                         {time}
@@ -995,7 +1069,7 @@ export function BookingsCalendar({
                         value={manualBookingForm.therapistId}
                         onChange={(event) => updateManualBookingField("therapistId", event.target.value)}
                       >
-                        <option value="">{calendar.filters.unassignedTherapist}</option>
+                        <option value="">{calendar.create.placeholders.therapist}</option>
                         {therapists.map((therapist) => (
                           <option key={therapist.id} value={therapist.id}>
                             {therapist.displayName}

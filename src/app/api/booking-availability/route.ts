@@ -4,7 +4,8 @@ import {
   calculateAvailableTimeSlots,
   getAllBookingsByDate,
   getTherapistBookingsByDate,
-  type AvailabilityBooking
+  type AvailabilityBooking,
+  type AvailabilityScheduleBlock
 } from "@/lib/booking/booking-availability";
 import { defaultBookingAvailability } from "@/lib/booking/booking-options";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -17,8 +18,28 @@ type PublicAvailabilityRow = {
   status: AvailabilityBooking["status"];
 };
 
+type PublicScheduleBlockRow = {
+  block_date: string;
+  therapist_id: string | null;
+  block_type: AvailabilityScheduleBlock["blockType"];
+  block_scope: AvailabilityScheduleBlock["blockScope"];
+  start_time: string | null;
+  end_time: string | null;
+};
+
 function isDateValue(value: string | null) {
   return Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value));
+}
+
+function toAvailabilityScheduleBlock(row: PublicScheduleBlockRow): AvailabilityScheduleBlock {
+  return {
+    blockDate: row.block_date,
+    therapistId: row.therapist_id,
+    blockType: row.block_type,
+    blockScope: row.block_scope,
+    startTime: row.start_time,
+    endTime: row.end_time
+  };
 }
 
 function toAvailabilityBooking(row: PublicAvailabilityRow): AvailabilityBooking {
@@ -89,7 +110,18 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Availability could not be loaded." }, { status: 500 });
   }
 
+  const { data: blockRows, error: blocksError } = await supabase
+    .from("public_schedule_block_availability")
+    .select("block_date, therapist_id, block_type, block_scope, start_time, end_time")
+    .gte("block_date", startDate!)
+    .lte("block_date", endDate!);
+
+  if (blocksError) {
+    return NextResponse.json({ error: "Availability could not be loaded." }, { status: 500 });
+  }
+
   const bookings = ((rows ?? []) as PublicAvailabilityRow[]).map(toAvailabilityBooking);
+  const scheduleBlocks = ((blockRows ?? []) as PublicScheduleBlockRow[]).map(toAvailabilityScheduleBlock);
   const days = Object.fromEntries(
     getDateRange(startDate!, endDate!).map((date) => {
       const dateBookings = getAllBookingsByDate(date, bookings);
@@ -100,6 +132,7 @@ export async function GET(request: NextRequest) {
         serviceDurationMinutes: service.duration_minutes,
         date,
         bookings,
+        scheduleBlocks,
         workingHours: {
           start: defaultBookingAvailability.workdayStart,
           end: defaultBookingAvailability.workdayEnd

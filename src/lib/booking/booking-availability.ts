@@ -10,6 +10,15 @@ export type AvailabilityBooking = {
   status: AvailabilityBookingStatus;
 };
 
+export type AvailabilityScheduleBlock = {
+  blockDate: string;
+  therapistId: string | null;
+  blockType: "full_day" | "time_range";
+  blockScope: "therapist" | "salon";
+  startTime: string | null;
+  endTime: string | null;
+};
+
 export type BlockedInterval = {
   startMinutes: number;
   endMinutes: number;
@@ -25,6 +34,7 @@ type CalculateAvailableTimeSlotsInput = {
   };
   breakMinutes?: number;
   bookings?: AvailabilityBooking[];
+  scheduleBlocks?: AvailabilityScheduleBlock[];
 };
 
 type IsSlotAvailableInput = CalculateAvailableTimeSlotsInput & {
@@ -112,6 +122,67 @@ export function calculateBlockedIntervals(
     .sort((a, b) => a.startMinutes - b.startMinutes);
 }
 
+export function calculateBlockedIntervalsFromScheduleBlocks(
+  scheduleBlocks: AvailabilityScheduleBlock[],
+  options: {
+    date: string;
+    therapistId: string;
+    workingHours?: {
+      start: string;
+      end: string;
+    };
+  }
+): BlockedInterval[] {
+  const workingHours = options.workingHours ?? {
+    start: defaultBookingAvailability.workdayStart,
+    end: defaultBookingAvailability.workdayEnd
+  };
+  const workdayStart = timeToMinutes(workingHours.start);
+  const workdayEnd = timeToMinutes(workingHours.end);
+
+  if (workdayStart === null || workdayEnd === null || workdayStart >= workdayEnd) {
+    return [];
+  }
+
+  return scheduleBlocks
+    .filter((block) => {
+      const matchesDate = block.blockDate === options.date;
+      const matchesScope = block.blockScope === "salon" || block.therapistId === options.therapistId;
+
+      return matchesDate && matchesScope;
+    })
+    .flatMap((block) => {
+      if (block.blockType === "full_day") {
+        return [
+          {
+            startMinutes: workdayStart,
+            endMinutes: workdayEnd
+          }
+        ];
+      }
+
+      if (!block.startTime || !block.endTime) {
+        return [];
+      }
+
+      const startMinutes = timeToMinutes(block.startTime);
+      const endMinutes = timeToMinutes(block.endTime);
+
+      if (startMinutes === null || endMinutes === null || startMinutes >= endMinutes) {
+        return [];
+      }
+
+      return [
+        {
+          startMinutes: Math.max(startMinutes, workdayStart),
+          endMinutes: Math.min(endMinutes, workdayEnd)
+        }
+      ];
+    })
+    .filter((interval) => interval.startMinutes < interval.endMinutes)
+    .sort((a, b) => a.startMinutes - b.startMinutes);
+}
+
 export function getTherapistBookingsByDate(
   therapistId: string,
   date: string,
@@ -137,7 +208,8 @@ export function calculateAvailableTimeSlots({
     end: defaultBookingAvailability.workdayEnd
   },
   breakMinutes = defaultBookingAvailability.breakMinutes,
-  bookings = []
+  bookings = [],
+  scheduleBlocks = []
 }: CalculateAvailableTimeSlotsInput) {
   if (!therapistId || !date || !isWorkingDay(date)) {
     return [];
@@ -152,7 +224,14 @@ export function calculateAvailableTimeSlots({
 
   const slotDuration = roundServiceDurationForScheduling(serviceDurationMinutes) + breakMinutes;
   const therapistBookings = getTherapistBookingsByDate(therapistId, date, bookings);
-  const blockedIntervals = calculateBlockedIntervals(therapistBookings, { breakMinutes });
+  const blockedIntervals = [
+    ...calculateBlockedIntervals(therapistBookings, { breakMinutes }),
+    ...calculateBlockedIntervalsFromScheduleBlocks(scheduleBlocks, {
+      date,
+      therapistId,
+      workingHours
+    })
+  ].sort((a, b) => a.startMinutes - b.startMinutes);
   const slots: string[] = [];
 
   for (let startMinutes = workdayStart; startMinutes + slotDuration <= workdayEnd; startMinutes += 30) {

@@ -229,6 +229,7 @@ const ru = {
     navigation: {
       overview: "Обзор",
       bookings: "Записи",
+      schedule: "Расписание",
       clients: "Клиенты",
       services: "Услуги",
       therapists: "Массажисты"
@@ -295,6 +296,7 @@ const ru = {
         },
         placeholders: {
           service: "Выберите услугу",
+          therapist: "Выберите массажиста",
           duration: "Необязательно",
           clientName: "Имя клиента",
           clientPhone: "+381 ...",
@@ -319,7 +321,8 @@ const ru = {
           clientName: "Введите имя клиента.",
           clientPhone: "Введите телефон клиента.",
           therapist: "Чтобы создать запись, нужен ваш профиль массажиста.",
-          sourceChannel: "Выберите источник."
+          sourceChannel: "Выберите источник.",
+          blocked: "Это время заблокировано."
         },
         submit: "Создать запись",
         saving: "Создаем...",
@@ -375,6 +378,67 @@ const ru = {
         forbidden: "Это действие недоступно для вашей роли.",
         confirmCancel: "Отменить эту запись?",
         error: "Не удалось сохранить изменения."
+      }
+    },
+    schedule: {
+      eyebrow: "Расписание",
+      title: "Блокировки доступности",
+      subtitle: "Закрывайте полный день или отдельное время, чтобы клиенты и команда не могли записаться в занятые окна.",
+      availability: "Доступность",
+      addBlock: "Добавить блок",
+      editBlock: "Редактировать",
+      deleteBlock: "Удалить",
+      cancelEdit: "Отменить редактирование",
+      saving: "Сохраняем...",
+      dataError: "Блокировки расписания сейчас недоступны. Проверьте migration и RLS.",
+      existingBlockHint: "На эту дату есть блокировки",
+      noBlocks: "На эту дату блокировок нет.",
+      confirmDelete: "Удалить эту блокировку?",
+      ownTherapistFallback: "Ваш профиль массажиста пока не подключен.",
+      fields: {
+        date: "Дата",
+        blockType: "Тип блока",
+        scope: "Область",
+        therapist: "Массажист",
+        startTime: "Начало",
+        endTime: "Конец",
+        reason: "Причина"
+      },
+      placeholders: {
+        therapist: "Выберите массажиста",
+        reason: "Например: выходной, личный перерыв, частная запись..."
+      },
+      types: {
+        fullDay: "Весь день",
+        timeRange: "Интервал времени"
+      },
+      scope: {
+        therapist: "Массажист",
+        salon: "Весь салон"
+      },
+      filters: {
+        therapist: "Фильтр массажиста",
+        allTherapists: "Все массажисты"
+      },
+      messages: {
+        created: "Блокировка создана.",
+        updated: "Блокировка обновлена.",
+        deleted: "Блокировка удалена.",
+        error: "Не удалось сохранить блокировку."
+      },
+      errors: {
+        date: "Выберите дату.",
+        therapist: "Выберите массажиста.",
+        ownOnly: "Можно редактировать только свои блокировки расписания.",
+        endAfterStart: "Время окончания должно быть позже начала.",
+        overlap: "Этот блок пересекается с существующей блокировкой.",
+        blocked: "Это время заблокировано.",
+        dayUnavailable: "Этот день недоступен."
+      },
+      reasons: {
+        dayOff: "Выходной",
+        personalBreak: "Личный перерыв",
+        privateAppointment: "Частная запись"
       }
     }
   }

@@ -2,6 +2,9 @@ import { type Locale } from "@/i18n/config";
 import { type BookingStatus } from "@/lib/booking/booking-schema";
 import { type ManualBookingSourceChannel } from "@/lib/dashboard/constants";
 
+export type ScheduleBlockType = "full_day" | "time_range";
+export type ScheduleBlockScope = "therapist" | "salon";
+
 export type Database = {
   public: {
     Tables: {
@@ -137,6 +140,36 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["service_translations"]["Insert"]>;
         Relationships: [];
       };
+      schedule_blocks: {
+        Row: {
+          id: string;
+          therapist_id: string | null;
+          created_by: string | null;
+          block_type: ScheduleBlockType;
+          block_scope: ScheduleBlockScope;
+          date: string;
+          start_time: string | null;
+          end_time: string | null;
+          reason: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          therapist_id?: string | null;
+          created_by?: string | null;
+          block_type: ScheduleBlockType;
+          block_scope?: ScheduleBlockScope;
+          date: string;
+          start_time?: string | null;
+          end_time?: string | null;
+          reason?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["schedule_blocks"]["Insert"]>;
+        Relationships: [];
+      };
       therapists: {
         Row: {
           id: string;
@@ -181,6 +214,19 @@ export type Database = {
           service_slug: string;
           duration_minutes: number;
           status: BookingStatus;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      public_schedule_block_availability: {
+        Row: {
+          block_date: string;
+          therapist_id: string | null;
+          block_type: ScheduleBlockType;
+          block_scope: ScheduleBlockScope;
+          start_time: string | null;
+          end_time: string | null;
         };
         Insert: never;
         Update: never;

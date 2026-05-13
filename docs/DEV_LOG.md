@@ -55,10 +55,11 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Replaced homepage, public booking, and manual dashboard booking service options with the shared service catalog fetcher. Public booking validates that the submitted service slug is active and bookable online; dashboard manual booking validates that the service slug is active and snapshots service duration when none is provided.
 - Added a public therapist catalog with localized names/titles for active therapists. Public booking now submits therapist ids, validates them server-side, stores the canonical therapist display name in `bookings.specialist`, and links `bookings.therapist_id`.
 - Replaced mock public booking availability with Supabase-backed therapist availability. The public calendar now waits for service and therapist selection, reads safe availability rows from `public.public_booking_availability`, shows subtle other-therapist booking hints, calculates slots from service duration plus a 30-minute break, and revalidates availability before insert.
+- Added schedule block management for admin and therapist dashboard users. Staff can block full days or time ranges, admin can manage therapist and salon-wide blocks, therapists can manage their own blocks, and public/manual availability now excludes blocked windows without exposing internal reasons.
 
 ## Current Focus
 
-The current focus is validating admin/therapist booking actions against real RLS and doing mobile QA on the real public booking flow. The real service, therapist, and availability migrations have been applied to the hosted `raine` Supabase project and public reads are limited to safe catalog/availability data. The next product risk is trust: placeholder contact destinations should be replaced with real business data before the site feels production-ready.
+The current focus is validating admin/therapist schedule block workflows against real RLS and doing mobile QA on the real public booking flow. The real service, therapist, availability, and schedule-block migrations have been applied to the hosted `raine` Supabase project and public reads are limited to safe catalog/availability data. The next product risk is trust: placeholder contact destinations should be replaced with real business data before the site feels production-ready.
 
 ## Git Workflow
 
@@ -88,6 +89,7 @@ The current focus is validating admin/therapist booking actions against real RLS
 - Re-run `20260513140000_real_service_catalog.sql` only when restoring or reseeding; it is slug-based and idempotent.
 - Re-run `20260513150000_public_therapist_catalog.sql` only when restoring or reseeding therapist translations.
 - Re-run `20260513160000_public_booking_availability_view.sql` only when restoring the safe public availability view and column-level booking grants.
+- Re-run `20260513170000_schedule_blocks.sql` only when restoring schedule block support, staff RLS, and the safe public schedule block availability view.
 - Test admin status changes, therapist assignment, therapist status changes, and internal notes updates against hosted Supabase RLS.
 - Test manual booking creation for admin assigned, admin unassigned, therapist own, and therapist direct-request attempts against hosted Supabase RLS.
 
@@ -109,6 +111,10 @@ The current focus is validating admin/therapist booking actions against real RLS
 - Confirm time slots update when service, therapist, or date changes.
 - Confirm selected time clears if it becomes unavailable.
 - Confirm a taken slot returns the localized "time no longer available" error.
+- Confirm admin can create full-day and time-range schedule blocks for any therapist.
+- Confirm therapist users can create full-day and time-range schedule blocks only for their own therapist profile.
+- Confirm blocked days/times disappear from public booking and manual dashboard booking time options.
+- Confirm internal schedule block reasons are visible in dashboard only and not exposed in public booking UI/API responses.
 - Confirm validation errors are announced or discoverable by assistive technology.
 - Confirm selected language switcher state remains readable on hover.
 - Hover service rows and confirm background has proper left and right spacing.
@@ -142,6 +148,7 @@ The current focus is validating admin/therapist booking actions against real RLS
 - Manual booking creation requires applying `20260513130000_dashboard_manual_bookings.sql` in the hosted Supabase project.
 - The hosted Supabase project has `20260513140000_real_service_catalog.sql` applied; local or restored environments still need that migration before public service reads work.
 - The hosted Supabase project has `20260513160000_public_booking_availability_view.sql` applied; local or restored environments need it before real public availability works.
+- The hosted Supabase project has `20260513170000_schedule_blocks.sql` applied; local or restored environments need it before dashboard schedule blocks work.
 - No client authentication exists by design; the new auth flow is for staff dashboard users only.
 - Automated PR creation can fail due GitHub CLI or connector access; branch push still works.
 - Local Next.js dev server may need a restart after production build.
@@ -163,6 +170,7 @@ The current focus is validating admin/therapist booking actions against real RLS
 - Store service catalog entries in `public.services` by stable slug, with public text in `public.service_translations`; booking rows continue to store the selected service slug in `bookings.service` for compatibility with existing data.
 - Treat the 6-treatment course as one normal first-appointment booking in the MVP; do not add package tracking until a later workflow is designed.
 - Keep public availability data behind `public.public_booking_availability`, a `security_invoker` view with column-level booking grants and RLS that exposes only date, time, therapist id, service slug, duration, and blocking status. Full booking rows remain unavailable to anon users.
+- Keep schedule block reasons private in `public.schedule_blocks`; public booking reads only `public.public_schedule_block_availability`, which exposes blocked date/time/scope fields and never internal comments.
 - Use `src/lib/booking/booking-availability.ts` as the shared source for duration rounding, blocked intervals, default time slot generation, and before-insert slot checks.
 - Keep UI primitives local and lightweight rather than pulling in a full component dependency for every shadcn/ui part.
 - Avoid full CRM workflows until the booking/dashboard foundation is stable.
