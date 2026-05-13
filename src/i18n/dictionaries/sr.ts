@@ -104,7 +104,7 @@ const sr = {
       loadingTimes: "Učitavamo dostupna vremena",
       noAvailableTimes: "Nema slobodnih termina za ovaj datum",
       otherTherapistBookings: "Drugi terapeut ima termine tog dana, ali izabrani terapeut može biti dostupan",
-      calendarAfterTherapist: "Kalendar postaje dostupan nakon izbora usluge i terapeuta.",
+      calendarAfterTherapist: "Izaberite uslugu i terapeuta.",
       availableTimes: "Dostupna vremena za termin"
     },
     error: {

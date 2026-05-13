@@ -140,7 +140,7 @@ export function BookingDatePicker({
         aria-describedby={errorId}
         onClick={() => setIsOpen((current) => !current)}
         className={cn(
-          "min-h-13 w-full justify-start rounded-xl border-border/75 bg-background/62 px-4 py-3 text-left text-[0.95rem] font-normal text-foreground shadow-[inset_0_1px_0_rgb(255_250_240/0.7)] hover:border-accent/45 hover:bg-card/78",
+          "min-h-13 w-full justify-start rounded-xl border-border/75 bg-background/62 px-4 py-3 text-left text-[0.95rem] font-normal text-foreground shadow-[inset_0_1px_0_rgb(255_250_240/0.7)] hover:translate-y-0 hover:border-accent/45 hover:bg-card/78 hover:shadow-[inset_0_1px_0_rgb(255_250_240/0.7)]",
           !value && "text-muted-foreground/75",
           invalid && "border-accent"
         )}

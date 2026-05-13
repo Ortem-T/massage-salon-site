@@ -104,7 +104,7 @@ const en = {
       loadingTimes: "Loading available times",
       noAvailableTimes: "No available times for this date",
       otherTherapistBookings: "Another therapist has bookings on this date, but your selected therapist may still be available",
-      calendarAfterTherapist: "The calendar becomes available after choosing a service and therapist.",
+      calendarAfterTherapist: "Choose a service and therapist.",
       availableTimes: "Available booking times"
     },
     error: {

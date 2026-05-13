@@ -33,6 +33,11 @@ type FieldErrorProps = {
   message?: string;
 };
 
+type FieldHintProps = {
+  children?: string;
+  tone?: "muted" | "accent";
+};
+
 type AvailabilityDay = {
   available: boolean;
   availableTimeSlots: string[];
@@ -75,6 +80,20 @@ function FieldError({ id, message }: FieldErrorProps) {
       className={cn("min-h-6 text-sm leading-6 text-accent", !message && "invisible")}
     >
       {message || " "}
+    </p>
+  );
+}
+
+function FieldHint({ children, tone = "muted" }: FieldHintProps) {
+  return (
+    <p
+      className={cn(
+        "min-h-6 text-sm leading-6",
+        tone === "accent" ? "text-accent" : "text-muted-foreground",
+        !children && "invisible"
+      )}
+    >
+      {children || " "}
     </p>
   );
 }
@@ -285,6 +304,20 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
         : availableTimeSlots.length === 0
           ? booking.availability.noAvailableTimes
           : booking.fields.time.placeholder;
+  const dateHelpText = isCalendarDisabled
+    ? booking.availability.calendarAfterTherapist
+    : availabilityError
+      ? booking.error.message
+      : "";
+  const timeHelpText = !selectedTherapist
+    ? booking.availability.selectTherapistFirst
+    : !selectedDate
+      ? booking.availability.selectDateFirst
+      : isAvailabilityLoading
+        ? booking.availability.loadingTimes
+        : availableTimeSlots.length === 0
+          ? booking.availability.noAvailableTimes
+          : booking.availability.availableTimes;
 
   return (
     <Card className="relative overflow-hidden border-primary/12 bg-card/90 shadow-[0_34px_110px_rgb(27_54_39/0.13)]">
@@ -377,11 +410,7 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
                 onChange={selectDate}
                 onVisibleMonthChange={setVisibleMonth}
               />
-              {isCalendarDisabled ? (
-                <p className="text-sm leading-6 text-muted-foreground">{booking.availability.calendarAfterTherapist}</p>
-              ) : availabilityError ? (
-                <p className="text-sm leading-6 text-accent">{booking.error.message}</p>
-              ) : null}
+              <FieldHint tone={availabilityError ? "accent" : "muted"}>{dateHelpText}</FieldHint>
               <FieldError id="booking-date-error" message={errors.preferredDate?.message} />
             </div>
 
@@ -404,13 +433,7 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
                 </Select>
                 <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
               </div>
-              <p className="text-sm leading-6 text-muted-foreground">
-                {isAvailabilityLoading
-                  ? booking.availability.loadingTimes
-                  : selectedDate && availableTimeSlots.length === 0
-                    ? booking.availability.noAvailableTimes
-                    : booking.availability.availableTimes}
-              </p>
+              <FieldHint>{timeHelpText}</FieldHint>
               <FieldError id="booking-time-error" message={errors.preferredTime?.message} />
             </div>
           </div>

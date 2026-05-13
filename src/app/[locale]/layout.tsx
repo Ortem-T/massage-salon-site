@@ -40,6 +40,23 @@ export async function generateMetadata({ params }: LocaleLayoutProps): Promise<M
     },
     description: dictionary.seo.description,
     keywords: [...dictionary.seo.keywords],
+    icons: {
+      icon: [
+        {
+          url: "/icon.png",
+          type: "image/png",
+          sizes: "512x512"
+        }
+      ],
+      shortcut: ["/icon.png"],
+      apple: [
+        {
+          url: "/images/raine-logo-ui.png",
+          type: "image/png",
+          sizes: "360x360"
+        }
+      ]
+    },
     alternates: {
       canonical: `/${locale}`,
       languages: {

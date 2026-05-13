@@ -104,7 +104,7 @@ const ru = {
       loadingTimes: "Загружаем доступное время",
       noAvailableTimes: "На эту дату нет свободного времени",
       otherTherapistBookings: "У другого массажиста есть записи в этот день, но выбранный массажист может быть свободен",
-      calendarAfterTherapist: "Календарь станет доступен после выбора услуги и массажиста.",
+      calendarAfterTherapist: "Выберите услугу и массажиста.",
       availableTimes: "Доступное время для записи"
     },
     error: {
