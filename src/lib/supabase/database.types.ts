@@ -155,6 +155,22 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["therapists"]["Insert"]>;
         Relationships: [];
       };
+      therapist_translations: {
+        Row: {
+          therapist_id: string;
+          locale: Locale;
+          display_name: string;
+          public_title: string | null;
+        };
+        Insert: {
+          therapist_id: string;
+          locale: Locale;
+          display_name: string;
+          public_title?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["therapist_translations"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

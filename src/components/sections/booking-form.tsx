@@ -18,12 +18,14 @@ import { getAvailableTimeSlots, getTodayValue, isBookingDateSelectable } from "@
 import { type BookingFormValues, createBookingFormSchema } from "@/lib/booking/booking-schema";
 import { createBookingRequest } from "@/lib/booking/create-booking-request";
 import { type ServiceCatalogItem } from "@/lib/services/catalog";
+import { type TherapistCatalogItem } from "@/lib/therapists/catalog";
 import { cn } from "@/lib/utils";
 
 type BookingFormProps = {
   locale: Locale;
   dictionary: Dictionary;
   serviceCatalog: ServiceCatalogItem[];
+  therapistCatalog: TherapistCatalogItem[];
 };
 
 type FieldErrorProps = {
@@ -44,7 +46,7 @@ function FieldError({ id, message }: FieldErrorProps) {
   );
 }
 
-export function BookingForm({ locale, dictionary, serviceCatalog }: BookingFormProps) {
+export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatalog }: BookingFormProps) {
   const { booking } = dictionary;
   const [isSuccess, setIsSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -162,9 +164,9 @@ export function BookingForm({ locale, dictionary, serviceCatalog }: BookingFormP
                   {...register("specialist")}
                 >
                   <option value="">{booking.fields.specialist.placeholder}</option>
-                  {booking.specialistOptions.map((specialist) => (
-                    <option key={specialist.value} value={specialist.value}>
-                      {specialist.label}
+                  {therapistCatalog.map((therapist) => (
+                    <option key={therapist.id} value={therapist.id}>
+                      {therapist.publicTitle ? `${therapist.displayName} · ${therapist.publicTitle}` : therapist.displayName}
                     </option>
                   ))}
                 </Select>

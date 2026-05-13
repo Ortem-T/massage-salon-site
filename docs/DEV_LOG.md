@@ -8,7 +8,7 @@ This log is shared context for human and AI-assisted development. Update it afte
 
 Raine is a premium multilingual massage salon homepage for Novi Sad, Serbia. The homepage MVP exists and uses locale-based routing for Serbian, Russian, and English. The visual direction has moved toward calm luxury wellness with Japanese spa influence, warm natural colors, refined typography, soft shadows, and gentle motion.
 
-The booking form MVP is integrated into the homepage and now submits through a Next API route to Supabase. The form collects service, specialist, preferred date, preferred time, client name, phone number, and optional comment. The current site locale is passed as `siteLocale` and persisted as the booking `locale`. A protected dashboard foundation now exists for Supabase Auth staff users with `admin` and `therapist` roles. A dashboard MVP schema migration has been drafted but still needs to be applied manually in Supabase. The first dashboard bookings UI is calendar-first and supports day, week, and month views. Real face/body services now have a Supabase seed migration with localized Serbian, Russian, and English translations, and homepage/public/manual booking service options are designed to read from that shared catalog.
+The booking form MVP is integrated into the homepage and now submits through a Next API route to Supabase. The form collects service, specialist, preferred date, preferred time, client name, phone number, and optional comment. The current site locale is passed as `siteLocale` and persisted as the booking `locale`. A protected dashboard foundation now exists for Supabase Auth staff users with `admin` and `therapist` roles. A dashboard MVP schema migration has been drafted but still needs to be applied manually in Supabase. The first dashboard bookings UI is calendar-first and supports day, week, and month views. Real face/body services now have a Supabase seed migration with localized Serbian, Russian, and English translations, and homepage/public/manual booking service options are designed to read from that shared catalog. Public booking specialists now come from active Supabase therapists with localized display names; the generic "any available specialist" option has been removed.
 
 ## Completed Tasks
 
@@ -53,10 +53,11 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Refined manual dashboard booking creation after QA: the dashboard create form now reuses the branded booking calendar picker, uses the shared booking time slot dropdown, limits therapist choices to active database therapist records, and keeps dashboard reads resilient while the manual-booking migration is being applied.
 - Added real Supabase-backed service catalog support with `face` and `body` categories, localized service translations, online-bookable flags, sort order, service RLS/grants, and slug-based idempotent seed data for the salon price list.
 - Replaced homepage, public booking, and manual dashboard booking service options with the shared service catalog fetcher. Public booking validates that the submitted service slug is active and bookable online; dashboard manual booking validates that the service slug is active and snapshots service duration when none is provided.
+- Added a public therapist catalog with localized names/titles for active therapists. Public booking now submits therapist ids, validates them server-side, stores the canonical therapist display name in `bookings.specialist`, and links `bookings.therapist_id`.
 
 ## Current Focus
 
-The current focus is applying the dashboard schema, booking permissions, and manual-booking migrations in the hosted Supabase project, then validating admin/therapist booking actions against real RLS. The real service catalog migration has been applied to the hosted `raine` Supabase project and public service reads are working. The next product risk is trust: placeholder contact destinations and placeholder specialists should be replaced with real business data before the site feels production-ready.
+The current focus is applying the remaining dashboard booking permissions and manual-booking migrations in the hosted Supabase project, then validating admin/therapist booking actions against real RLS. The real service and therapist catalog migrations have been applied to the hosted `raine` Supabase project and public reads are working. The next product risk is trust: placeholder contact destinations should be replaced with real business data before the site feels production-ready.
 
 ## Git Workflow
 
@@ -84,6 +85,7 @@ The current focus is applying the dashboard schema, booking permissions, and man
 - Create Supabase Auth staff users and set `app_metadata.role` to either `admin` or `therapist`.
 - Seed initial `profiles` and `therapists` rows after the dashboard schema migration is applied.
 - Re-run `20260513140000_real_service_catalog.sql` only when restoring or reseeding; it is slug-based and idempotent.
+- Re-run `20260513150000_public_therapist_catalog.sql` only when restoring or reseeding therapist translations.
 - Test admin status changes, therapist assignment, therapist status changes, and internal notes updates against hosted Supabase RLS.
 - Test manual booking creation for admin assigned, admin unassigned, therapist own, and therapist direct-request attempts against hosted Supabase RLS.
 
@@ -92,6 +94,7 @@ The current focus is applying the dashboard schema, booking permissions, and man
 - Check `/sr`, `/ru`, and `/en` booking form copy.
 - Check `/sr`, `/ru`, and `/en` homepages show localized Face/Lice/Лицо and Body/Telo/Тело service groups with the real names, descriptions, durations, and RSD prices.
 - Confirm public booking service options use the same real service names as the homepage.
+- Confirm public booking specialist options show only active real therapists, localized per route, with no generic "any available specialist" option.
 - Confirm dashboard manual booking service options use the same real service names for admin and therapist users.
 - Check mobile widths around 360px, 390px, 430px, 768px, and desktop.
 - Complete the form with keyboard only.

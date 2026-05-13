@@ -9,6 +9,7 @@ import { TestimonialsSection } from "@/components/sections/testimonials-section"
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getServiceCatalog } from "@/lib/services/catalog";
+import { getTherapistCatalog } from "@/lib/therapists/catalog";
 
 type HomePageProps = {
   params: Promise<{ locale: string }>;
@@ -19,16 +20,22 @@ export const dynamic = "force-dynamic";
 export default async function HomePage({ params }: HomePageProps) {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "sr";
-  const [dictionary, serviceCatalog] = await Promise.all([
+  const [dictionary, serviceCatalog, therapistCatalog] = await Promise.all([
     getDictionary(locale),
-    getServiceCatalog(locale, { bookableOnlineOnly: true })
+    getServiceCatalog(locale, { bookableOnlineOnly: true }),
+    getTherapistCatalog(locale)
   ]);
 
   return (
     <main>
       <HeroSection locale={locale} dictionary={dictionary} />
       <ServicesSection locale={locale} dictionary={dictionary} serviceCatalog={serviceCatalog} />
-      <BookingSection locale={locale} dictionary={dictionary} serviceCatalog={serviceCatalog} />
+      <BookingSection
+        locale={locale}
+        dictionary={dictionary}
+        serviceCatalog={serviceCatalog}
+        therapistCatalog={therapistCatalog}
+      />
       <BenefitsSection dictionary={dictionary} />
       <TestimonialsSection dictionary={dictionary} />
       <AboutSection dictionary={dictionary} />

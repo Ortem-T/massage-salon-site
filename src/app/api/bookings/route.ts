@@ -31,10 +31,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid booking service." }, { status: 400 });
   }
 
+  const { data: therapist, error: therapistError } = await supabase
+    .from("therapists")
+    .select("id, display_name")
+    .eq("id", payload.data.specialist)
+    .eq("active", true)
+    .maybeSingle();
+
+  if (therapistError || !therapist) {
+    return NextResponse.json({ error: "Invalid booking specialist." }, { status: 400 });
+  }
+
   const { error } = await supabase
     .from("bookings")
     .insert({
       ...payload.data,
+      specialist: therapist.display_name,
+      therapist_id: therapist.id,
       status: "pending",
       source: "website"
     });

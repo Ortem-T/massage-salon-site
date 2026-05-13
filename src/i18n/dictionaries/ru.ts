@@ -81,12 +81,6 @@ const ru = {
         placeholder: "Что важно учесть? Давление, зоны фокуса, детали расписания..."
       }
     },
-    specialistOptions: [
-      { value: "any", label: "Любой доступный специалист" },
-      { value: "mila-petrovic", label: "Мила Петрович" },
-      { value: "ana-markovic", label: "Ана Маркович" },
-      { value: "nikola-jovanovic", label: "Никола Йованович" }
-    ],
     validation: {
       service: "Выберите услугу.",
       specialist: "Выберите специалиста.",

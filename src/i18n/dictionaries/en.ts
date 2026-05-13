@@ -81,12 +81,6 @@ const en = {
         placeholder: "Anything we should know? Pressure preference, focus areas, schedule details..."
       }
     },
-    specialistOptions: [
-      { value: "any", label: "Any available specialist" },
-      { value: "mila-petrovic", label: "Mila Petrović" },
-      { value: "ana-markovic", label: "Ana Marković" },
-      { value: "nikola-jovanovic", label: "Nikola Jovanović" }
-    ],
     validation: {
       service: "Please choose a service.",
       specialist: "Please choose a specialist.",

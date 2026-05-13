@@ -81,12 +81,6 @@ const sr = {
         placeholder: "Šta treba da znamo? Pritisak, fokus zone, detalji rasporeda..."
       }
     },
-    specialistOptions: [
-      { value: "any", label: "Bilo koji dostupan specijalista" },
-      { value: "mila-petrovic", label: "Mila Petrović" },
-      { value: "ana-markovic", label: "Ana Marković" },
-      { value: "nikola-jovanovic", label: "Nikola Jovanović" }
-    ],
     validation: {
       service: "Izaberite uslugu.",
       specialist: "Izaberite specijalistu.",
