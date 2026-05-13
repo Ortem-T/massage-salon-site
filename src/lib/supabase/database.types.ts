@@ -172,7 +172,21 @@ export type Database = {
         Relationships: [];
       };
     };
-    Views: Record<string, never>;
+    Views: {
+      public_booking_availability: {
+        Row: {
+          booking_date: string;
+          preferred_time: string;
+          therapist_id: string | null;
+          service_slug: string;
+          duration_minutes: number;
+          status: BookingStatus;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+    };
     Functions: Record<string, never>;
     Enums: {
       booking_status: BookingStatus;

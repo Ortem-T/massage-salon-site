@@ -86,7 +86,7 @@ const sr = {
       specialist: "Izaberite specijalistu.",
       date: "Izaberite željeni datum.",
       datePast: "Izaberite današnji ili neki naredni datum.",
-      dateUnavailable: "Izaberite dostupan radni dan.",
+      dateUnavailable: "Izaberite dostupan datum.",
       time: "Izaberite željeno vreme.",
       name: "Unesite ime.",
       phone: "Unesite broj telefona.",
@@ -98,8 +98,18 @@ const sr = {
       nextMonth: "Sledeći mesec",
       unavailable: "Datum nije dostupan"
     },
+    availability: {
+      selectTherapistFirst: "Prvo izaberite terapeuta",
+      selectDateFirst: "Prvo izaberite datum",
+      loadingTimes: "Učitavamo dostupna vremena",
+      noAvailableTimes: "Nema slobodnih termina za ovaj datum",
+      otherTherapistBookings: "Drugi terapeut ima termine tog dana, ali izabrani terapeut može biti dostupan",
+      calendarAfterTherapist: "Kalendar postaje dostupan nakon izbora usluge i terapeuta.",
+      availableTimes: "Dostupna vremena za termin"
+    },
     error: {
-      message: "Zahtev trenutno nije moguće poslati. Pokušajte ponovo ili nas kontaktirajte direktno."
+      message: "Zahtev trenutno nije moguće poslati. Pokušajte ponovo ili nas kontaktirajte direktno.",
+      slotUnavailable: "Ovaj termin je upravo zauzet. Izaberite drugo slobodno vreme."
     },
     submit: "Zakaži termin",
     submitting: "Šaljemo zahtev",

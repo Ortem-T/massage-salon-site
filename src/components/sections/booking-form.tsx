@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2, ChevronDown, Loader2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { BookingDatePicker } from "@/components/booking/booking-date-picker";
@@ -14,9 +14,9 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { type Locale } from "@/i18n/config";
 import { type Dictionary } from "@/i18n/dictionaries";
-import { getAvailableTimeSlots, getTodayValue, isBookingDateSelectable } from "@/lib/booking/booking-availability";
+import { getTodayValue, isBookingDateSelectable, parseDateValue, toDateValue } from "@/lib/booking/booking-availability";
 import { type BookingFormValues, createBookingFormSchema } from "@/lib/booking/booking-schema";
-import { createBookingRequest } from "@/lib/booking/create-booking-request";
+import { BookingRequestError, createBookingRequest } from "@/lib/booking/create-booking-request";
 import { type ServiceCatalogItem } from "@/lib/services/catalog";
 import { type TherapistCatalogItem } from "@/lib/therapists/catalog";
 import { cn } from "@/lib/utils";
@@ -32,6 +32,39 @@ type FieldErrorProps = {
   id: string;
   message?: string;
 };
+
+type AvailabilityDay = {
+  available: boolean;
+  availableTimeSlots: string[];
+  selectedTherapistBookingCount: number;
+  otherTherapistBookingCount: number;
+};
+
+type AvailabilityResponse = {
+  days: Record<string, AvailabilityDay>;
+};
+
+function getMonthStartValue(value: string) {
+  const date = parseDateValue(value) ?? new Date();
+
+  return toDateValue(new Date(date.getFullYear(), date.getMonth(), 1));
+}
+
+function getCalendarRange(monthStartValue: string) {
+  const monthStart = parseDateValue(monthStartValue) ?? new Date();
+  const firstDay = new Date(monthStart.getFullYear(), monthStart.getMonth(), 1);
+  const startOffset = (firstDay.getDay() + 6) % 7;
+  const start = new Date(firstDay);
+  start.setDate(firstDay.getDate() - startOffset);
+
+  const end = new Date(start);
+  end.setDate(start.getDate() + 41);
+
+  return {
+    startDate: toDateValue(start),
+    endDate: toDateValue(end)
+  };
+}
 
 function FieldError({ id, message }: FieldErrorProps) {
   return (
@@ -51,6 +84,13 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
   const [isSuccess, setIsSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const today = useMemo(() => getTodayValue(), []);
+  const [visibleMonth, setVisibleMonth] = useState(() => getMonthStartValue(today));
+  const [availabilityByDate, setAvailabilityByDate] = useState<Record<string, AvailabilityDay>>({});
+  const [isAvailabilityLoading, setIsAvailabilityLoading] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState(false);
+  const [availabilityRefreshKey, setAvailabilityRefreshKey] = useState(0);
+  const previousSelectionRef = useRef({ service: "", therapist: "" });
+  const availabilityRange = useMemo(() => getCalendarRange(visibleMonth), [visibleMonth]);
   const schema = useMemo(
     () =>
       createBookingFormSchema(booking.validation, {
@@ -80,15 +120,126 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
       comment: ""
     }
   });
+  const selectedService = watch("service");
+  const selectedTherapist = watch("specialist");
   const selectedDate = watch("preferredDate");
   const selectedTime = watch("preferredTime");
-  const availableTimeSlots = useMemo(() => getAvailableTimeSlots(selectedDate), [selectedDate]);
+  const selectedServiceItem = useMemo(
+    () => serviceCatalog.find((service) => service.slug === selectedService) ?? null,
+    [selectedService, serviceCatalog]
+  );
+  const availableTimeSlots = useMemo(
+    () => (selectedDate ? (availabilityByDate[selectedDate]?.availableTimeSlots ?? []) : []),
+    [availabilityByDate, selectedDate]
+  );
+  const canLoadAvailability = Boolean(selectedService && selectedTherapist && selectedServiceItem);
+  const isCalendarDisabled = !selectedService || !selectedTherapist;
+  const isTimeDisabled = !selectedService || !selectedTherapist || !selectedDate || isAvailabilityLoading || availableTimeSlots.length === 0;
+  const isDateSelectable = useCallback(
+    (value: string) => {
+      if (!canLoadAvailability) {
+        return false;
+      }
+
+      return isBookingDateSelectable(value, today) && Boolean(availabilityByDate[value]?.available);
+    },
+    [availabilityByDate, canLoadAvailability, today]
+  );
 
   useEffect(() => {
-    if (selectedTime && !availableTimeSlots.includes(selectedTime as (typeof availableTimeSlots)[number])) {
+    const previous = previousSelectionRef.current;
+    const selectionChanged = previous.service !== selectedService || previous.therapist !== selectedTherapist;
+
+    previousSelectionRef.current = {
+      service: selectedService,
+      therapist: selectedTherapist
+    };
+
+    if (!selectionChanged) {
+      return;
+    }
+
+    setValue("preferredDate", "", { shouldDirty: Boolean(previous.service || previous.therapist), shouldValidate: false });
+    setValue("preferredTime", "", { shouldDirty: Boolean(previous.service || previous.therapist), shouldValidate: false });
+    setAvailabilityByDate({});
+    setAvailabilityError(false);
+  }, [selectedService, selectedTherapist, setValue]);
+
+  useEffect(() => {
+    if (!canLoadAvailability) {
+      setIsAvailabilityLoading(false);
+      setAvailabilityByDate({});
+      return;
+    }
+
+    const controller = new AbortController();
+    const params = new URLSearchParams({
+      therapistId: selectedTherapist,
+      serviceSlug: selectedService,
+      startDate: availabilityRange.startDate,
+      endDate: availabilityRange.endDate
+    });
+
+    setIsAvailabilityLoading(true);
+    setAvailabilityError(false);
+
+    fetch(`/api/booking-availability?${params.toString()}`, {
+      signal: controller.signal
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("Availability could not be loaded.");
+        }
+
+        return (await response.json()) as AvailabilityResponse;
+      })
+      .then((data) => {
+        setAvailabilityByDate(data.days);
+      })
+      .catch((error) => {
+        if ((error as Error).name === "AbortError") {
+          return;
+        }
+
+        setAvailabilityByDate({});
+        setAvailabilityError(true);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setIsAvailabilityLoading(false);
+        }
+      });
+
+    return () => {
+      controller.abort();
+    };
+  }, [
+    availabilityRange.endDate,
+    availabilityRange.startDate,
+    availabilityRefreshKey,
+    canLoadAvailability,
+    selectedService,
+    selectedTherapist
+  ]);
+
+  useEffect(() => {
+    if (selectedTime && !availableTimeSlots.includes(selectedTime)) {
       setValue("preferredTime", "", { shouldDirty: true, shouldValidate: true });
     }
   }, [availableTimeSlots, selectedTime, setValue]);
+
+  useEffect(() => {
+    if (
+      selectedDate &&
+      canLoadAvailability &&
+      !isAvailabilityLoading &&
+      availabilityByDate[selectedDate] &&
+      !availabilityByDate[selectedDate].available
+    ) {
+      setValue("preferredDate", "", { shouldDirty: true, shouldValidate: true });
+      setValue("preferredTime", "", { shouldDirty: true, shouldValidate: true });
+    }
+  }, [availabilityByDate, canLoadAvailability, isAvailabilityLoading, selectedDate, setValue]);
 
   function selectDate(value: string) {
     setValue("preferredDate", value, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
@@ -100,12 +251,40 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
 
     try {
       await createBookingRequest({ ...values, siteLocale: locale });
+      setAvailabilityRefreshKey((current) => current + 1);
       setIsSuccess(true);
       reset();
-    } catch {
+    } catch (error) {
+      if (error instanceof BookingRequestError && error.code === "slot_unavailable") {
+        setSubmitError(booking.error.slotUnavailable);
+        setAvailabilityRefreshKey((current) => current + 1);
+        setValue("preferredTime", "", { shouldDirty: true, shouldValidate: true });
+        return;
+      }
+
       setSubmitError(booking.error.message);
     }
   }
+
+  function getDateHint(value: string) {
+    const day = availabilityByDate[value];
+
+    if (!day || day.selectedTherapistBookingCount > 0 || day.otherTherapistBookingCount === 0) {
+      return null;
+    }
+
+    return booking.availability.otherTherapistBookings;
+  }
+
+  const timePlaceholder = !selectedTherapist
+    ? booking.availability.selectTherapistFirst
+    : !selectedDate
+      ? booking.availability.selectDateFirst
+      : isAvailabilityLoading
+        ? booking.availability.loadingTimes
+        : availableTimeSlots.length === 0
+          ? booking.availability.noAvailableTimes
+          : booking.fields.time.placeholder;
 
   return (
     <Card className="relative overflow-hidden border-primary/12 bg-card/90 shadow-[0_34px_110px_rgb(27_54_39/0.13)]">
@@ -190,11 +369,19 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
                 minDate={today}
                 locale={locale}
                 copy={booking.calendar}
+                disabled={isCalendarDisabled}
+                getDateHint={getDateHint}
                 invalid={!!errors.preferredDate}
                 errorId={errors.preferredDate ? "booking-date-error" : undefined}
-                isDateSelectable={(value) => isBookingDateSelectable(value, today)}
+                isDateSelectable={isDateSelectable}
                 onChange={selectDate}
+                onVisibleMonthChange={setVisibleMonth}
               />
+              {isCalendarDisabled ? (
+                <p className="text-sm leading-6 text-muted-foreground">{booking.availability.calendarAfterTherapist}</p>
+              ) : availabilityError ? (
+                <p className="text-sm leading-6 text-accent">{booking.error.message}</p>
+              ) : null}
               <FieldError id="booking-date-error" message={errors.preferredDate?.message} />
             </div>
 
@@ -205,10 +392,10 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
                   id="booking-time"
                   aria-invalid={!!errors.preferredTime}
                   aria-describedby={errors.preferredTime ? "booking-time-error" : undefined}
-                  disabled={!selectedDate}
+                  disabled={isTimeDisabled}
                   {...register("preferredTime")}
                 >
-                  <option value="">{booking.fields.time.placeholder}</option>
+                  <option value="">{timePlaceholder}</option>
                   {availableTimeSlots.map((time) => (
                     <option key={time} value={time}>
                       {time}
@@ -217,6 +404,13 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
                 </Select>
                 <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
               </div>
+              <p className="text-sm leading-6 text-muted-foreground">
+                {isAvailabilityLoading
+                  ? booking.availability.loadingTimes
+                  : selectedDate && availableTimeSlots.length === 0
+                    ? booking.availability.noAvailableTimes
+                    : booking.availability.availableTimes}
+              </p>
               <FieldError id="booking-time-error" message={errors.preferredTime?.message} />
             </div>
           </div>

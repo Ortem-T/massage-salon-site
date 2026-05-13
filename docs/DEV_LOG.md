@@ -54,10 +54,11 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Added real Supabase-backed service catalog support with `face` and `body` categories, localized service translations, online-bookable flags, sort order, service RLS/grants, and slug-based idempotent seed data for the salon price list.
 - Replaced homepage, public booking, and manual dashboard booking service options with the shared service catalog fetcher. Public booking validates that the submitted service slug is active and bookable online; dashboard manual booking validates that the service slug is active and snapshots service duration when none is provided.
 - Added a public therapist catalog with localized names/titles for active therapists. Public booking now submits therapist ids, validates them server-side, stores the canonical therapist display name in `bookings.specialist`, and links `bookings.therapist_id`.
+- Replaced mock public booking availability with Supabase-backed therapist availability. The public calendar now waits for service and therapist selection, reads safe availability rows from `public.public_booking_availability`, shows subtle other-therapist booking hints, calculates slots from service duration plus a 30-minute break, and revalidates availability before insert.
 
 ## Current Focus
 
-The current focus is applying the remaining dashboard booking permissions and manual-booking migrations in the hosted Supabase project, then validating admin/therapist booking actions against real RLS. The real service and therapist catalog migrations have been applied to the hosted `raine` Supabase project and public reads are working. The next product risk is trust: placeholder contact destinations should be replaced with real business data before the site feels production-ready.
+The current focus is validating admin/therapist booking actions against real RLS and doing mobile QA on the real public booking flow. The real service, therapist, and availability migrations have been applied to the hosted `raine` Supabase project and public reads are limited to safe catalog/availability data. The next product risk is trust: placeholder contact destinations should be replaced with real business data before the site feels production-ready.
 
 ## Git Workflow
 
@@ -80,12 +81,13 @@ The current focus is applying the remaining dashboard booking permissions and ma
 - Apply the Supabase booking migration in the hosted project and manually submit a test booking.
 - Apply the dashboard MVP schema migration in the hosted Supabase project and verify RLS with one admin user and one therapist user.
 - Apply the dashboard manual booking migration in the hosted Supabase project and verify admin/therapist insert policies.
-- Define Supabase schema for availability rules: working days, closed dates, booked slots, and therapist-specific schedules.
+- Add therapist-specific working hours later if needed; MVP public availability uses the centralized default 10:00-19:00 schedule, all 7 days.
 - Add manual QA checklist for launch.
 - Create Supabase Auth staff users and set `app_metadata.role` to either `admin` or `therapist`.
 - Seed initial `profiles` and `therapists` rows after the dashboard schema migration is applied.
 - Re-run `20260513140000_real_service_catalog.sql` only when restoring or reseeding; it is slug-based and idempotent.
 - Re-run `20260513150000_public_therapist_catalog.sql` only when restoring or reseeding therapist translations.
+- Re-run `20260513160000_public_booking_availability_view.sql` only when restoring the safe public availability view and column-level booking grants.
 - Test admin status changes, therapist assignment, therapist status changes, and internal notes updates against hosted Supabase RLS.
 - Test manual booking creation for admin assigned, admin unassigned, therapist own, and therapist direct-request attempts against hosted Supabase RLS.
 
@@ -100,8 +102,13 @@ The current focus is applying the remaining dashboard booking permissions and ma
 - Complete the form with keyboard only.
 - Trigger each validation error and confirm layout does not jump awkwardly.
 - Open and use the custom date picker with mouse and keyboard.
-- Confirm unavailable dates cannot be selected.
-- Confirm time slots update when the selected date changes.
+- Confirm the booking calendar is disabled until service and therapist are selected.
+- Confirm unavailable dates cannot be selected for the selected therapist/service.
+- Confirm bookings for therapist A do not block therapist B.
+- Confirm a subtle info dot appears only when another therapist has bookings on a date and the selected therapist has none.
+- Confirm time slots update when service, therapist, or date changes.
+- Confirm selected time clears if it becomes unavailable.
+- Confirm a taken slot returns the localized "time no longer available" error.
 - Confirm validation errors are announced or discoverable by assistive technology.
 - Confirm selected language switcher state remains readable on hover.
 - Hover service rows and confirm background has proper left and right spacing.
@@ -134,6 +141,7 @@ The current focus is applying the remaining dashboard booking permissions and ma
 - Dashboard schema migration has not been applied to the hosted Supabase project yet.
 - Manual booking creation requires applying `20260513130000_dashboard_manual_bookings.sql` in the hosted Supabase project.
 - The hosted Supabase project has `20260513140000_real_service_catalog.sql` applied; local or restored environments still need that migration before public service reads work.
+- The hosted Supabase project has `20260513160000_public_booking_availability_view.sql` applied; local or restored environments need it before real public availability works.
 - No client authentication exists by design; the new auth flow is for staff dashboard users only.
 - Automated PR creation can fail due GitHub CLI or connector access; branch push still works.
 - Local Next.js dev server may need a restart after production build.
@@ -154,6 +162,8 @@ The current focus is applying the remaining dashboard booking permissions and ma
 - Keep manual booking creation as dashboard-only staff workflow with `source = 'dashboard'` and a captured `source_channel`; public booking remains `source = 'website'`.
 - Store service catalog entries in `public.services` by stable slug, with public text in `public.service_translations`; booking rows continue to store the selected service slug in `bookings.service` for compatibility with existing data.
 - Treat the 6-treatment course as one normal first-appointment booking in the MVP; do not add package tracking until a later workflow is designed.
+- Keep public availability data behind `public.public_booking_availability`, a `security_invoker` view with column-level booking grants and RLS that exposes only date, time, therapist id, service slug, duration, and blocking status. Full booking rows remain unavailable to anon users.
+- Use `src/lib/booking/booking-availability.ts` as the shared source for duration rounding, blocked intervals, default time slot generation, and before-insert slot checks.
 - Keep UI primitives local and lightweight rather than pulling in a full component dependency for every shadcn/ui part.
 - Avoid full CRM workflows until the booking/dashboard foundation is stable.
 

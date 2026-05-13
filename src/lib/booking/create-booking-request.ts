@@ -10,6 +10,13 @@ export type BookingRequest = BookingRequestPayload & {
   status: BookingStatus;
 };
 
+export class BookingRequestError extends Error {
+  constructor(public readonly code: "slot_unavailable" | "unknown") {
+    super("Booking request could not be created.");
+    this.name = "BookingRequestError";
+  }
+}
+
 export async function createBookingRequest(values: BookingRequestInput): Promise<BookingRequest> {
   const response = await fetch("/api/bookings", {
     method: "POST",
@@ -20,7 +27,9 @@ export async function createBookingRequest(values: BookingRequestInput): Promise
   });
 
   if (!response.ok) {
-    throw new Error("Booking request could not be created.");
+    const data = await response.json().catch(() => null) as { code?: string } | null;
+
+    throw new BookingRequestError(data?.code === "slot_unavailable" ? "slot_unavailable" : "unknown");
   }
 
   const data = (await response.json()) as {

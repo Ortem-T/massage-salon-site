@@ -24,8 +24,10 @@ type BookingDatePickerProps = {
   disabled?: boolean;
   errorId?: string;
   invalid?: boolean;
+  getDateHint?: (value: string) => string | null;
   isDateSelectable: (value: string) => boolean;
   onChange: (value: string) => void;
+  onVisibleMonthChange?: (value: string) => void;
 };
 
 const localeMap: Record<Locale, string> = {
@@ -64,9 +66,11 @@ export function BookingDatePicker({
   copy,
   disabled,
   errorId,
+  getDateHint,
   invalid,
   isDateSelectable,
-  onChange
+  onChange,
+  onVisibleMonthChange
 }: BookingDatePickerProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -87,6 +91,10 @@ export function BookingDatePicker({
     });
   }, [formatterLocale]);
   const days = useMemo(() => getCalendarDays(visibleMonth), [visibleMonth]);
+
+  useEffect(() => {
+    onVisibleMonthChange?.(toDateValue(visibleMonth));
+  }, [onVisibleMonthChange, visibleMonth]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -181,6 +189,12 @@ export function BookingDatePicker({
               const isCurrentMonth = date.getMonth() === visibleMonth.getMonth();
               const isSelected = value === dateValue;
               const isSelectable = isDateSelectable(dateValue);
+              const hint = getDateHint?.(dateValue) ?? null;
+              const formattedDate = new Intl.DateTimeFormat(formatterLocale, {
+                day: "numeric",
+                month: "long",
+                year: "numeric"
+              }).format(date);
 
               return (
                 <button
@@ -189,28 +203,32 @@ export function BookingDatePicker({
                   disabled={!isSelectable}
                   aria-label={
                     isSelectable
-                      ? new Intl.DateTimeFormat(formatterLocale, {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric"
-                        }).format(date)
-                      : `${new Intl.DateTimeFormat(formatterLocale, {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric"
-                        }).format(date)}. ${copy.unavailable}`
+                      ? hint
+                        ? `${formattedDate}. ${hint}`
+                        : formattedDate
+                      : `${formattedDate}. ${copy.unavailable}`
                   }
                   aria-pressed={isSelected}
                   onClick={() => selectDate(dateValue)}
+                  title={hint ?? undefined}
                   className={cn(
-                    "flex aspect-square items-center justify-center rounded-full text-sm transition-all duration-200",
+                    "relative flex aspect-square items-center justify-center rounded-full text-sm transition-all duration-200",
                     isCurrentMonth ? "text-foreground" : "text-muted-foreground/45",
                     isSelectable && "hover:bg-secondary hover:text-primary",
                     isSelected && "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
                     !isSelectable && "cursor-not-allowed text-muted-foreground/30 line-through"
                   )}
                 >
-                  {date.getDate()}
+                  <span>{date.getDate()}</span>
+                  {hint && isSelectable ? (
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "absolute bottom-1 size-1 rounded-full bg-accent/60",
+                        isSelected && "bg-primary-foreground/80"
+                      )}
+                    />
+                  ) : null}
                 </button>
               );
             })}

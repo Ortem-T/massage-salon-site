@@ -86,7 +86,7 @@ const en = {
       specialist: "Please choose a specialist.",
       date: "Please choose a preferred date.",
       datePast: "Please choose today or a future date.",
-      dateUnavailable: "Please choose an available working day.",
+      dateUnavailable: "Please choose an available date.",
       time: "Please choose a preferred time.",
       name: "Please enter your name.",
       phone: "Please enter a phone number.",
@@ -98,8 +98,18 @@ const en = {
       nextMonth: "Next month",
       unavailable: "Date is unavailable"
     },
+    availability: {
+      selectTherapistFirst: "Select a therapist first",
+      selectDateFirst: "Select a date first",
+      loadingTimes: "Loading available times",
+      noAvailableTimes: "No available times for this date",
+      otherTherapistBookings: "Another therapist has bookings on this date, but your selected therapist may still be available",
+      calendarAfterTherapist: "The calendar becomes available after choosing a service and therapist.",
+      availableTimes: "Available booking times"
+    },
     error: {
-      message: "We could not send your request right now. Please try again or contact us directly."
+      message: "We could not send your request right now. Please try again or contact us directly.",
+      slotUnavailable: "This time is no longer available. Please choose another open slot."
     },
     submit: "Book appointment",
     submitting: "Sending request",
