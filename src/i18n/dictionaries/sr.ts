@@ -35,29 +35,12 @@ const sr = {
     title: "Masaže oblikovane prema vašem ritmu",
     subtitle:
       "Svaki tretman počinje kratkom konsultacijom, kako bi pritisak, tempo i fokus bili usklađeni sa vašim telom.",
-    items: [
-      {
-        id: "signature-raine",
-        title: "Signature Raine masaža",
-        duration: "75 min",
-        price: "od 6.500 RSD",
-        description: "Kombinacija relaks, deep tissue i aromaterapijskih tehnika za dubok osećaj lakoće."
-      },
-      {
-        id: "japanese-relax",
-        title: "Japanski relax ritual",
-        duration: "60 min",
-        price: "od 5.200 RSD",
-        description: "Spor, fluidan tretman sa toplim peškirima i mirnim pritiskom za potpunu regulaciju."
-      },
-      {
-        id: "deep-tissue",
-        title: "Deep tissue oporavak",
-        duration: "50 min",
-        price: "od 5.800 RSD",
-        description: "Fokusiran rad na napetim zonama leđa, vrata i ramena uz preciznu kontrolu pritiska."
-      }
-    ]
+    categories: {
+      face: "Lice",
+      body: "Telo"
+    },
+    durationUnit: "min",
+    empty: "Katalog usluga trenutno nije dostupan. Kontaktirajte nas direktno za termine."
   },
   booking: {
     eyebrow: "Zahtev za termin",

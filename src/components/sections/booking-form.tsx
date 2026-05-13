@@ -17,11 +17,13 @@ import { type Dictionary } from "@/i18n/dictionaries";
 import { getAvailableTimeSlots, getTodayValue, isBookingDateSelectable } from "@/lib/booking/booking-availability";
 import { type BookingFormValues, createBookingFormSchema } from "@/lib/booking/booking-schema";
 import { createBookingRequest } from "@/lib/booking/create-booking-request";
+import { type ServiceCatalogItem } from "@/lib/services/catalog";
 import { cn } from "@/lib/utils";
 
 type BookingFormProps = {
   locale: Locale;
   dictionary: Dictionary;
+  serviceCatalog: ServiceCatalogItem[];
 };
 
 type FieldErrorProps = {
@@ -42,8 +44,8 @@ function FieldError({ id, message }: FieldErrorProps) {
   );
 }
 
-export function BookingForm({ locale, dictionary }: BookingFormProps) {
-  const { booking, services } = dictionary;
+export function BookingForm({ locale, dictionary, serviceCatalog }: BookingFormProps) {
+  const { booking } = dictionary;
   const [isSuccess, setIsSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const today = useMemo(() => getTodayValue(), []);
@@ -139,9 +141,9 @@ export function BookingForm({ locale, dictionary }: BookingFormProps) {
                   {...register("service")}
                 >
                   <option value="">{booking.fields.service.placeholder}</option>
-                  {services.items.map((service) => (
-                    <option key={service.id} value={service.id}>
-                      {service.title}
+                  {serviceCatalog.map((service) => (
+                    <option key={service.slug} value={service.slug}>
+                      {service.name}
                     </option>
                   ))}
                 </Select>

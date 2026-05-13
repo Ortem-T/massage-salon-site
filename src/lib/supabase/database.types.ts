@@ -95,20 +95,46 @@ export type Database = {
         Row: {
           id: string;
           slug: string;
+          category: "face" | "body";
           duration_minutes: number;
           price_rsd: number | null;
           active: boolean;
+          bookable_online: boolean;
+          sort_order: number;
           created_at: string;
+          updated_at: string;
         };
         Insert: {
           id?: string;
           slug: string;
+          category?: "face" | "body";
           duration_minutes: number;
           price_rsd?: number | null;
           active?: boolean;
+          bookable_online?: boolean;
+          sort_order?: number;
           created_at?: string;
+          updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["services"]["Insert"]>;
+        Relationships: [];
+      };
+      service_translations: {
+        Row: {
+          service_id: string;
+          locale: Locale;
+          name: string;
+          short_description: string;
+          description: string | null;
+        };
+        Insert: {
+          service_id: string;
+          locale: Locale;
+          name: string;
+          short_description: string;
+          description?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["service_translations"]["Insert"]>;
         Relationships: [];
       };
       therapists: {

@@ -143,6 +143,11 @@ type DashboardTherapistRow = {
   active: boolean;
 };
 
+type ActiveServiceRow = {
+  slug: string;
+  duration_minutes: number;
+};
+
 const fullBookingColumns =
   "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source, source_channel, duration_minutes, client_id, therapist_id, internal_notes, updated_at";
 const dashboardBookingColumns =
@@ -351,6 +356,18 @@ async function getActiveTherapistById(therapistId: string) {
   };
 }
 
+async function getActiveServiceBySlug(slug: string): Promise<ActiveServiceRow | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("services")
+    .select("slug, duration_minutes")
+    .eq("slug", slug)
+    .eq("active", true)
+    .maybeSingle();
+
+  return error || !data ? null : data;
+}
+
 function validateManualBookingInput(input: CreateManualBookingInput) {
   const service = normalizeRequiredText(input.service);
   const preferredDate = normalizeRequiredText(input.preferredDate);
@@ -402,6 +419,11 @@ export async function createManualBooking(user: DashboardUser, input: CreateManu
   }
 
   let specialist = "unassigned";
+  const service = await getActiveServiceBySlug(normalized.service);
+
+  if (!service) {
+    throw new Error("Invalid manual booking service.");
+  }
 
   if (therapistId) {
     const therapist = await getActiveTherapistById(therapistId);
@@ -424,7 +446,7 @@ export async function createManualBooking(user: DashboardUser, input: CreateManu
       specialist,
       preferred_date: normalized.preferredDate,
       preferred_time: normalized.preferredTime,
-      duration_minutes: input.durationMinutes ?? null,
+      duration_minutes: input.durationMinutes ?? service.duration_minutes,
       client_name: normalized.clientName,
       client_phone: normalized.clientPhone,
       client_comment: normalizeOptionalText(input.clientComment),

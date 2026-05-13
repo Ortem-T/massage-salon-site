@@ -26,6 +26,7 @@ import {
   type ManualBookingSourceChannel
 } from "@/lib/dashboard/constants";
 import { type DashboardBooking, type DashboardTherapist } from "@/lib/dashboard/bookings";
+import { type ServiceCatalogItem } from "@/lib/services/catalog";
 import { cn } from "@/lib/utils";
 
 type CalendarView = "day" | "week" | "month";
@@ -55,6 +56,7 @@ type BookingsCalendarProps = {
   dictionary: Dictionary;
   locale: Locale;
   role: DashboardRole;
+  serviceCatalog: ServiceCatalogItem[];
   therapists: DashboardTherapist[];
 };
 
@@ -158,12 +160,6 @@ function sortBookings(bookings: DashboardBooking[]) {
   });
 }
 
-function parseDurationMinutes(duration: string) {
-  const match = duration.match(/\d+/);
-
-  return match?.[0] ?? "";
-}
-
 function getFocusableElements(container: HTMLElement | null) {
   if (!container) {
     return [];
@@ -180,6 +176,7 @@ export function BookingsCalendar({
   dictionary,
   locale,
   role,
+  serviceCatalog,
   therapists
 }: BookingsCalendarProps) {
   const router = useRouter();
@@ -218,12 +215,12 @@ export function BookingsCalendar({
     [therapists]
   );
   const serviceLabels = useMemo(
-    () => new Map(dictionary.services.items.map((service) => [service.id, service.title])),
-    [dictionary.services.items]
+    () => new Map(serviceCatalog.map((service) => [service.slug, service.name])),
+    [serviceCatalog]
   );
   const serviceDurations = useMemo(
-    () => new Map(dictionary.services.items.map((service) => [service.id, parseDurationMinutes(service.duration)])),
-    [dictionary.services.items]
+    () => new Map(serviceCatalog.map((service) => [service.slug, String(service.durationMinutes)])),
+    [serviceCatalog]
   );
   const manualAvailableTimeSlots = useMemo(
     () => getAvailableTimeSlots(manualBookingForm.preferredDate),
@@ -845,9 +842,9 @@ export function BookingsCalendar({
                     aria-invalid={Boolean(manualBookingErrors.service)}
                   >
                     <option value="">{calendar.create.placeholders.service}</option>
-                    {dictionary.services.items.map((service) => (
-                      <option key={service.id} value={service.id}>
-                        {service.title}
+                    {serviceCatalog.map((service) => (
+                      <option key={service.slug} value={service.slug}>
+                        {service.name}
                       </option>
                     ))}
                   </Select>

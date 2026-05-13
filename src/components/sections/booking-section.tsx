@@ -3,13 +3,15 @@ import { BookingForm } from "@/components/sections/booking-form";
 import { SectionHeader } from "@/components/sections/section-header";
 import { type Locale } from "@/i18n/config";
 import { type Dictionary } from "@/i18n/dictionaries";
+import { type ServiceCatalogItem } from "@/lib/services/catalog";
 
 type BookingSectionProps = {
   locale: Locale;
   dictionary: Dictionary;
+  serviceCatalog: ServiceCatalogItem[];
 };
 
-export function BookingSection({ locale, dictionary }: BookingSectionProps) {
+export function BookingSection({ locale, dictionary, serviceCatalog }: BookingSectionProps) {
   const { booking } = dictionary;
 
   return (
@@ -28,7 +30,7 @@ export function BookingSection({ locale, dictionary }: BookingSectionProps) {
           </div>
         </MotionReveal>
         <MotionReveal delay={0.1}>
-          <BookingForm locale={locale} dictionary={dictionary} />
+          <BookingForm locale={locale} dictionary={dictionary} serviceCatalog={serviceCatalog} />
         </MotionReveal>
       </div>
     </section>

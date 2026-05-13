@@ -19,6 +19,18 @@ export async function POST(request: Request) {
   }
 
   const supabase = createSupabaseBrowserClient();
+  const { data: service, error: serviceError } = await supabase
+    .from("services")
+    .select("slug")
+    .eq("slug", payload.data.service)
+    .eq("active", true)
+    .eq("bookable_online", true)
+    .maybeSingle();
+
+  if (serviceError || !service) {
+    return NextResponse.json({ error: "Invalid booking service." }, { status: 400 });
+  }
+
   const { error } = await supabase
     .from("bookings")
     .insert({

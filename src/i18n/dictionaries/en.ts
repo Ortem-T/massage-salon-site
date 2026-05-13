@@ -35,29 +35,12 @@ const en = {
     title: "Massages shaped around your rhythm",
     subtitle:
       "Every treatment starts with a short consultation so pressure, pace, and focus can match what your body needs.",
-    items: [
-      {
-        id: "signature-raine",
-        title: "Signature Raine massage",
-        duration: "75 min",
-        price: "from 6,500 RSD",
-        description: "A blend of relax, deep tissue, and aromatherapy techniques for a lasting sense of ease."
-      },
-      {
-        id: "japanese-relax",
-        title: "Japanese relax ritual",
-        duration: "60 min",
-        price: "from 5,200 RSD",
-        description: "A slow, fluid treatment with warm towels and calm pressure for full nervous-system reset."
-      },
-      {
-        id: "deep-tissue",
-        title: "Deep tissue recovery",
-        duration: "50 min",
-        price: "from 5,800 RSD",
-        description: "Focused work on tense back, neck, and shoulder areas with precise pressure control."
-      }
-    ]
+    categories: {
+      face: "Face",
+      body: "Body"
+    },
+    durationUnit: "min",
+    empty: "The service catalog is temporarily unavailable. Please contact us directly to book."
   },
   booking: {
     eyebrow: "Booking request",
