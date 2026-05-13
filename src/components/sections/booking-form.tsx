@@ -33,11 +33,6 @@ type FieldErrorProps = {
   message?: string;
 };
 
-type FieldHintProps = {
-  children?: string;
-  tone?: "muted" | "accent";
-};
-
 type AvailabilityDay = {
   available: boolean;
   availableTimeSlots: string[];
@@ -72,28 +67,18 @@ function getCalendarRange(monthStartValue: string) {
 }
 
 function FieldError({ id, message }: FieldErrorProps) {
+  if (!message) {
+    return null;
+  }
+
   return (
     <p
       id={id}
-      role={message ? "alert" : undefined}
+      role="alert"
       aria-live="polite"
-      className={cn("min-h-6 text-sm leading-6 text-accent", !message && "invisible")}
+      className="text-sm leading-6 text-accent"
     >
-      {message || " "}
-    </p>
-  );
-}
-
-function FieldHint({ children, tone = "muted" }: FieldHintProps) {
-  return (
-    <p
-      className={cn(
-        "min-h-6 text-sm leading-6",
-        tone === "accent" ? "text-accent" : "text-muted-foreground",
-        !children && "invisible"
-      )}
-    >
-      {children || " "}
+      {message}
     </p>
   );
 }
@@ -295,29 +280,11 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
     return booking.availability.otherTherapistBookings;
   }
 
-  const timePlaceholder = !selectedTherapist
-    ? booking.availability.selectTherapistFirst
-    : !selectedDate
-      ? booking.availability.selectDateFirst
-      : isAvailabilityLoading
-        ? booking.availability.loadingTimes
-        : availableTimeSlots.length === 0
-          ? booking.availability.noAvailableTimes
-          : booking.fields.time.placeholder;
-  const dateHelpText = isCalendarDisabled
-    ? booking.availability.calendarAfterTherapist
-    : availabilityError
-      ? booking.error.message
-      : "";
-  const timeHelpText = !selectedTherapist
-    ? booking.availability.selectTherapistFirst
-    : !selectedDate
-      ? booking.availability.selectDateFirst
-      : isAvailabilityLoading
-        ? booking.availability.loadingTimes
-        : availableTimeSlots.length === 0
-          ? booking.availability.noAvailableTimes
-          : booking.availability.availableTimes;
+  const timePlaceholder = isAvailabilityLoading
+    ? booking.availability.loadingTimes
+    : selectedDate && availableTimeSlots.length === 0
+      ? booking.availability.noAvailableTimes
+      : booking.fields.time.placeholder;
 
   return (
     <Card className="relative overflow-hidden border-primary/12 bg-card/90 shadow-[0_34px_110px_rgb(27_54_39/0.13)]">
@@ -405,13 +372,15 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
                 disabled={isCalendarDisabled}
                 getDateHint={getDateHint}
                 invalid={!!errors.preferredDate}
-                errorId={errors.preferredDate ? "booking-date-error" : undefined}
+                errorId={errors.preferredDate || availabilityError ? "booking-date-error" : undefined}
                 isDateSelectable={isDateSelectable}
                 onChange={selectDate}
                 onVisibleMonthChange={setVisibleMonth}
               />
-              <FieldHint tone={availabilityError ? "accent" : "muted"}>{dateHelpText}</FieldHint>
-              <FieldError id="booking-date-error" message={errors.preferredDate?.message} />
+              <FieldError
+                id="booking-date-error"
+                message={errors.preferredDate?.message ?? (availabilityError ? booking.error.message : undefined)}
+              />
             </div>
 
             <div className="group grid gap-2.5">
@@ -433,7 +402,6 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
                 </Select>
                 <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
               </div>
-              <FieldHint>{timeHelpText}</FieldHint>
               <FieldError id="booking-time-error" message={errors.preferredTime?.message} />
             </div>
           </div>
