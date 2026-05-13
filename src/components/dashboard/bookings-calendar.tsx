@@ -3,12 +3,14 @@
 import { type FormEvent, type KeyboardEvent, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
+import { BookingDatePicker } from "@/components/booking/booking-date-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { type Locale } from "@/i18n/config";
 import { type Dictionary } from "@/i18n/dictionaries";
+import { getAvailableTimeSlots, getTodayValue, isBookingDateSelectable } from "@/lib/booking/booking-availability";
 import { type BookingStatus, bookingStatuses } from "@/lib/booking/booking-schema";
 import {
   assignTherapistToBookingAction,
@@ -190,6 +192,7 @@ export function BookingsCalendar({
   const [internalNotes, setInternalNotes] = useState("");
   const [assignedTherapistId, setAssignedTherapistId] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const manualMinDate = useMemo(() => getTodayValue(), []);
   const [manualBookingForm, setManualBookingForm] = useState<ManualBookingFormState>(() => ({
     service: "",
     preferredDate: todayKey(),
@@ -221,6 +224,10 @@ export function BookingsCalendar({
   const serviceDurations = useMemo(
     () => new Map(dictionary.services.items.map((service) => [service.id, parseDurationMinutes(service.duration)])),
     [dictionary.services.items]
+  );
+  const manualAvailableTimeSlots = useMemo(
+    () => getAvailableTimeSlots(manualBookingForm.preferredDate),
+    [manualBookingForm.preferredDate]
   );
 
   const filteredBookings = useMemo(() => {
@@ -266,6 +273,18 @@ export function BookingsCalendar({
     };
   }, [isCreateOpen, selectedBookingId]);
 
+  useEffect(() => {
+    if (
+      manualBookingForm.preferredTime &&
+      !manualAvailableTimeSlots.includes(manualBookingForm.preferredTime as (typeof manualAvailableTimeSlots)[number])
+    ) {
+      setManualBookingForm((current) => ({
+        ...current,
+        preferredTime: ""
+      }));
+    }
+  }, [manualAvailableTimeSlots, manualBookingForm.preferredTime]);
+
   function shiftDate(direction: -1 | 1) {
     if (view === "day") {
       setSelectedDate((current) => addDays(current, direction));
@@ -298,11 +317,12 @@ export function BookingsCalendar({
 
   function openCreateBooking() {
     const ownTherapistId = role === "therapist" ? (therapists[0]?.id ?? "") : "";
+    const defaultDate = isBookingDateSelectable(selectedDate, manualMinDate) ? selectedDate : "";
 
     setSelectedBookingId(null);
     setManualBookingForm({
       service: "",
-      preferredDate: selectedDate,
+      preferredDate: defaultDate,
       preferredTime: "",
       durationMinutes: "",
       clientName: "",
@@ -317,6 +337,24 @@ export function BookingsCalendar({
     setManualBookingErrors({});
     setMessage(null);
     setIsCreateOpen(true);
+  }
+
+  function updateManualBookingDate(value: string) {
+    setManualBookingForm((current) => ({
+      ...current,
+      preferredDate: value,
+      preferredTime: ""
+    }));
+    setManualBookingErrors((current) => {
+      if (!current.preferredDate && !current.preferredTime) {
+        return current;
+      }
+
+      const next = { ...current };
+      delete next.preferredDate;
+      delete next.preferredTime;
+      return next;
+    });
   }
 
   function closeCreateBooking() {
@@ -841,28 +879,48 @@ export function BookingsCalendar({
                   <label htmlFor="manual-date" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                     {calendar.create.fields.date}
                   </label>
-                  <Input
+                  <BookingDatePicker
                     id="manual-date"
-                    type="date"
+                    copy={dictionary.booking.calendar}
+                    errorId={manualBookingErrors.preferredDate ? "manual-date-error" : undefined}
+                    invalid={Boolean(manualBookingErrors.preferredDate)}
+                    isDateSelectable={(value) => isBookingDateSelectable(value, manualMinDate)}
+                    locale={locale}
+                    minDate={manualMinDate}
                     value={manualBookingForm.preferredDate}
-                    onChange={(event) => updateManualBookingField("preferredDate", event.target.value)}
-                    aria-invalid={Boolean(manualBookingErrors.preferredDate)}
+                    onChange={updateManualBookingDate}
                   />
-                  {manualBookingErrors.preferredDate ? <p className="text-sm text-accent">{manualBookingErrors.preferredDate}</p> : null}
+                  {manualBookingErrors.preferredDate ? (
+                    <p id="manual-date-error" className="text-sm text-accent">
+                      {manualBookingErrors.preferredDate}
+                    </p>
+                  ) : null}
                 </div>
 
                 <div className="space-y-2">
                   <label htmlFor="manual-time" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                     {calendar.create.fields.time}
                   </label>
-                  <Input
+                  <Select
                     id="manual-time"
-                    type="time"
+                    disabled={!manualBookingForm.preferredDate}
                     value={manualBookingForm.preferredTime}
                     onChange={(event) => updateManualBookingField("preferredTime", event.target.value)}
                     aria-invalid={Boolean(manualBookingErrors.preferredTime)}
-                  />
-                  {manualBookingErrors.preferredTime ? <p className="text-sm text-accent">{manualBookingErrors.preferredTime}</p> : null}
+                    aria-describedby={manualBookingErrors.preferredTime ? "manual-time-error" : undefined}
+                  >
+                    <option value="">{dictionary.booking.fields.time.placeholder}</option>
+                    {manualAvailableTimeSlots.map((time) => (
+                      <option key={time} value={time}>
+                        {time}
+                      </option>
+                    ))}
+                  </Select>
+                  {manualBookingErrors.preferredTime ? (
+                    <p id="manual-time-error" className="text-sm text-accent">
+                      {manualBookingErrors.preferredTime}
+                    </p>
+                  ) : null}
                 </div>
 
                 <div className="space-y-2">

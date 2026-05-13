@@ -28,6 +28,10 @@ function toActionResult(error: unknown): DashboardActionResult {
     return { ok: false, reason: "forbidden" };
   }
 
+  if (process.env.NODE_ENV !== "production") {
+    console.error("[dashboard action failed]", error);
+  }
+
   return { ok: false, reason: "error" };
 }
 

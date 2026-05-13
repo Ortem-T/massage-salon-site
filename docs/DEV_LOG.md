@@ -50,10 +50,11 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Added role-based booking management actions: admin can update status, assign therapists, and edit notes for all bookings; therapists can update status and notes only for assigned bookings. Added a follow-up RLS migration for therapist status permissions.
 - Hardened dashboard review findings: invalid staff roles are blocked at login/dashboard entry, booking details trap keyboard focus and support Escape close, admin updates verify affected rows, compact calendar events show text status cues, and dashboard dates use the Belgrade salon timezone with Serbian Latin formatting.
 - Added manual dashboard booking creation for staff-originated requests, including role-aware create permissions, source channel capture, optional duration, localized validation, and a follow-up RLS migration for authenticated staff inserts.
+- Refined manual dashboard booking creation after QA: the dashboard create form now reuses the branded booking calendar picker, uses the shared booking time slot dropdown, limits therapist choices to active database therapist records, and keeps dashboard reads resilient while the manual-booking migration is being applied.
 
 ## Current Focus
 
-The current focus is applying the dashboard schema and booking permissions migrations in the hosted Supabase project, then validating admin and therapist booking actions against real RLS. The next product risk is trust: placeholder contact destinations and placeholder specialists should be replaced with real business data before the site feels production-ready.
+The current focus is applying the dashboard schema, booking permissions, and manual-booking migrations in the hosted Supabase project, then validating admin and therapist booking actions against real RLS. The next product risk is trust: placeholder contact destinations and placeholder specialists should be replaced with real business data before the site feels production-ready.
 
 ## Git Workflow
 
@@ -104,6 +105,7 @@ The current focus is applying the dashboard schema and booking permissions migra
 - Confirm the dashboard calendar defaults to a usable day view on mobile.
 - Confirm admin users can filter bookings by therapist and status.
 - Confirm admin users can create manual bookings assigned to any therapist or temporarily unassigned.
+- Confirm manual booking date selection uses the branded calendar and time selection uses the shared slot dropdown.
 - Confirm therapist users only see their own assigned bookings.
 - Confirm therapist users can create manual bookings only for their own therapist profile.
 - Confirm booking details fit mobile screens and allow internal notes editing.

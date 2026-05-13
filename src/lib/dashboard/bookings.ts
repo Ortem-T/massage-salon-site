@@ -143,6 +143,13 @@ type DashboardTherapistRow = {
   active: boolean;
 };
 
+const fullBookingColumns =
+  "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source, source_channel, duration_minutes, client_id, therapist_id, internal_notes, updated_at";
+const dashboardBookingColumns =
+  "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source, client_id, therapist_id, internal_notes, updated_at";
+const legacyBookingColumns =
+  "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source";
+
 async function getTherapistIdsForUser(userId: string) {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
@@ -174,7 +181,7 @@ async function getDashboardTherapists(role: DashboardUser["role"], userId: strin
   const supabase = await createSupabaseServerClient();
   const query = supabase.from("therapists").select("id, profile_id, display_name, active").order("display_name", { ascending: true });
   const { data, error } =
-    role === "admin" ? await query : await query.eq("profile_id", userId).eq("active", true);
+    role === "admin" ? await query.eq("active", true) : await query.eq("profile_id", userId).eq("active", true);
 
   return {
     therapists: error ? [] : toDashboardTherapists(data),
@@ -198,9 +205,7 @@ export async function getBookingsForDashboard(user: DashboardUser): Promise<Dash
   try {
     const bookingsQuery = supabase
         .from("bookings")
-        .select(
-          "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source, source_channel, duration_minutes, client_id, therapist_id, internal_notes, updated_at"
-        )
+        .select(fullBookingColumns)
         .order("preferred_date", { ascending: true })
         .order("preferred_time", { ascending: true })
       .limit(400);
@@ -210,6 +215,23 @@ export async function getBookingsForDashboard(user: DashboardUser): Promise<Dash
     if (!bookingsError) {
       return {
         bookings: (bookings ?? []).map(toDashboardBooking),
+        therapists: therapistResult.therapists,
+        error: therapistResult.error
+      };
+    }
+
+    const dashboardBookingsQuery = supabase
+      .from("bookings")
+      .select(dashboardBookingColumns)
+      .order("preferred_date", { ascending: true })
+      .order("preferred_time", { ascending: true })
+      .limit(400);
+    const { data: dashboardBookings, error: dashboardBookingsError } =
+      user.role === "admin" ? await dashboardBookingsQuery : await dashboardBookingsQuery.in("therapist_id", therapistIds);
+
+    if (!dashboardBookingsError) {
+      return {
+        bookings: (dashboardBookings ?? []).map(toDashboardBooking),
         therapists: therapistResult.therapists,
         error: therapistResult.error
       };
@@ -225,9 +247,7 @@ export async function getBookingsForDashboard(user: DashboardUser): Promise<Dash
 
     const { data: legacyBookings, error: legacyBookingsError } = await supabase
       .from("bookings")
-      .select(
-        "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source"
-      )
+      .select(legacyBookingColumns)
       .order("preferred_date", { ascending: true })
       .order("preferred_time", { ascending: true })
       .limit(400);
@@ -254,44 +274,37 @@ export async function getBookingById(user: DashboardUser, bookingId: string): Pr
   const supabase = await createSupabaseServerClient();
 
   try {
-    if (user.role === "therapist") {
-      const therapistIds = await getTherapistIdsForUser(user.id);
+    const therapistIds = user.role === "therapist" ? await getTherapistIdsForUser(user.id) : [];
 
-      if (therapistIds.length === 0) {
-        return null;
-      }
-
-      const { data, error } = await supabase
-        .from("bookings")
-        .select(
-          "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source, source_channel, duration_minutes, client_id, therapist_id, internal_notes, updated_at"
-        )
-        .eq("id", bookingId)
-        .in("therapist_id", therapistIds)
-        .maybeSingle();
-
-      return error || !data ? null : toDashboardBooking(data);
+    if (user.role === "therapist" && therapistIds.length === 0) {
+      return null;
     }
 
-    const { data, error } = await supabase
-      .from("bookings")
-      .select(
-        "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source, source_channel, duration_minutes, client_id, therapist_id, internal_notes, updated_at"
-      )
-      .eq("id", bookingId)
-      .maybeSingle();
+    async function queryBooking(columns: string) {
+      const query = supabase.from("bookings").select(columns).eq("id", bookingId);
+
+      return user.role === "therapist" ? query.in("therapist_id", therapistIds).maybeSingle() : query.maybeSingle();
+    }
+
+    const { data, error } = await queryBooking(fullBookingColumns);
 
     if (!error && data) {
-      return toDashboardBooking(data);
+      return toDashboardBooking(data as unknown as DashboardBookingRow);
     }
 
-    const { data: legacyData, error: legacyError } = await supabase
-      .from("bookings")
-      .select("id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source")
-      .eq("id", bookingId)
-      .maybeSingle();
+    const { data: dashboardData, error: dashboardError } = await queryBooking(dashboardBookingColumns);
 
-    return legacyError || !legacyData ? null : toDashboardBooking(legacyData);
+    if (!dashboardError && dashboardData) {
+      return toDashboardBooking(dashboardData as unknown as DashboardBookingRow);
+    }
+
+    if (user.role === "therapist") {
+      return null;
+    }
+
+    const { data: legacyData, error: legacyError } = await queryBooking(legacyBookingColumns);
+
+    return legacyError || !legacyData ? null : toDashboardBooking(legacyData as unknown as DashboardBookingRow);
   } catch {
     return null;
   }
