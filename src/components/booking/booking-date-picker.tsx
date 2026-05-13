@@ -190,6 +190,7 @@ export function BookingDatePicker({
               const isSelected = value === dateValue;
               const isSelectable = isDateSelectable(dateValue);
               const hint = getDateHint?.(dateValue) ?? null;
+              const isDisabled = !isSelectable;
               const formattedDate = new Intl.DateTimeFormat(formatterLocale, {
                 day: "numeric",
                 month: "long",
@@ -200,16 +201,24 @@ export function BookingDatePicker({
                 <button
                   key={dateValue}
                   type="button"
-                  disabled={!isSelectable}
+                  disabled={isDisabled && !hint}
+                  aria-disabled={isDisabled}
                   aria-label={
-                    isSelectable
+                    !isDisabled
                       ? hint
                         ? `${formattedDate}. ${hint}`
                         : formattedDate
-                      : `${formattedDate}. ${copy.unavailable}`
+                      : hint
+                        ? `${formattedDate}. ${copy.unavailable}. ${hint}`
+                        : `${formattedDate}. ${copy.unavailable}`
                   }
                   aria-pressed={isSelected}
-                  onClick={() => selectDate(dateValue)}
+                  onClick={() => {
+                    if (!isDisabled) {
+                      selectDate(dateValue);
+                    }
+                  }}
+                  tabIndex={isDisabled ? -1 : undefined}
                   title={hint ?? undefined}
                   className={cn(
                     "relative flex aspect-square items-center justify-center rounded-full text-sm transition-all duration-200",
@@ -220,7 +229,7 @@ export function BookingDatePicker({
                   )}
                 >
                   <span>{date.getDate()}</span>
-                  {hint && isSelectable ? (
+                  {hint ? (
                     <span
                       aria-hidden="true"
                       className={cn(
