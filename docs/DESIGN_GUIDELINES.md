@@ -117,6 +117,11 @@ Cards:
 - CTA labels should be action-oriented and localized.
 - Booking CTA should remain the clearest conversion path.
 
+## Testimonials
+
+- Show testimonials only when real client reviews are available and permission-safe, such as Google Business Profile reviews, direct client feedback with permission, or Instagram/direct feedback with permission.
+- Do not publish fake, placeholder, or generic testimonials; hiding the section is preferred until trustworthy reviews exist.
+
 ## Form Styling
 
 - Booking form should feel like a premium concierge request, not a generic web form.

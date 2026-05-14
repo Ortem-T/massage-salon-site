@@ -64,6 +64,7 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Updated the homepage services intro copy in Serbian, Russian, and English to describe personalized treatments more clearly.
 - Updated the homepage benefits section title and first benefit item in Serbian, Russian, and English to emphasize calm atmosphere and professional care.
 - Updated the homepage booking section copy in Serbian, Russian, and English to make the booking flow clearer and remove the no-payment/no-registration form note.
+- Temporarily hid the homepage testimonials section behind a feature flag and removed placeholder review items from public dictionaries until real client reviews are available.
 
 ## Current Focus
 
@@ -114,7 +115,7 @@ The current focus is validating admin/therapist schedule block workflows against
 - Confirm homepage has no horizontal scroll at 360px, 375px, 390px, 430px, and 768px.
 - Confirm hero and navbar "book" CTAs scroll to the booking form, while messenger CTAs still open WhatsApp.
 - Confirm the quiet CTA after services scrolls to the booking form in `/sr`, `/ru`, and `/en`.
-- Confirm homepage section order is Hero, Services, Benefits, Booking, Testimonials, About, CTA, Contact.
+- Confirm homepage section order is Hero, Services, Benefits, Booking, About, CTA, Contact while testimonials are hidden.
 - Complete the form with keyboard only.
 - Trigger each validation error and confirm layout does not jump awkwardly.
 - Open and use the custom date picker with mouse and keyboard, including Tab, Arrow keys, Home/End, PageUp/PageDown, Enter/Space, and Escape.

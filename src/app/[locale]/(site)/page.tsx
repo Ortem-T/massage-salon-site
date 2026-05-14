@@ -6,6 +6,7 @@ import { CTASection } from "@/components/sections/cta-section";
 import { HeroSection } from "@/components/sections/hero-section";
 import { ServicesSection } from "@/components/sections/services-section";
 import { TestimonialsSection } from "@/components/sections/testimonials-section";
+import { homepageFeatures } from "@/config/homepage";
 import { isLocale, locales, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getServiceCatalog } from "@/lib/services/catalog";
@@ -41,7 +42,9 @@ export default async function HomePage({ params }: HomePageProps) {
         serviceCatalog={serviceCatalog}
         therapistCatalog={therapistCatalog}
       />
-      <TestimonialsSection dictionary={dictionary} />
+      {homepageFeatures.showTestimonials && dictionary.testimonials.items.length > 0 ? (
+        <TestimonialsSection dictionary={dictionary} />
+      ) : null}
       <AboutSection dictionary={dictionary} />
       <CTASection dictionary={dictionary} />
       <ContactSection dictionary={dictionary} />

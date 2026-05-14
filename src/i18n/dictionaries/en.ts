@@ -138,26 +138,7 @@ const en = {
   testimonials: {
     eyebrow: "Reviews",
     title: "Guests return for calm that lasts",
-    items: [
-      {
-        quote:
-          "The space is beautifully calm, and the massage was precise and gentle at the same time. The feeling lasted for days.",
-        author: "Milica",
-        detail: "Signature massage"
-      },
-      {
-        quote:
-          "The best balance of professionalism and warmth. The therapist understood immediately where I hold the most tension.",
-        author: "Nikola",
-        detail: "Deep tissue recovery"
-      },
-      {
-        quote:
-          "Minimal interior, beautiful scent, and no sense of rush. Finally a salon that genuinely feels premium.",
-        author: "Jelena",
-        detail: "Japanese relax ritual"
-      }
-    ]
+    items: []
   },
   about: {
     eyebrow: "About",

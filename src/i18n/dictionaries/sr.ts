@@ -1,3 +1,9 @@
+type TestimonialItem = {
+  quote: string;
+  author: string;
+  detail: string;
+};
+
 const sr = {
   seo: {
     title: "RAINË | Premium masaža u Novom Sadu",
@@ -138,26 +144,7 @@ const sr = {
   testimonials: {
     eyebrow: "Utisci",
     title: "Gosti se vraćaju zbog mira koji traje",
-    items: [
-      {
-        quote:
-          "Prostor je izuzetno smiren, a masaža precizna i nežna u isto vreme. Osećaj posle tretmana je trajao danima.",
-        author: "Milica",
-        detail: "Signature masaža"
-      },
-      {
-        quote:
-          "Najbolji balans profesionalnosti i topline. Terapeut je odmah razumeo gde držim najviše napetosti.",
-        author: "Nikola",
-        detail: "Deep tissue oporavak"
-      },
-      {
-        quote:
-          "Minimalan enterijer, divan miris i potpuno odsustvo žurbe. Konačno salon koji zaista deluje premium.",
-        author: "Jelena",
-        detail: "Japanski relax ritual"
-      }
-    ]
+    items: [] as TestimonialItem[]
   },
   about: {
     eyebrow: "O salonu",
