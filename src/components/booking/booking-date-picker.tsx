@@ -1,7 +1,7 @@
 "use client";
 
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type KeyboardEvent as ReactKeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { type Locale } from "@/i18n/config";
@@ -58,6 +58,10 @@ function moveMonth(month: Date, offset: number) {
   return new Date(month.getFullYear(), month.getMonth() + offset, 1);
 }
 
+function getDaysInMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+}
+
 export function BookingDatePicker({
   id,
   value,
@@ -73,8 +77,11 @@ export function BookingDatePicker({
   onVisibleMonthChange
 }: BookingDatePickerProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const dayButtonRefs = useRef(new Map<string, HTMLButtonElement>());
   const [isOpen, setIsOpen] = useState(false);
   const [visibleMonth, setVisibleMonth] = useState(() => getMonthStart(value || minDate));
+  const [focusedDateValue, setFocusedDateValue] = useState(value || minDate);
   const formatterLocale = localeMap[locale];
   const selectedDate = value ? parseDateValue(value) : null;
   const selectedLabel = selectedDate
@@ -91,6 +98,11 @@ export function BookingDatePicker({
     });
   }, [formatterLocale]);
   const days = useMemo(() => getCalendarDays(visibleMonth), [visibleMonth]);
+  const selectableDateValues = useMemo(
+    () => days.map(toDateValue).filter((dateValue) => isDateSelectable(dateValue)),
+    [days, isDateSelectable]
+  );
+  const firstSelectableDateValue = selectableDateValues[0] ?? null;
 
   useEffect(() => {
     onVisibleMonthChange?.(toDateValue(visibleMonth));
@@ -110,6 +122,7 @@ export function BookingDatePicker({
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setIsOpen(false);
+        triggerRef.current?.focus();
       }
     }
 
@@ -122,14 +135,96 @@ export function BookingDatePicker({
     };
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen || !firstSelectableDateValue) {
+      return;
+    }
+
+    const focusedDateIsSelectable = selectableDateValues.includes(focusedDateValue);
+    const nextFocusedDateValue = focusedDateIsSelectable ? focusedDateValue : firstSelectableDateValue;
+
+    if (!focusedDateIsSelectable) {
+      setFocusedDateValue(nextFocusedDateValue);
+    }
+
+    const animationFrame = requestAnimationFrame(() => {
+      dayButtonRefs.current.get(nextFocusedDateValue)?.focus();
+    });
+
+    return () => {
+      cancelAnimationFrame(animationFrame);
+    };
+  }, [firstSelectableDateValue, focusedDateValue, isOpen, selectableDateValues]);
+
   function selectDate(nextValue: string) {
     onChange(nextValue);
     setIsOpen(false);
+    triggerRef.current?.focus();
+  }
+
+  function focusDate(nextValue: string) {
+    setFocusedDateValue(nextValue);
+    requestAnimationFrame(() => {
+      dayButtonRefs.current.get(nextValue)?.focus();
+    });
+  }
+
+  function focusNearestSelectableDate(startIndex: number, step: number) {
+    for (let index = startIndex; index >= 0 && index < days.length; index += step) {
+      const nextValue = toDateValue(days[index]);
+
+      if (isDateSelectable(nextValue)) {
+        focusDate(nextValue);
+        return;
+      }
+    }
+  }
+
+  function focusSameDayInAdjacentMonth(offset: number) {
+    const focusedDate = parseDateValue(focusedDateValue) ?? selectedDate ?? parseDateValue(minDate) ?? visibleMonth;
+    const nextMonth = moveMonth(visibleMonth, offset);
+    const nextDay = Math.min(focusedDate.getDate(), getDaysInMonth(nextMonth));
+    const nextDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), nextDay);
+
+    setVisibleMonth(nextMonth);
+    setFocusedDateValue(toDateValue(nextDate));
+  }
+
+  function moveVisibleMonth(offset: number) {
+    const nextMonth = moveMonth(visibleMonth, offset);
+    const focusedDate = parseDateValue(focusedDateValue) ?? selectedDate ?? parseDateValue(minDate);
+    const nextDay = focusedDate ? Math.min(focusedDate.getDate(), getDaysInMonth(nextMonth)) : 1;
+
+    setVisibleMonth(nextMonth);
+    setFocusedDateValue(toDateValue(new Date(nextMonth.getFullYear(), nextMonth.getMonth(), nextDay)));
+  }
+
+  function handleDateKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, index: number) {
+    const keyActions: Record<string, () => void> = {
+      ArrowLeft: () => focusNearestSelectableDate(index - 1, -1),
+      ArrowRight: () => focusNearestSelectableDate(index + 1, 1),
+      ArrowUp: () => focusNearestSelectableDate(index - 7, -1),
+      ArrowDown: () => focusNearestSelectableDate(index + 7, 1),
+      Home: () => focusNearestSelectableDate(index - (index % 7), 1),
+      End: () => focusNearestSelectableDate(index + (6 - (index % 7)), -1),
+      PageUp: () => focusSameDayInAdjacentMonth(-1),
+      PageDown: () => focusSameDayInAdjacentMonth(1)
+    };
+
+    const action = keyActions[event.key];
+
+    if (!action) {
+      return;
+    }
+
+    event.preventDefault();
+    action();
   }
 
   return (
     <div ref={wrapperRef} className="relative">
       <Button
+        ref={triggerRef}
         id={id}
         type="button"
         variant="outline"
@@ -138,7 +233,10 @@ export function BookingDatePicker({
         aria-haspopup="dialog"
         aria-invalid={invalid}
         aria-describedby={errorId}
-        onClick={() => setIsOpen((current) => !current)}
+        onClick={() => {
+          setFocusedDateValue(value || firstSelectableDateValue || minDate);
+          setIsOpen((current) => !current);
+        }}
         className={cn(
           "min-h-13 w-full justify-start rounded-xl border-border/75 bg-background/62 px-4 py-3 text-left text-[0.95rem] font-normal text-foreground shadow-[inset_0_1px_0_rgb(255_250_240/0.7)] hover:translate-y-0 hover:border-accent/45 hover:bg-card/78 hover:shadow-[inset_0_1px_0_rgb(255_250_240/0.7)]",
           !value && "text-muted-foreground/75",
@@ -162,7 +260,7 @@ export function BookingDatePicker({
               variant="ghost"
               size="icon"
               aria-label={copy.previousMonth}
-              onClick={() => setVisibleMonth((month) => moveMonth(month, -1))}
+              onClick={() => moveVisibleMonth(-1)}
             >
               <ChevronLeft aria-hidden="true" />
             </Button>
@@ -172,7 +270,7 @@ export function BookingDatePicker({
               variant="ghost"
               size="icon"
               aria-label={copy.nextMonth}
-              onClick={() => setVisibleMonth((month) => moveMonth(month, 1))}
+              onClick={() => moveVisibleMonth(1)}
             >
               <ChevronRight aria-hidden="true" />
             </Button>
@@ -184,7 +282,7 @@ export function BookingDatePicker({
                 {day}
               </p>
             ))}
-            {days.map((date) => {
+            {days.map((date, index) => {
               const dateValue = toDateValue(date);
               const isCurrentMonth = date.getMonth() === visibleMonth.getMonth();
               const isSelected = value === dateValue;
@@ -200,6 +298,13 @@ export function BookingDatePicker({
               return (
                 <button
                   key={dateValue}
+                  ref={(node) => {
+                    if (node) {
+                      dayButtonRefs.current.set(dateValue, node);
+                    } else {
+                      dayButtonRefs.current.delete(dateValue);
+                    }
+                  }}
                   type="button"
                   disabled={isDisabled && !hint}
                   aria-disabled={isDisabled}
@@ -218,7 +323,13 @@ export function BookingDatePicker({
                       selectDate(dateValue);
                     }
                   }}
-                  tabIndex={isDisabled ? -1 : undefined}
+                  onFocus={() => {
+                    if (!isDisabled) {
+                      setFocusedDateValue(dateValue);
+                    }
+                  }}
+                  onKeyDown={(event) => handleDateKeyDown(event, index)}
+                  tabIndex={isSelectable && focusedDateValue === dateValue ? 0 : -1}
                   title={hint ?? undefined}
                   className={cn(
                     "relative flex aspect-square items-center justify-center rounded-full text-sm transition-all duration-200",

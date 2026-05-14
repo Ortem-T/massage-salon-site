@@ -39,6 +39,7 @@ const en = {
       face: "Face",
       body: "Body"
     },
+    bookingCta: "Book a service",
     durationUnit: "min",
     empty: "The service catalog is temporarily unavailable. Please contact us directly to book."
   },

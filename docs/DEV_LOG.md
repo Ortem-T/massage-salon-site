@@ -58,6 +58,7 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Added schedule block management for admin and therapist dashboard users. Staff can block full days or time ranges, admin can manage therapist and salon-wide blocks, therapists can manage their own blocks, and public/manual availability now excludes blocked windows without exposing internal reasons.
 - Replaced homepage contact and footer placeholders with real salon address, landmark, daily hours, WhatsApp, Telegram, Instagram, and Google Maps integration. The public phone number remains hidden from visible UI; Viber is intentionally not shown.
 - Applied homepage critical/high review fixes: removed mobile service-row horizontal overflow, routed primary booking CTAs to the booking form, moved benefits before booking for trust, and switched public catalog reads to ISR-friendly Supabase access.
+- Applied homepage medium review improvements: added a localized quiet booking CTA after the services list and upgraded the custom booking calendar with roving keyboard focus, arrow-key navigation, Home/End, PageUp/PageDown, and Escape focus return.
 
 ## Current Focus
 
@@ -104,10 +105,11 @@ The current focus is validating admin/therapist schedule block workflows against
 - Check mobile widths around 360px, 390px, 430px, 768px, and desktop.
 - Confirm homepage has no horizontal scroll at 360px, 375px, 390px, 430px, and 768px.
 - Confirm hero and navbar "book" CTAs scroll to the booking form, while messenger CTAs still open WhatsApp.
+- Confirm the quiet CTA after services scrolls to the booking form in `/sr`, `/ru`, and `/en`.
 - Confirm homepage section order is Hero, Services, Benefits, Booking, Testimonials, About, CTA, Contact.
 - Complete the form with keyboard only.
 - Trigger each validation error and confirm layout does not jump awkwardly.
-- Open and use the custom date picker with mouse and keyboard.
+- Open and use the custom date picker with mouse and keyboard, including Tab, Arrow keys, Home/End, PageUp/PageDown, Enter/Space, and Escape.
 - Confirm the booking calendar is disabled until service and therapist are selected.
 - Confirm unavailable dates cannot be selected for the selected therapist/service.
 - Confirm bookings for therapist A do not block therapist B.
@@ -181,6 +183,7 @@ The current focus is validating admin/therapist schedule block workflows against
 - Use `src/lib/booking/booking-availability.ts` as the shared source for duration rounding, blocked intervals, default time slot generation, and before-insert slot checks.
 - Keep public salon contact data centralized in `src/config/contacts.ts`; translated labels and messages stay in dictionaries. The phone number may exist inside the WhatsApp URL, but visible UI must not render it as plain text.
 - Use `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY` for the embedded map instead of committing Google Maps keys to source.
+- Keep the custom branded booking calendar, but support roving keyboard focus instead of replacing it with a new component dependency.
 - Keep UI primitives local and lightweight rather than pulling in a full component dependency for every shadcn/ui part.
 - Avoid full CRM workflows until the booking/dashboard foundation is stable.
 

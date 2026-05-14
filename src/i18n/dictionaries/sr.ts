@@ -39,6 +39,7 @@ const sr = {
       face: "Lice",
       body: "Telo"
     },
+    bookingCta: "Zakaži uslugu",
     durationUnit: "min",
     empty: "Katalog usluga trenutno nije dostupan. Kontaktirajte nas direktno za termine."
   },
