@@ -43,14 +43,14 @@ const en = {
     empty: "The service catalog is temporarily unavailable. Please contact us directly to book."
   },
   booking: {
-    eyebrow: "Booking request",
-    title: "Book an appointment without pressure",
+    eyebrow: "Book a session",
+    title: "Book a time that works for you",
     subtitle:
-      "Choose your treatment, specialist, preferred date and time, then leave your contact. We will confirm the exact time manually.",
+      "Choose a service, therapist, date and time. We will contact you to confirm the appointment and clarify the details.",
     aside: {
-      title: "A calm first step",
+      title: "We’ll help you choose the right session",
       body:
-        "Leave an appointment request and we will carefully check the schedule before confirming the exact time with you."
+        "If you are not sure which treatment is best for you, leave a comment in the request — we will help you before confirming the appointment."
     },
     fields: {
       service: {
@@ -113,7 +113,7 @@ const en = {
     },
     submit: "Book appointment",
     submitting: "Sending request",
-    formNote: "No payment or account required. We will contact you to confirm.",
+    formNote: "After you submit the request, we will confirm your appointment through your preferred messenger.",
     success: {
       title: "Request received",
       message: "Thank you. We will review your preferred time and contact you shortly."

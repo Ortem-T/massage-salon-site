@@ -63,6 +63,7 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Replaced active homepage hero copy in Serbian, Russian, and English with the approved massage-focused messaging while keeping the existing hero structure.
 - Updated the homepage services intro copy in Serbian, Russian, and English to describe personalized treatments more clearly.
 - Updated the homepage benefits section title and first benefit item in Serbian, Russian, and English to emphasize calm atmosphere and professional care.
+- Updated the homepage booking section copy in Serbian, Russian, and English to make the booking flow clearer and remove the no-payment/no-registration form note.
 
 ## Current Focus
 

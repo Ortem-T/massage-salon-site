@@ -43,14 +43,14 @@ const sr = {
     empty: "Katalog usluga trenutno nije dostupan. Kontaktirajte nas direktno za termine."
   },
   booking: {
-    eyebrow: "Zahtev za termin",
-    title: "Zakažite termin bez pritiska",
+    eyebrow: "Zakazivanje termina",
+    title: "Zakažite termin koji vam odgovara",
     subtitle:
-      "Izaberite tretman, stručnjaka, željeni datum i vreme, pa ostavite kontakt. Tačan termin potvrđujemo ručno.",
+      "Izaberite uslugu, stručnjaka, datum i vreme. Kontaktiraćemo vas kako bismo potvrdili termin i dogovorili detalje.",
     aside: {
-      title: "Miran prvi korak",
+      title: "Pomoći ćemo vam da izaberete odgovarajući tretman",
       body:
-        "Ostavite zahtev za termin, a mi ćemo pažljivo proveriti raspored i potvrditi tačno vreme direktno sa vama."
+        "Ako niste sigurni koji tretman je najbolji za vas, ostavite komentar u prijavi — pomoći ćemo vam pre potvrde termina."
     },
     fields: {
       service: {
@@ -113,7 +113,7 @@ const sr = {
     },
     submit: "Zakaži termin",
     submitting: "Šaljemo zahtev",
-    formNote: "Bez plaćanja i registracije. Kontaktiraćemo vas radi potvrde.",
+    formNote: "Nakon slanja zahteva, potvrdićemo termin putem messengera koji vam najviše odgovara.",
     success: {
       title: "Zahtev je primljen",
       message: "Hvala. Proverićemo željeno vreme i uskoro vas kontaktirati."
