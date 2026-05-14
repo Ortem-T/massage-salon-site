@@ -22,10 +22,9 @@ const sr = {
     language: "Jezik"
   },
   hero: {
-    eyebrow: "Premium wellness u Novom Sadu",
-    title: "Tihi ritual za telo koje ponovo diše",
-    subtitle:
-      "Personalizovane masaže, topla spa atmosfera i smiren japanski minimalizam za trenutke kada želite da usporite bez kompromisa.",
+    eyebrow: "Masaža u Novom Sadu",
+    title: "Briga, lakoća i lepota u svakom dodiru",
+    subtitle: "Individualna masaža u toploj i mirnoj atmosferi — za negu sebe, odmor i oporavak.",
     cta: "Zakaži termin",
     secondary: "Pogledaj usluge",
     note: "Mirna zona, pažljivi terapeuti, prirodna ulja."

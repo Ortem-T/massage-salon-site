@@ -60,6 +60,7 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Applied homepage critical/high review fixes: removed mobile service-row horizontal overflow, routed primary booking CTAs to the booking form, moved benefits before booking for trust, and switched public catalog reads to ISR-friendly Supabase access.
 - Applied homepage medium review improvements: added a localized quiet booking CTA after the services list and upgraded the custom booking calendar with roving keyboard focus, arrow-key navigation, Home/End, PageUp/PageDown, and Escape focus return.
 - Added root-only locale auto-detection: `/` redirects to the preferred locale cookie, then browser `Accept-Language`, then Serbian fallback, while explicit `/sr`, `/ru`, and `/en` routes remain stable.
+- Replaced active homepage hero copy in Serbian, Russian, and English with the approved massage-focused messaging while keeping the existing hero structure.
 
 ## Current Focus
 

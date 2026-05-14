@@ -22,10 +22,9 @@ const en = {
     language: "Language"
   },
   hero: {
-    eyebrow: "Premium wellness in Novi Sad",
-    title: "A quiet ritual for a body that breathes again",
-    subtitle:
-      "Personalized massage, warm spa atmosphere, and calm Japanese minimalism for moments when you want to slow down without compromise.",
+    eyebrow: "Massage in Novi Sad",
+    title: "Care, lightness and beauty in every touch",
+    subtitle: "Personalized massage in a warm and calm atmosphere — for self-care, relaxation and recovery.",
     cta: "Book now",
     secondary: "View services",
     note: "Quiet space, attentive therapists, natural oils."
