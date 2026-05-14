@@ -147,14 +147,14 @@ const sr = {
     items: [] as TestimonialItem[]
   },
   about: {
-    eyebrow: "O salonu",
-    title: "Mesto za sporiji, pažljiviji povratak sebi",
+    eyebrow: "O SALONU",
+    title: "Mesto gde telo odmara i obnavlja se",
     body:
-      "Raine Spa je masažni atelier u Novom Sadu inspirisan japanskim spa ritualima, prirodnim teksturama i tihom negom. Naš pristup je smiren, precizan i nenametljiv: slušamo telo, poštujemo granice i gradimo tretman oko onoga što vam je tog dana potrebno.",
+      "Raine je salon masaže u Novom Sadu, gde se briga o telu spaja sa pažljivim pristupom i mirnom atmosferom.\n\nTretman prilagođavamo vašem stanju, ritmu i cilju dolaska — da se opustite, oslobodite napetosti, oporavite nakon opterećenja ili posvetite vreme lepoti i nezi.",
     stats: [
-      { value: "3", label: "jezika podrške" },
-      { value: "7+", label: "rituala nege" },
-      { value: "100%", label: "personalizovan tempo" }
+      { value: "2", label: "kvalifikovana stručnjaka" },
+      { value: "7+", label: "profesionalnih tretmana" },
+      { value: "100%", label: "individualni pristup" }
     ]
   },
   cta: {

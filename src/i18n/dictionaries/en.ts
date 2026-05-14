@@ -141,14 +141,14 @@ const en = {
     items: []
   },
   about: {
-    eyebrow: "About",
-    title: "A place for a slower, more attentive return to yourself",
+    eyebrow: "ABOUT THE SALON",
+    title: "A place where your body rests and recovers",
     body:
-      "Raine Spa is a massage atelier in Novi Sad inspired by Japanese spa rituals, natural textures, and quiet care. Our approach is calm, precise, and unobtrusive: we listen to the body, respect boundaries, and shape each treatment around what you need that day.",
+      "Raine is a massage salon in Novi Sad where body care meets an attentive approach and a calm atmosphere.\n\nWe tailor each treatment to how you feel, your rhythm and the purpose of your visit — to relax, release tension, recover after physical load or take time for beauty and care.",
     stats: [
-      { value: "3", label: "support languages" },
-      { value: "7+", label: "care rituals" },
-      { value: "100%", label: "personalized pace" }
+      { value: "2", label: "qualified specialists" },
+      { value: "7+", label: "professional treatments" },
+      { value: "100%", label: "personalized approach" }
     ]
   },
   cta: {

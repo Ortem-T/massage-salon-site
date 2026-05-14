@@ -20,7 +20,7 @@ export function AboutSection({ dictionary }: AboutSectionProps) {
         <MotionReveal delay={0.1}>
           <div className="rounded-lg border border-[#cfbd9c] bg-[#fffaf0]/76 p-7 shadow-[var(--shadow-soft)] backdrop-blur-md sm:p-9">
             <Sparkles className="size-6 text-accent" aria-hidden="true" />
-            <p className="mt-7 text-lg leading-9 text-foreground">{about.body}</p>
+            <p className="mt-7 whitespace-pre-line text-lg leading-9 text-foreground">{about.body}</p>
             <div className="mt-10 grid gap-5 sm:grid-cols-3">
               {about.stats.map((stat) => (
                 <div key={stat.label} className="border-t border-accent/35 pt-5">

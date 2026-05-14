@@ -65,6 +65,7 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Updated the homepage benefits section title and first benefit item in Serbian, Russian, and English to emphasize calm atmosphere and professional care.
 - Updated the homepage booking section copy in Serbian, Russian, and English to make the booking flow clearer and remove the no-payment/no-registration form note.
 - Temporarily hid the homepage testimonials section behind a feature flag and removed placeholder review items from public dictionaries until real client reviews are available.
+- Updated the homepage About salon copy and stats in Serbian, Russian, and English to use clearer salon positioning and real specialist/procedure counts.
 
 ## Current Focus
 
