@@ -59,6 +59,7 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Replaced homepage contact and footer placeholders with real salon address, landmark, daily hours, WhatsApp, Telegram, Instagram, and Google Maps integration. The public phone number remains hidden from visible UI; Viber is intentionally not shown.
 - Applied homepage critical/high review fixes: removed mobile service-row horizontal overflow, routed primary booking CTAs to the booking form, moved benefits before booking for trust, and switched public catalog reads to ISR-friendly Supabase access.
 - Applied homepage medium review improvements: added a localized quiet booking CTA after the services list and upgraded the custom booking calendar with roving keyboard focus, arrow-key navigation, Home/End, PageUp/PageDown, and Escape focus return.
+- Added root-only locale auto-detection: `/` redirects to the preferred locale cookie, then browser `Accept-Language`, then Serbian fallback, while explicit `/sr`, `/ru`, and `/en` routes remain stable.
 
 ## Current Focus
 
@@ -98,6 +99,9 @@ The current focus is validating admin/therapist schedule block workflows against
 ## Manual QA Checklist
 
 - Check `/sr`, `/ru`, and `/en` booking form copy.
+- Confirm `/` redirects to `/sr` by default, `/ru` for Russian browser preference, `/en` for English browser preference, and a saved locale cookie wins over the browser header.
+- Confirm visiting `/sr`, `/ru`, and `/en` stays on the explicit route without auto-switching.
+- Confirm the language switcher preserves the current localized path and stores the preferred locale cookie.
 - Check `/sr`, `/ru`, and `/en` homepages show localized Face/Lice/Лицо and Body/Telo/Тело service groups with the real names, descriptions, durations, and RSD prices.
 - Confirm public booking service options use the same real service names as the homepage.
 - Confirm public booking specialist options show only active real therapists, localized per route, with no generic "any available specialist" option.
@@ -165,6 +169,7 @@ The current focus is validating admin/therapist schedule block workflows against
 ## Architectural Decisions
 
 - Use locale route segments instead of query parameters for SEO-friendly multilingual pages.
+- Keep locale auto-detection root-only: `/` may redirect by saved preference or browser language, but explicit localized URLs stay canonical and unchanged.
 - Keep all translated copy in dictionary files.
 - Keep booking data validation in `src/lib/booking/booking-schema.ts`.
 - Keep booking persistence behind `createBookingRequest()` so storage details can evolve without rewriting form UI.
