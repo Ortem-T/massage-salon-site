@@ -31,9 +31,9 @@ const sr = {
   },
   services: {
     eyebrow: "Usluge",
-    title: "Masaže oblikovane prema vašem ritmu",
+    title: "Tretmani prilagođeni vama",
     subtitle:
-      "Svaki tretman počinje kratkom konsultacijom, kako bi pritisak, tempo i fokus bili usklađeni sa vašim telom.",
+      "Svaki dolazak počinje kratkom konsultacijom, kako bi intenzitet, tempo i fokus tretmana odgovarali vašem stanju i osećaju.",
     categories: {
       face: "Lice",
       body: "Telo"

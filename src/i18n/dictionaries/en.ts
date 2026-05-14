@@ -31,9 +31,9 @@ const en = {
   },
   services: {
     eyebrow: "Services",
-    title: "Massages shaped around your rhythm",
+    title: "Treatments tailored to you",
     subtitle:
-      "Every treatment starts with a short consultation so pressure, pace, and focus can match what your body needs.",
+      "Every visit begins with a short consultation, so the intensity, pace and focus of the treatment match how you feel and what your body needs.",
     categories: {
       face: "Face",
       body: "Body"
