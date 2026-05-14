@@ -15,6 +15,10 @@ export function getSupabasePublicEnv() {
 }
 
 export function createSupabaseBrowserClient() {
+  return createSupabasePublicClient();
+}
+
+export function createSupabasePublicClient() {
   const { supabaseUrl, supabaseAnonKey } = getSupabasePublicEnv();
 
   return createClient<Database>(supabaseUrl, supabaseAnonKey, {

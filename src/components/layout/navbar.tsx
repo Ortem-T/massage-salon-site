@@ -49,7 +49,7 @@ export function Navbar({ locale, dictionary }: NavbarProps) {
         <div className="hidden items-center gap-3 lg:flex">
           <LanguageSwitcher currentLocale={locale} label={nav.language} />
           <Button asChild>
-            <Link href={`/${locale}#contact`}>{nav.cta}</Link>
+            <Link href={`/${locale}#booking`}>{nav.cta}</Link>
           </Button>
         </div>
 
@@ -87,7 +87,7 @@ export function Navbar({ locale, dictionary }: NavbarProps) {
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
               <LanguageSwitcher currentLocale={locale} label={nav.language} />
               <Button asChild>
-                <Link href={`/${locale}#contact`} onClick={() => setIsOpen(false)}>
+                <Link href={`/${locale}#booking`} onClick={() => setIsOpen(false)}>
                   {nav.cta}
                 </Link>
               </Button>

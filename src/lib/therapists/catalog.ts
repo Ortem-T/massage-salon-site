@@ -1,5 +1,5 @@
 import { defaultLocale, type Locale } from "@/i18n/config";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabasePublicClient } from "@/lib/supabase/client";
 
 export type TherapistCatalogItem = {
   id: string;
@@ -45,7 +45,7 @@ function getTranslation(
 
 export async function getTherapistCatalog(locale: Locale): Promise<TherapistCatalogItem[]> {
   try {
-    const supabase = await createSupabaseServerClient();
+    const supabase = createSupabasePublicClient();
     const { data: therapists, error: therapistsError } = await supabase
       .from("therapists")
       .select("id, display_name, active")

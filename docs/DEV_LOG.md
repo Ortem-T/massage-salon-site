@@ -57,10 +57,11 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Replaced mock public booking availability with Supabase-backed therapist availability. The public calendar now waits for service and therapist selection, reads safe availability rows from `public.public_booking_availability`, shows subtle other-therapist booking hints, calculates slots from service duration plus a 30-minute break, and revalidates availability before insert.
 - Added schedule block management for admin and therapist dashboard users. Staff can block full days or time ranges, admin can manage therapist and salon-wide blocks, therapists can manage their own blocks, and public/manual availability now excludes blocked windows without exposing internal reasons.
 - Replaced homepage contact and footer placeholders with real salon address, landmark, daily hours, WhatsApp, Telegram, Instagram, and Google Maps integration. The public phone number remains hidden from visible UI; Viber is intentionally not shown.
+- Applied homepage critical/high review fixes: removed mobile service-row horizontal overflow, routed primary booking CTAs to the booking form, moved benefits before booking for trust, and switched public catalog reads to ISR-friendly Supabase access.
 
 ## Current Focus
 
-The current focus is validating admin/therapist schedule block workflows against real RLS and doing mobile QA on the real public booking flow. The real service, therapist, availability, and schedule-block migrations have been applied to the hosted `raine` Supabase project and public reads are limited to safe catalog/availability data. Contact data is now production-shaped, but deployment still needs a restricted `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY` for the embedded map.
+The current focus is validating admin/therapist schedule block workflows against real RLS and doing mobile QA on the real public booking flow. The real service, therapist, availability, and schedule-block migrations have been applied to the hosted `raine` Supabase project and public reads are limited to safe catalog/availability data. Contact data is now production-shaped, but deployment still needs a restricted `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY` for the embedded map. Homepage public catalog reads are now ISR-friendly and should be revalidated rather than forcing every request through Supabase.
 
 ## Git Workflow
 
@@ -101,6 +102,9 @@ The current focus is validating admin/therapist schedule block workflows against
 - Confirm public booking specialist options show only active real therapists, localized per route, with no generic "any available specialist" option.
 - Confirm dashboard manual booking service options use the same real service names for admin and therapist users.
 - Check mobile widths around 360px, 390px, 430px, 768px, and desktop.
+- Confirm homepage has no horizontal scroll at 360px, 375px, 390px, 430px, and 768px.
+- Confirm hero and navbar "book" CTAs scroll to the booking form, while messenger CTAs still open WhatsApp.
+- Confirm homepage section order is Hero, Services, Benefits, Booking, Testimonials, About, CTA, Contact.
 - Complete the form with keyboard only.
 - Trigger each validation error and confirm layout does not jump awkwardly.
 - Open and use the custom date picker with mouse and keyboard.

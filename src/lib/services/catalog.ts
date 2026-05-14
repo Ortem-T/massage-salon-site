@@ -1,5 +1,5 @@
 import { defaultLocale, type Locale } from "@/i18n/config";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabasePublicClient } from "@/lib/supabase/client";
 
 export const serviceCategories = ["face", "body"] as const;
 
@@ -98,7 +98,7 @@ export async function getServiceCatalog(
   options: ServiceCatalogOptions = {}
 ): Promise<ServiceCatalogItem[]> {
   try {
-    const supabase = await createSupabaseServerClient();
+    const supabase = createSupabasePublicClient();
     const query = supabase
       .from("services")
       .select("id, slug, category, duration_minutes, price_rsd, active, bookable_online, sort_order")

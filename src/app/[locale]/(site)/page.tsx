@@ -6,7 +6,7 @@ import { CTASection } from "@/components/sections/cta-section";
 import { HeroSection } from "@/components/sections/hero-section";
 import { ServicesSection } from "@/components/sections/services-section";
 import { TestimonialsSection } from "@/components/sections/testimonials-section";
-import { isLocale, type Locale } from "@/i18n/config";
+import { isLocale, locales, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getServiceCatalog } from "@/lib/services/catalog";
 import { getTherapistCatalog } from "@/lib/therapists/catalog";
@@ -15,7 +15,11 @@ type HomePageProps = {
   params: Promise<{ locale: string }>;
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
+
+export function generateStaticParams() {
+  return locales.map((locale) => ({ locale }));
+}
 
 export default async function HomePage({ params }: HomePageProps) {
   const { locale: rawLocale } = await params;
@@ -30,13 +34,13 @@ export default async function HomePage({ params }: HomePageProps) {
     <main>
       <HeroSection locale={locale} dictionary={dictionary} />
       <ServicesSection locale={locale} dictionary={dictionary} serviceCatalog={serviceCatalog} />
+      <BenefitsSection dictionary={dictionary} />
       <BookingSection
         locale={locale}
         dictionary={dictionary}
         serviceCatalog={serviceCatalog}
         therapistCatalog={therapistCatalog}
       />
-      <BenefitsSection dictionary={dictionary} />
       <TestimonialsSection dictionary={dictionary} />
       <AboutSection dictionary={dictionary} />
       <CTASection dictionary={dictionary} />
