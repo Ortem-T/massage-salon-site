@@ -177,21 +177,42 @@ const en = {
   },
   contact: {
     eyebrow: "Contact",
-    title: "Novi Sad, Serbia",
-    subtitle: "The salon address will appear here. The area is ready for Google Maps integration.",
+    title: "Contact us",
+    subtitle: "Contact us in the way that feels easiest. We will reply and help you choose a suitable time.",
+    message:
+      "Send us a message through your preferred messenger or open the route on the map. We will reply calmly and help you choose a suitable time to visit.",
     addressLabel: "Location",
-    address: "Novi Sad, Serbia",
+    landmarkLabel: "Landmark",
     hoursLabel: "Opening hours",
-    hours: "Mon - Sat, 10:00 - 20:00",
-    mapLabel: "Google Maps area",
+    everyDay: "Every day",
+    mapTitle: "RAINË on the map",
+    openInGoogleMaps: "Open in Google Maps",
     actions: {
       whatsapp: "WhatsApp",
       telegram: "Telegram",
       instagram: "Instagram"
+    },
+    aria: {
+      whatsapp: "Message us on WhatsApp",
+      telegram: "Message us on Telegram",
+      instagram: "Open RAINË Instagram",
+      googleMaps: "Open RAINË address in Google Maps"
     }
   },
   footer: {
     text: "Premium massage salon in Novi Sad.",
+    navigationLabel: "Footer navigation",
+    contactLinksLabel: "RAINË contact links",
+    links: {
+      whatsapp: "WhatsApp",
+      telegram: "Telegram",
+      instagram: "Instagram"
+    },
+    aria: {
+      whatsapp: "Message us on WhatsApp",
+      telegram: "Message us on Telegram",
+      instagram: "Open RAINË Instagram"
+    },
     rights: "All rights reserved."
   },
   auth: {

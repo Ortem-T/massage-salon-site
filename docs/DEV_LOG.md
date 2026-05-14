@@ -1,6 +1,6 @@
 # Development Log
 
-Last updated: 2026-05-13
+Last updated: 2026-05-14
 
 This log is shared context for human and AI-assisted development. Update it after every major development stage so future Codex, `web-coder`, and `grill-me` sessions can continue without rediscovering project history.
 
@@ -8,7 +8,7 @@ This log is shared context for human and AI-assisted development. Update it afte
 
 Raine is a premium multilingual massage salon homepage for Novi Sad, Serbia. The homepage MVP exists and uses locale-based routing for Serbian, Russian, and English. The visual direction has moved toward calm luxury wellness with Japanese spa influence, warm natural colors, refined typography, soft shadows, and gentle motion.
 
-The booking form MVP is integrated into the homepage and now submits through a Next API route to Supabase. The form collects service, specialist, preferred date, preferred time, client name, phone number, and optional comment. The current site locale is passed as `siteLocale` and persisted as the booking `locale`. A protected dashboard foundation now exists for Supabase Auth staff users with `admin` and `therapist` roles. A dashboard MVP schema migration has been drafted but still needs to be applied manually in Supabase. The first dashboard bookings UI is calendar-first and supports day, week, and month views. Real face/body services now have a Supabase seed migration with localized Serbian, Russian, and English translations, and homepage/public/manual booking service options are designed to read from that shared catalog. Public booking specialists now come from active Supabase therapists with localized display names; the generic "any available specialist" option has been removed.
+The booking form MVP is integrated into the homepage and now submits through a Next API route to Supabase. The form collects service, specialist, preferred date, preferred time, client name, phone number, and optional comment. The current site locale is passed as `siteLocale` and persisted as the booking `locale`. A protected dashboard foundation now exists for Supabase Auth staff users with `admin` and `therapist` roles. A dashboard MVP schema migration has been drafted but still needs to be applied manually in Supabase. The first dashboard bookings UI is calendar-first and supports day, week, and month views. Real face/body services now have a Supabase seed migration with localized Serbian, Russian, and English translations, and homepage/public/manual booking service options are designed to read from that shared catalog. Public booking specialists now come from active Supabase therapists with localized display names; the generic "any available specialist" option has been removed. Public contact data now uses real messenger-first salon channels, a centralized contact config, and a Google Maps embed driven by an environment variable.
 
 ## Completed Tasks
 
@@ -56,10 +56,11 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Added a public therapist catalog with localized names/titles for active therapists. Public booking now submits therapist ids, validates them server-side, stores the canonical therapist display name in `bookings.specialist`, and links `bookings.therapist_id`.
 - Replaced mock public booking availability with Supabase-backed therapist availability. The public calendar now waits for service and therapist selection, reads safe availability rows from `public.public_booking_availability`, shows subtle other-therapist booking hints, calculates slots from service duration plus a 30-minute break, and revalidates availability before insert.
 - Added schedule block management for admin and therapist dashboard users. Staff can block full days or time ranges, admin can manage therapist and salon-wide blocks, therapists can manage their own blocks, and public/manual availability now excludes blocked windows without exposing internal reasons.
+- Replaced homepage contact and footer placeholders with real salon address, landmark, daily hours, WhatsApp, Telegram, Instagram, and Google Maps integration. The public phone number remains hidden from visible UI; Viber is intentionally not shown.
 
 ## Current Focus
 
-The current focus is validating admin/therapist schedule block workflows against real RLS and doing mobile QA on the real public booking flow. The real service, therapist, availability, and schedule-block migrations have been applied to the hosted `raine` Supabase project and public reads are limited to safe catalog/availability data. The next product risk is trust: placeholder contact destinations should be replaced with real business data before the site feels production-ready.
+The current focus is validating admin/therapist schedule block workflows against real RLS and doing mobile QA on the real public booking flow. The real service, therapist, availability, and schedule-block migrations have been applied to the hosted `raine` Supabase project and public reads are limited to safe catalog/availability data. Contact data is now production-shaped, but deployment still needs a restricted `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY` for the embedded map.
 
 ## Git Workflow
 
@@ -74,8 +75,6 @@ The current focus is validating admin/therapist schedule block workflows against
 
 ## Next Tasks
 
-- Replace fake or placeholder WhatsApp, Telegram, and Instagram destinations with real salon channels.
-- Replace placeholder specialist options with real staff data or agreed public labels.
 - Review booking form copy in all locales.
 - Verify mobile booking UX on real viewport sizes.
 - Run a hard UX review of the booking section after real data is added.
@@ -90,6 +89,7 @@ The current focus is validating admin/therapist schedule block workflows against
 - Re-run `20260513150000_public_therapist_catalog.sql` only when restoring or reseeding therapist translations.
 - Re-run `20260513160000_public_booking_availability_view.sql` only when restoring the safe public availability view and column-level booking grants.
 - Re-run `20260513170000_schedule_blocks.sql` only when restoring schedule block support, staff RLS, and the safe public schedule block availability view.
+- Add `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY` locally and in deployment with HTTP referrer restrictions before launch.
 - Test admin status changes, therapist assignment, therapist status changes, and internal notes updates against hosted Supabase RLS.
 - Test manual booking creation for admin assigned, admin unassigned, therapist own, and therapist direct-request attempts against hosted Supabase RLS.
 
@@ -115,12 +115,16 @@ The current focus is validating admin/therapist schedule block workflows against
 - Confirm therapist users can create full-day and time-range schedule blocks only for their own therapist profile.
 - Confirm blocked days/times disappear from public booking and manual dashboard booking time options.
 - Confirm internal schedule block reasons are visible in dashboard only and not exposed in public booking UI/API responses.
+- Confirm `/sr`, `/ru`, and `/en` contact sections show the real address, Novosadski sajam landmark, daily 10:00-19:00 hours, and localized contact copy.
+- Confirm footer contact links show WhatsApp, Telegram, and Instagram only.
+- Confirm the Google Maps iframe renders when `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY` is configured, and the fallback remains clean without it.
+- Confirm the visible site UI does not display the personal phone number as plain text.
 - Confirm validation errors are announced or discoverable by assistive technology.
 - Confirm selected language switcher state remains readable on hover.
 - Hover service rows and confirm background has proper left and right spacing.
 - Submit successfully and verify success state plus a new row in Supabase `public.bookings`.
 - Simulate failed submit before Supabase launch and verify localized error state.
-- Verify real WhatsApp, Telegram, Instagram, and contact links before production.
+- Verify real WhatsApp, Telegram, Instagram, and Google Maps contact links before production.
 - Confirm unauthenticated `/sr/dashboard`, `/ru/dashboard`, and `/en/dashboard` visits redirect to the matching login page.
 - Confirm admin users see overview, bookings, clients, services, and therapists navigation.
 - Confirm therapist users see only overview and bookings navigation.
@@ -140,8 +144,7 @@ The current focus is validating admin/therapist schedule block workflows against
 
 ## Known Issues
 
-- Contact destinations are still placeholders and should not be treated as production-ready.
-- Specialist options are realistic placeholders.
+- Google Maps embed requires `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY`; without it, the contact section shows a styled map fallback and the external Google Maps link still works.
 - Booking persistence depends on applying the Supabase migration and setting public Supabase env vars locally and in deployment.
 - Clients, services, and therapists dashboard pages are placeholders only; the bookings calendar is the first operational dashboard view.
 - Dashboard schema migration has not been applied to the hosted Supabase project yet.
@@ -172,6 +175,8 @@ The current focus is validating admin/therapist schedule block workflows against
 - Keep public availability data behind `public.public_booking_availability`, a `security_invoker` view with column-level booking grants and RLS that exposes only date, time, therapist id, service slug, duration, and blocking status. Full booking rows remain unavailable to anon users.
 - Keep schedule block reasons private in `public.schedule_blocks`; public booking reads only `public.public_schedule_block_availability`, which exposes blocked date/time/scope fields and never internal comments.
 - Use `src/lib/booking/booking-availability.ts` as the shared source for duration rounding, blocked intervals, default time slot generation, and before-insert slot checks.
+- Keep public salon contact data centralized in `src/config/contacts.ts`; translated labels and messages stay in dictionaries. The phone number may exist inside the WhatsApp URL, but visible UI must not render it as plain text.
+- Use `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY` for the embedded map instead of committing Google Maps keys to source.
 - Keep UI primitives local and lightweight rather than pulling in a full component dependency for every shadcn/ui part.
 - Avoid full CRM workflows until the booking/dashboard foundation is stable.
 

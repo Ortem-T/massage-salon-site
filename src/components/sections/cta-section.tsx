@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { MotionReveal } from "@/components/motion/motion-reveal";
 import { Button } from "@/components/ui/button";
+import { contactConfig } from "@/config/contacts";
 import { type Dictionary } from "@/i18n/dictionaries";
 
 type CTASectionProps = {
@@ -22,7 +23,7 @@ export function CTASection({ dictionary }: CTASectionProps) {
               <h2 className="font-serif text-4xl leading-[1.02] sm:text-5xl lg:text-6xl">{cta.title}</h2>
               <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-[#eadcc4] sm:text-lg">{cta.subtitle}</p>
               <Button asChild size="lg" variant="accent" className="mt-9">
-                <Link href="https://wa.me/381000000000" target="_blank" rel="noreferrer">
+                <Link href={contactConfig.whatsappUrl} target="_blank" rel="noopener noreferrer">
                   {cta.button}
                   <ArrowRight aria-hidden="true" />
                 </Link>

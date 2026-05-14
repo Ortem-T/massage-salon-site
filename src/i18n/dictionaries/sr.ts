@@ -177,21 +177,43 @@ const sr = {
   },
   contact: {
     eyebrow: "Kontakt",
-    title: "Novi Sad, Serbia",
-    subtitle: "Adresa salona biće prikazana ovde. Pripremljen je prostor za Google Maps integraciju.",
-    addressLabel: "Lokacija",
-    address: "Novi Sad, Serbia",
+    title: "Kontaktirajte nas",
+    subtitle:
+      "Javite nam se na način koji vam najviše odgovara. Odgovorićemo i pomoći da izaberete odgovarajuće vreme.",
+    message:
+      "Pošaljite nam poruku kroz omiljeni messenger ili otvorite rutu na mapi. Odgovorićemo mirno i pomoći da izaberete odgovarajuće vreme za posetu.",
+    addressLabel: "Adresa",
+    landmarkLabel: "Orijentir",
     hoursLabel: "Radno vreme",
-    hours: "Pon - Sub, 10:00 - 20:00",
-    mapLabel: "Google Maps prostor",
+    everyDay: "Svaki dan",
+    mapTitle: "RAINË na mapi",
+    openInGoogleMaps: "Otvori u Google Maps",
     actions: {
       whatsapp: "WhatsApp",
       telegram: "Telegram",
       instagram: "Instagram"
+    },
+    aria: {
+      whatsapp: "Pošalji poruku na WhatsApp",
+      telegram: "Pošalji poruku na Telegram",
+      instagram: "Otvori RAINË Instagram",
+      googleMaps: "Otvori RAINË adresu u Google Maps"
     }
   },
   footer: {
     text: "Premium masažni salon u Novom Sadu.",
+    navigationLabel: "Navigacija u footeru",
+    contactLinksLabel: "RAINË kontakt linkovi",
+    links: {
+      whatsapp: "WhatsApp",
+      telegram: "Telegram",
+      instagram: "Instagram"
+    },
+    aria: {
+      whatsapp: "Pošalji poruku na WhatsApp",
+      telegram: "Pošalji poruku na Telegram",
+      instagram: "Otvori RAINË Instagram"
+    },
     rights: "Sva prava zadržana."
   },
   auth: {
