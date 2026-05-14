@@ -127,9 +127,9 @@ const sr = {
   },
   benefits: {
     eyebrow: "Zašto Raine",
-    title: "Diskretan luksuz, stručna nega",
+    title: "Mirna atmosfera i profesionalna nega",
     items: [
-      "Individualni pristup svakom tretmanu",
+      "Individualni pristup i profesionalna nega",
       "Tiha atmosfera bez žurbe i preopterećenih termina",
       "Prirodna ulja, topli peškiri i pažljivo odabrani mirisi",
       "Lokacija u Novom Sadu sa lakim pristupom"

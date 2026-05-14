@@ -127,9 +127,9 @@ const en = {
   },
   benefits: {
     eyebrow: "Why Raine",
-    title: "Discreet luxury, expert care",
+    title: "A calm atmosphere and professional care",
     items: [
-      "Individual approach for every treatment",
+      "Personalized approach and professional care",
       "Quiet atmosphere without rushed or overloaded bookings",
       "Natural oils, warm towels, and carefully selected aromas",
       "Novi Sad location with easy access"
