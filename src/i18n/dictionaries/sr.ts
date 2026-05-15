@@ -136,8 +136,8 @@ const sr = {
     title: "Mirna atmosfera i profesionalna nega",
     items: [
       "Individualni pristup i profesionalna nega",
-      "Tiha atmosfera bez žurbe i preopterećenih termina",
-      "Prirodna ulja, topli peškiri i pažljivo odabrani mirisi",
+      "Prijatna atmosfera uz laganu muziku i aromatičnu kafu",
+      "Prirodna ulja i nežni mirisi",
       "Lokacija u Novom Sadu sa lakim pristupom"
     ]
   },

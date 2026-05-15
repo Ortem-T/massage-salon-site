@@ -130,8 +130,8 @@ const en = {
     title: "A calm atmosphere and professional care",
     items: [
       "Personalized approach and professional care",
-      "Quiet atmosphere without rushed or overloaded bookings",
-      "Natural oils, warm towels, and carefully selected aromas",
+      "A cozy atmosphere with soft music and aromatic coffee",
+      "Natural oils and gentle aromas",
       "Novi Sad location with easy access"
     ]
   },
