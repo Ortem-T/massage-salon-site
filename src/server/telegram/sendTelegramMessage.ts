@@ -50,18 +50,34 @@ export async function sendTelegramMessage({
     };
   }
 
-  try {
-    const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+  async function postMessage(payload: TelegramSendMessageBody) {
+    return fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(payload),
       cache: "no-store"
     });
+  }
+
+  try {
+    let response = await postMessage(body);
 
     if (!response.ok) {
       const details = await response.text().catch(() => "");
+
+      if (button && details.includes("inline keyboard button URL")) {
+        const retryBody = { ...body };
+        delete retryBody.reply_markup;
+        response = await postMessage(retryBody);
+
+        if (response.ok) {
+          console.warn("[telegram] sendMessage retried without inline button because Telegram rejected the URL.");
+          return true;
+        }
+      }
+
       console.error("[telegram] sendMessage failed", {
         status: response.status,
         statusText: response.statusText,

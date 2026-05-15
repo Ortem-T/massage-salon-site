@@ -3,7 +3,7 @@
 import { Menu, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { Button } from "@/components/ui/button";
@@ -18,10 +18,37 @@ type NavbarProps = {
 
 export function Navbar({ locale, dictionary }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
   const { brand, nav } = dictionary;
 
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      if (!headerRef.current?.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen]);
+
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-[#d5c5a8]/62 bg-[#f8f2e5]/82 shadow-[0_10px_34px_rgb(20_61_42/0.06)] backdrop-blur-2xl">
+    <header ref={headerRef} className="fixed inset-x-0 top-0 z-50 border-b border-[#d5c5a8]/62 bg-[#f8f2e5]/82 shadow-[0_10px_34px_rgb(20_61_42/0.06)] backdrop-blur-2xl">
       <div className="container-shell flex h-[4.75rem] items-center justify-between gap-4">
         <Link href={`/${locale}`} className="focus-ring flex items-center rounded-md" aria-label={brand.name}>
           <Image
@@ -85,7 +112,7 @@ export function Navbar({ locale, dictionary }: NavbarProps) {
               ))}
             </nav>
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-              <LanguageSwitcher currentLocale={locale} label={nav.language} />
+              <LanguageSwitcher currentLocale={locale} label={nav.language} onNavigate={() => setIsOpen(false)} />
               <Button asChild>
                 <Link href={`/${locale}#booking`} onClick={() => setIsOpen(false)}>
                   {nav.cta}

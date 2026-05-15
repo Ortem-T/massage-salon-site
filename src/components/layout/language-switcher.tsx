@@ -9,9 +9,10 @@ import { cn } from "@/lib/utils";
 type LanguageSwitcherProps = {
   currentLocale: Locale;
   label: string;
+  onNavigate?: () => void;
 };
 
-export function LanguageSwitcher({ currentLocale, label }: LanguageSwitcherProps) {
+export function LanguageSwitcher({ currentLocale, label, onNavigate }: LanguageSwitcherProps) {
   const pathname = usePathname();
 
   function getLocalizedPath(locale: Locale) {
@@ -32,7 +33,10 @@ export function LanguageSwitcher({ currentLocale, label }: LanguageSwitcherProps
           href={getLocalizedPath(locale)}
           hrefLang={locale}
           aria-label={localeNames[locale]}
-          onClick={() => savePreferredLocale(locale)}
+          onClick={() => {
+            savePreferredLocale(locale);
+            onNavigate?.();
+          }}
           className={cn(
             "focus-ring rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors",
             locale === currentLocale

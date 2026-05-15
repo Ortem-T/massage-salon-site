@@ -50,6 +50,11 @@ type ManualBookingFormState = {
 
 type ManualBookingFormErrors = Partial<Record<keyof ManualBookingFormState, string>>;
 
+type ManualFieldErrorProps = {
+  id?: string;
+  message?: string;
+};
+
 type BookingsCalendarProps = {
   bookings: DashboardBooking[];
   dataError: boolean;
@@ -171,6 +176,18 @@ function sortBookings(bookings: DashboardBooking[]) {
     const dateCompare = a.preferredDate.localeCompare(b.preferredDate);
     return dateCompare === 0 ? a.preferredTime.localeCompare(b.preferredTime) : dateCompare;
   });
+}
+
+function ManualFieldError({ id, message }: ManualFieldErrorProps) {
+  if (!message) {
+    return <p aria-hidden="true" className="min-h-5 text-sm leading-5" />;
+  }
+
+  return (
+    <p id={id} role="alert" aria-live="polite" className="min-h-5 text-sm leading-5 text-accent">
+      {message}
+    </p>
+  );
 }
 
 function getFocusableElements(container: HTMLElement | null) {
@@ -882,7 +899,14 @@ export function BookingsCalendar({
       </div>
 
       {isCreateOpen ? (
-        <div className="fixed inset-0 z-50 flex items-end bg-primary/25 px-3 py-3 backdrop-blur-sm sm:items-center sm:justify-center sm:p-6">
+        <div
+          className="fixed inset-0 z-50 flex items-end bg-primary/25 px-3 py-3 backdrop-blur-sm sm:items-center sm:justify-center sm:p-6"
+          onPointerDown={(event) => {
+            if (event.target === event.currentTarget) {
+              closeCreateBooking();
+            }
+          }}
+        >
           <section
             ref={dialogRef}
             aria-modal="true"
@@ -926,7 +950,7 @@ export function BookingsCalendar({
                       </option>
                     ))}
                   </Select>
-                  {manualBookingErrors.service ? <p className="text-sm text-accent">{manualBookingErrors.service}</p> : null}
+                  <ManualFieldError message={manualBookingErrors.service} />
                 </div>
 
                 <div className="space-y-2">
@@ -947,7 +971,7 @@ export function BookingsCalendar({
                       </option>
                     ))}
                   </Select>
-                  {manualBookingErrors.sourceChannel ? <p className="text-sm text-accent">{manualBookingErrors.sourceChannel}</p> : null}
+                  <ManualFieldError message={manualBookingErrors.sourceChannel} />
                 </div>
 
                 <div className="space-y-2">
@@ -965,11 +989,7 @@ export function BookingsCalendar({
                     value={manualBookingForm.preferredDate}
                     onChange={updateManualBookingDate}
                   />
-                  {manualBookingErrors.preferredDate ? (
-                    <p id="manual-date-error" className="text-sm text-accent">
-                      {manualBookingErrors.preferredDate}
-                    </p>
-                  ) : null}
+                  <ManualFieldError id="manual-date-error" message={manualBookingErrors.preferredDate} />
                 </div>
 
                 <div className="space-y-2">
@@ -997,11 +1017,7 @@ export function BookingsCalendar({
                       </option>
                     ))}
                   </Select>
-                  {manualBookingErrors.preferredTime ? (
-                    <p id="manual-time-error" className="text-sm text-accent">
-                      {manualBookingErrors.preferredTime}
-                    </p>
-                  ) : null}
+                  <ManualFieldError id="manual-time-error" message={manualBookingErrors.preferredTime} />
                 </div>
 
                 <div className="space-y-2">
@@ -1018,7 +1034,7 @@ export function BookingsCalendar({
                     placeholder={calendar.create.placeholders.duration}
                     aria-invalid={Boolean(manualBookingErrors.durationMinutes)}
                   />
-                  {manualBookingErrors.durationMinutes ? <p className="text-sm text-accent">{manualBookingErrors.durationMinutes}</p> : null}
+                  <ManualFieldError message={manualBookingErrors.durationMinutes} />
                 </div>
 
                 <div className="space-y-2">
@@ -1034,6 +1050,7 @@ export function BookingsCalendar({
                     <option value="ru">RU</option>
                     <option value="en">EN</option>
                   </Select>
+                  <ManualFieldError />
                 </div>
               </div>
 
@@ -1049,7 +1066,7 @@ export function BookingsCalendar({
                     placeholder={calendar.create.placeholders.clientName}
                     aria-invalid={Boolean(manualBookingErrors.clientName)}
                   />
-                  {manualBookingErrors.clientName ? <p className="text-sm text-accent">{manualBookingErrors.clientName}</p> : null}
+                  <ManualFieldError message={manualBookingErrors.clientName} />
                 </div>
 
                 <div className="space-y-2">
@@ -1063,7 +1080,7 @@ export function BookingsCalendar({
                     placeholder={calendar.create.placeholders.clientPhone}
                     aria-invalid={Boolean(manualBookingErrors.clientPhone)}
                   />
-                  {manualBookingErrors.clientPhone ? <p className="text-sm text-accent">{manualBookingErrors.clientPhone}</p> : null}
+                  <ManualFieldError message={manualBookingErrors.clientPhone} />
                 </div>
               </div>
 
@@ -1078,6 +1095,7 @@ export function BookingsCalendar({
                         id="manual-therapist"
                         value={manualBookingForm.therapistId}
                         onChange={(event) => updateManualBookingField("therapistId", event.target.value)}
+                        aria-invalid={Boolean(manualBookingErrors.therapistId)}
                       >
                         <option value="">{calendar.create.placeholders.therapist}</option>
                         {therapists.map((therapist) => (
@@ -1086,6 +1104,7 @@ export function BookingsCalendar({
                           </option>
                         ))}
                       </Select>
+                      <ManualFieldError message={manualBookingErrors.therapistId} />
                     </div>
 
                     <div className="space-y-2">
@@ -1103,6 +1122,7 @@ export function BookingsCalendar({
                           </option>
                         ))}
                       </Select>
+                      <ManualFieldError />
                     </div>
                   </>
                 ) : (
@@ -1113,7 +1133,7 @@ export function BookingsCalendar({
                     <p className="mt-1 text-sm font-semibold text-primary">
                       {therapistNames.get(manualBookingForm.therapistId) ?? calendar.create.ownTherapistFallback}
                     </p>
-                    {manualBookingErrors.therapistId ? <p className="mt-2 text-sm text-accent">{manualBookingErrors.therapistId}</p> : null}
+                    <ManualFieldError message={manualBookingErrors.therapistId} />
                   </div>
                 )}
               </div>
@@ -1158,7 +1178,14 @@ export function BookingsCalendar({
       ) : null}
 
       {selectedBooking ? (
-        <div className="fixed inset-0 z-50 flex items-end bg-primary/25 px-3 py-3 backdrop-blur-sm sm:items-center sm:justify-center sm:p-6">
+        <div
+          className="fixed inset-0 z-50 flex items-end bg-primary/25 px-3 py-3 backdrop-blur-sm sm:items-center sm:justify-center sm:p-6"
+          onPointerDown={(event) => {
+            if (event.target === event.currentTarget) {
+              closeBooking();
+            }
+          }}
+        >
           <section
             ref={dialogRef}
             aria-modal="true"

@@ -68,7 +68,7 @@ function getCalendarRange(monthStartValue: string) {
 
 function FieldError({ id, message }: FieldErrorProps) {
   if (!message) {
-    return null;
+    return <p aria-hidden="true" className="min-h-6 text-sm leading-6" />;
   }
 
   return (
@@ -76,7 +76,7 @@ function FieldError({ id, message }: FieldErrorProps) {
       id={id}
       role="alert"
       aria-live="polite"
-      className="text-sm leading-6 text-accent"
+      className="min-h-6 text-sm leading-6 text-accent"
     >
       {message}
     </p>
