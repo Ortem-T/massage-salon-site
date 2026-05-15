@@ -157,11 +157,6 @@ const sr = {
       { value: "100%", label: "individualni pristup" }
     ]
   },
-  cta: {
-    title: "Rezervišite vreme za tišinu",
-    subtitle: "Pošaljite poruku i preporučićemo tretman prema vašem stanju, rasporedu i željenom intenzitetu.",
-    button: "Zakaži preko WhatsApp-a"
-  },
   contact: {
     eyebrow: "Kontakt",
     title: "Kontaktirajte nas",

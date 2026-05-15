@@ -67,6 +67,7 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Temporarily hid the homepage testimonials section behind a feature flag and removed placeholder review items from public dictionaries until real client reviews are available.
 - Updated the homepage About salon copy and stats in Serbian, Russian, and English to use clearer salon positioning and real specialist/procedure counts.
 - Updated two homepage benefits card texts in Serbian, Russian, and English to mention cozy atmosphere, music, coffee, natural oils, and gentle aromas.
+- Removed the standalone homepage WhatsApp CTA block and redesigned the About salon section as a dark green premium brand block while keeping existing About copy and stats.
 
 ## Current Focus
 

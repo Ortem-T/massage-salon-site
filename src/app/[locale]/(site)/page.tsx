@@ -2,7 +2,6 @@ import { AboutSection } from "@/components/sections/about-section";
 import { BenefitsSection } from "@/components/sections/benefits-section";
 import { BookingSection } from "@/components/sections/booking-section";
 import { ContactSection } from "@/components/sections/contact-section";
-import { CTASection } from "@/components/sections/cta-section";
 import { HeroSection } from "@/components/sections/hero-section";
 import { ServicesSection } from "@/components/sections/services-section";
 import { TestimonialsSection } from "@/components/sections/testimonials-section";
@@ -46,7 +45,6 @@ export default async function HomePage({ params }: HomePageProps) {
         <TestimonialsSection dictionary={dictionary} />
       ) : null}
       <AboutSection dictionary={dictionary} />
-      <CTASection dictionary={dictionary} />
       <ContactSection dictionary={dictionary} />
     </main>
   );

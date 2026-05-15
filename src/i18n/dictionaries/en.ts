@@ -151,11 +151,6 @@ const en = {
       { value: "100%", label: "personalized approach" }
     ]
   },
-  cta: {
-    title: "Reserve time for stillness",
-    subtitle: "Send us a message and we will recommend a treatment based on your condition, schedule, and preferred intensity.",
-    button: "Book via WhatsApp"
-  },
   contact: {
     eyebrow: "Contact",
     title: "Contact us",
