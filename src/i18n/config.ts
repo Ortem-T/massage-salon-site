@@ -4,6 +4,8 @@ export type Locale = (typeof locales)[number];
 
 export const defaultLocale: Locale = "sr";
 
+export const preferredLocaleCookieName = "raine-preferred-locale";
+
 export const localeLabels: Record<Locale, string> = {
   sr: "SR",
   ru: "RU",

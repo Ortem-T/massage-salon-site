@@ -38,9 +38,7 @@ export function HeroSection({ locale, dictionary }: HeroSectionProps) {
           <p className="mt-8 max-w-2xl text-base leading-8 text-[#f4ead9] sm:text-lg">{hero.subtitle}</p>
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg" variant="accent" className="w-full sm:w-auto">
-              <Link href={`/${locale}#contact`}>
-                {hero.cta}
-              </Link>
+              <Link href={`/${locale}#booking`}>{hero.cta}</Link>
             </Button>
           </div>
         </MotionReveal>

@@ -22,49 +22,35 @@ const en = {
     language: "Language"
   },
   hero: {
-    eyebrow: "Premium wellness in Novi Sad",
-    title: "A quiet ritual for a body that breathes again",
-    subtitle:
-      "Personalized massage, warm spa atmosphere, and calm Japanese minimalism for moments when you want to slow down without compromise.",
+    eyebrow: "Massage in Novi Sad",
+    title: "Care, lightness and beauty in every touch",
+    subtitle: "Personalized massage in a warm and calm atmosphere — for self-care, relaxation and recovery.",
     cta: "Book now",
     secondary: "View services",
     note: "Quiet space, attentive therapists, natural oils."
   },
   services: {
     eyebrow: "Services",
-    title: "Massages shaped around your rhythm",
+    title: "Treatments tailored to you",
     subtitle:
-      "Every treatment starts with a short consultation so pressure, pace, and focus can match what your body needs.",
-    items: [
-      {
-        title: "Signature Raine massage",
-        duration: "75 min",
-        price: "from 6,500 RSD",
-        description: "A blend of relax, deep tissue, and aromatherapy techniques for a lasting sense of ease."
-      },
-      {
-        title: "Japanese relax ritual",
-        duration: "60 min",
-        price: "from 5,200 RSD",
-        description: "A slow, fluid treatment with warm towels and calm pressure for full nervous-system reset."
-      },
-      {
-        title: "Deep tissue recovery",
-        duration: "50 min",
-        price: "from 5,800 RSD",
-        description: "Focused work on tense back, neck, and shoulder areas with precise pressure control."
-      }
-    ]
+      "Every visit begins with a short consultation, so the intensity, pace and focus of the treatment match how you feel and what your body needs.",
+    categories: {
+      face: "Face",
+      body: "Body"
+    },
+    bookingCta: "Book a service",
+    durationUnit: "min",
+    empty: "The service catalog is temporarily unavailable. Please contact us directly to book."
   },
   booking: {
-    eyebrow: "Booking request",
-    title: "Book an appointment without pressure",
+    eyebrow: "Book a session",
+    title: "Book a time that works for you",
     subtitle:
-      "Choose your treatment, specialist, preferred date and time, then leave your contact. We will confirm the exact time manually.",
+      "Choose a service, therapist, date and time. We will contact you to confirm the appointment and clarify the details.",
     aside: {
-      title: "A calm first step",
+      title: "We’ll help you choose the right session",
       body:
-        "This is an MVP request form. For now it sends a mock request in the browser console; later the same service layer can write to Supabase."
+        "If you are not sure which treatment is best for you, leave a comment in the request — we will help you before confirming the appointment."
     },
     fields: {
       service: {
@@ -95,24 +81,39 @@ const en = {
         placeholder: "Anything we should know? Pressure preference, focus areas, schedule details..."
       }
     },
-    specialistOptions: [
-      { value: "any", label: "Any available specialist" },
-      { value: "mila-petrovic", label: "Mila Petrović" },
-      { value: "ana-markovic", label: "Ana Marković" },
-      { value: "nikola-jovanovic", label: "Nikola Jovanović" }
-    ],
     validation: {
       service: "Please choose a service.",
       specialist: "Please choose a specialist.",
       date: "Please choose a preferred date.",
+      datePast: "Please choose today or a future date.",
+      dateUnavailable: "Please choose an available date.",
       time: "Please choose a preferred time.",
       name: "Please enter your name.",
       phone: "Please enter a phone number.",
       comment: "Comment can be up to 500 characters."
     },
+    calendar: {
+      chooseDate: "Choose date",
+      previousMonth: "Previous month",
+      nextMonth: "Next month",
+      unavailable: "Date is unavailable"
+    },
+    availability: {
+      selectTherapistFirst: "Select a therapist first",
+      selectDateFirst: "Select a date first",
+      loadingTimes: "Loading available times",
+      noAvailableTimes: "No available times for this date",
+      otherTherapistBookings: "Another therapist has bookings on this date",
+      calendarAfterTherapist: "Choose a service and therapist.",
+      availableTimes: "Available booking times"
+    },
+    error: {
+      message: "We could not send your request right now. Please try again or contact us directly.",
+      slotUnavailable: "This time is no longer available. Please choose another open slot."
+    },
     submit: "Book appointment",
     submitting: "Sending request",
-    formNote: "No payment or account required. We will contact you to confirm.",
+    formNote: "After you submit the request, we will confirm your appointment through your preferred messenger.",
     success: {
       title: "Request received",
       message: "Thank you. We will review your preferred time and contact you shortly."
@@ -126,72 +127,315 @@ const en = {
   },
   benefits: {
     eyebrow: "Why Raine",
-    title: "Discreet luxury, expert care",
+    title: "A calm atmosphere and professional care",
     items: [
-      "Individual approach for every treatment",
-      "Quiet atmosphere without rushed or overloaded bookings",
-      "Natural oils, warm towels, and carefully selected aromas",
+      "Personalized approach and professional care",
+      "A cozy atmosphere with soft music and aromatic coffee",
+      "Natural oils and gentle aromas",
       "Novi Sad location with easy access"
     ]
   },
   testimonials: {
     eyebrow: "Reviews",
     title: "Guests return for calm that lasts",
-    items: [
-      {
-        quote:
-          "The space is beautifully calm, and the massage was precise and gentle at the same time. The feeling lasted for days.",
-        author: "Milica",
-        detail: "Signature massage"
-      },
-      {
-        quote:
-          "The best balance of professionalism and warmth. The therapist understood immediately where I hold the most tension.",
-        author: "Nikola",
-        detail: "Deep tissue recovery"
-      },
-      {
-        quote:
-          "Minimal interior, beautiful scent, and no sense of rush. Finally a salon that genuinely feels premium.",
-        author: "Jelena",
-        detail: "Japanese relax ritual"
-      }
-    ]
+    items: []
   },
   about: {
-    eyebrow: "About",
-    title: "A place for a slower, more attentive return to yourself",
+    eyebrow: "ABOUT THE SALON",
+    title: "A place where your body rests and recovers",
     body:
-      "Raine Spa is a massage atelier in Novi Sad inspired by Japanese spa rituals, natural textures, and quiet care. Our approach is calm, precise, and unobtrusive: we listen to the body, respect boundaries, and shape each treatment around what you need that day.",
+      "Raine is a massage salon in Novi Sad where body care meets an attentive approach and a calm atmosphere.\n\nWe tailor each treatment to how you feel, your rhythm and the purpose of your visit — to relax, release tension, recover after physical load or take time for beauty and care.",
     stats: [
-      { value: "3", label: "support languages" },
-      { value: "7+", label: "care rituals" },
-      { value: "100%", label: "personalized pace" }
+      { value: "2", label: "qualified specialists" },
+      { value: "7+", label: "professional treatments" },
+      { value: "100%", label: "personalized approach" }
     ]
-  },
-  cta: {
-    title: "Reserve time for stillness",
-    subtitle: "Send us a message and we will recommend a treatment based on your condition, schedule, and preferred intensity.",
-    button: "Book via WhatsApp"
   },
   contact: {
     eyebrow: "Contact",
-    title: "Novi Sad, Serbia",
-    subtitle: "The salon address will appear here. The area is ready for Google Maps integration.",
+    title: "Contact us",
+    subtitle: "Contact us in the way that feels easiest. We will reply and help you choose a suitable time.",
     addressLabel: "Location",
-    address: "Novi Sad, Serbia",
+    landmarkLabel: "Landmark",
     hoursLabel: "Opening hours",
-    hours: "Mon - Sat, 10:00 - 20:00",
-    mapLabel: "Google Maps area",
+    everyDay: "Every day",
+    mapTitle: "Map",
+    openInGoogleMaps: "Open in Google Maps",
     actions: {
       whatsapp: "WhatsApp",
       telegram: "Telegram",
       instagram: "Instagram"
+    },
+    aria: {
+      whatsapp: "Message us on WhatsApp",
+      telegram: "Message us on Telegram",
+      instagram: "Open RAINË Instagram",
+      googleMaps: "Open RAINË address in Google Maps"
     }
   },
   footer: {
     text: "Premium massage salon in Novi Sad.",
+    navigationLabel: "Footer navigation",
+    contactLinksLabel: "RAINË contact links",
+    links: {
+      whatsapp: "WhatsApp",
+      telegram: "Telegram",
+      instagram: "Instagram"
+    },
+    aria: {
+      whatsapp: "Message us on WhatsApp",
+      telegram: "Message us on Telegram",
+      instagram: "Open RAINË Instagram"
+    },
     rights: "All rights reserved."
+  },
+  auth: {
+    login: {
+      eyebrow: "Staff access",
+      title: "Sign in to Raine",
+      subtitle: "Use your staff account to open the protected dashboard.",
+      fields: {
+        email: {
+          label: "Email",
+          placeholder: "name@raine.rs"
+        },
+        password: {
+          label: "Password",
+          placeholder: "Enter password"
+        }
+      },
+      errors: {
+        missing: "Enter your email and password.",
+        invalid: "The email or password is not valid.",
+        forbidden: "This account does not have dashboard access. Ask an admin to set a staff role."
+      },
+      submit: "Sign in"
+    }
+  },
+  dashboard: {
+    title: "Dashboard",
+    navigationLabel: "Dashboard navigation",
+    signedInAs: "Signed in as",
+    unknownEmail: "Staff account",
+    roles: {
+      admin: "Admin",
+      therapist: "Therapist"
+    },
+    navigation: {
+      overview: "Overview",
+      bookings: "Bookings",
+      schedule: "Schedule",
+      clients: "Clients",
+      services: "Services",
+      therapists: "Therapists"
+    },
+    pages: {
+      overview: {
+        eyebrow: "Dashboard",
+        title: "Calm operations start here",
+        body: "This protected area is ready for booking workflows, schedule views, and staff tools."
+      },
+      bookings: {
+        eyebrow: "Bookings",
+        title: "Booking workspace",
+        body: "Booking requests will appear here after the dashboard data views are connected."
+      },
+      clients: {
+        eyebrow: "Clients",
+        title: "Client records",
+        body: "Client details and notes will be added in a later CRM stage."
+      },
+      services: {
+        eyebrow: "Services",
+        title: "Service catalog",
+        body: "Admin tools for treatments, pricing, duration, and active status will live here."
+      },
+      therapists: {
+        eyebrow: "Therapists",
+        title: "Therapist management",
+        body: "Admin tools for staff profiles, availability, and service capabilities will live here."
+      }
+    },
+    calendar: {
+      eyebrow: "Booking calendar",
+      title: "Appointments by rhythm, not rows",
+      subtitle: "Review requests by day, week, or month and keep status changes close to the appointment context.",
+      dataError: "Dashboard data is not available yet. Apply the dashboard schema migration and check staff RLS setup.",
+      currentRange: "Current range",
+      emptyDay: "No bookings for this day.",
+      emptyCompact: "Free",
+      statusShort: {
+        pending: "Pend",
+        confirmed: "Conf",
+        cancelled: "Canc",
+        completed: "Done"
+      },
+      create: {
+        action: "Create booking",
+        eyebrow: "Manual booking",
+        title: "Create booking",
+        subtitle: "Add appointments that arrive through messages, calls, or walk-ins.",
+        fields: {
+          service: "Service",
+          sourceChannel: "Source channel",
+          date: "Date",
+          time: "Time",
+          duration: "Duration, minutes",
+          locale: "Client language",
+          clientName: "Client name",
+          clientPhone: "Client phone",
+          therapist: "Therapist",
+          status: "Status",
+          clientComment: "Client comment",
+          internalNotes: "Internal notes"
+        },
+        placeholders: {
+          service: "Choose service",
+          therapist: "Choose therapist",
+          duration: "Optional",
+          clientName: "Client name",
+          clientPhone: "+381 ...",
+          clientComment: "Request details, preferences, context...",
+          internalNotes: "Private staff notes..."
+        },
+        sourceChannels: {
+          instagram: "Instagram",
+          whatsapp: "WhatsApp",
+          telegram: "Telegram",
+          viber: "Viber",
+          phone: "Phone",
+          walk_in: "Walk-in",
+          other: "Other"
+        },
+        ownTherapistFallback: "Your therapist profile is not connected yet.",
+        errors: {
+          service: "Choose a service.",
+          date: "Choose a date.",
+          time: "Choose a time.",
+          duration: "Duration must be greater than zero.",
+          clientName: "Enter the client name.",
+          clientPhone: "Enter the client phone.",
+          therapist: "Your therapist profile is required to create bookings.",
+          sourceChannel: "Choose a source channel.",
+          blocked: "This time is blocked."
+        },
+        submit: "Create booking",
+        saving: "Creating...",
+        cancel: "Cancel",
+        durationUnit: "min",
+        success: "Booking created.",
+        error: "Could not create booking."
+      },
+      views: {
+        day: "Day",
+        week: "Week",
+        month: "Month"
+      },
+      controls: {
+        view: "Calendar view",
+        status: "Status filter",
+        therapist: "Therapist filter",
+        previous: "Previous",
+        today: "Today",
+        next: "Next"
+      },
+      filters: {
+        allStatuses: "All statuses",
+        allTherapists: "All therapists",
+        unassignedTherapist: "Unassigned"
+      },
+      details: {
+        title: "Booking details",
+        close: "Close",
+        client: "Client",
+        phone: "Phone",
+        service: "Service",
+        duration: "Duration",
+        sourceChannel: "Source",
+        locale: "Locale",
+        therapist: "Therapist",
+        status: "Status",
+        comment: "Client comment",
+        noComment: "No client comment.",
+        internalNotes: "Internal notes",
+        assignedTherapist: "Assigned therapist"
+      },
+      actions: {
+        pending: "Set pending",
+        confirm: "Confirm",
+        cancel: "Cancel",
+        complete: "Complete",
+        markCompleted: "Mark completed",
+        assignTherapist: "Assign therapist",
+        saveNotes: "Save notes",
+        saving: "Saving...",
+        saved: "Saved.",
+        forbidden: "This action is not available for your role.",
+        confirmCancel: "Cancel this booking?",
+        error: "Could not save changes."
+      }
+    },
+    schedule: {
+      eyebrow: "Schedule",
+      title: "Availability blocks",
+      subtitle: "Block full days or specific times so clients and staff cannot book unavailable windows.",
+      availability: "Availability",
+      addBlock: "Add block",
+      editBlock: "Edit block",
+      deleteBlock: "Delete block",
+      cancelEdit: "Cancel edit",
+      saving: "Saving...",
+      dataError: "Schedule blocks are not available right now. Check the migration and RLS setup.",
+      existingBlockHint: "This date has schedule blocks",
+      noBlocks: "No schedule blocks for this date.",
+      confirmDelete: "Are you sure you want to delete this block?",
+      ownTherapistFallback: "Your therapist profile is not connected yet.",
+      fields: {
+        date: "Date",
+        blockType: "Block type",
+        scope: "Scope",
+        therapist: "Therapist",
+        startTime: "Start time",
+        endTime: "End time",
+        reason: "Reason"
+      },
+      placeholders: {
+        therapist: "Choose therapist",
+        reason: "For example: day off, personal break, private appointment..."
+      },
+      types: {
+        fullDay: "Full day",
+        timeRange: "Time range"
+      },
+      scope: {
+        therapist: "Therapist",
+        salon: "Salon"
+      },
+      filters: {
+        therapist: "Therapist filter",
+        allTherapists: "All therapists"
+      },
+      messages: {
+        created: "Block created.",
+        updated: "Block updated.",
+        deleted: "Block deleted.",
+        error: "Could not save block."
+      },
+      errors: {
+        date: "Choose a date.",
+        therapist: "Choose a therapist.",
+        ownOnly: "Only your own schedule blocks can be edited.",
+        endAfterStart: "End time must be after start time.",
+        overlap: "Time block overlaps with an existing block.",
+        blocked: "This time is blocked.",
+        dayUnavailable: "This day is unavailable."
+      },
+      reasons: {
+        dayOff: "Day off",
+        personalBreak: "Personal break",
+        privateAppointment: "Private appointment"
+      }
+    }
   }
 } as const;
 

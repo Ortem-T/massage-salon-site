@@ -117,15 +117,27 @@ Cards:
 - CTA labels should be action-oriented and localized.
 - Booking CTA should remain the clearest conversion path.
 
+## Testimonials
+
+- Show testimonials only when real client reviews are available and permission-safe, such as Google Business Profile reviews, direct client feedback with permission, or Instagram/direct feedback with permission.
+- Do not publish fake, placeholder, or generic testimonials; hiding the section is preferred until trustworthy reviews exist.
+
 ## Form Styling
 
 - Booking form should feel like a premium concierge request, not a generic web form.
 - Use clear field labels and simple placeholders.
 - Keep service and specialist selection prominent.
+- Use stable ids for submitted values and localized labels only for display.
 - Date and time should be easy to scan.
+- Date validation must exist in schema, not only as browser `min`.
+- Use the branded custom calendar instead of the native browser date picker for premium booking UX.
+- Disabled dates must clearly communicate unavailable working days, closed dates, and fully booked days.
+- Time slots should respond to the selected date and later to selected specialist availability.
 - Phone input should support Serbian-style numbers without over-validation in the MVP.
 - Comment field should be optional and visually secondary.
 - Success state should be calm, confident, and not overly celebratory.
+- Failure state should be localized, visible, and reassuring.
+- Do not expose implementation details such as MVP, console logging, database names, or internal services in user-facing form copy.
 
 ## Card Styling
 

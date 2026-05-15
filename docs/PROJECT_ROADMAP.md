@@ -1,6 +1,6 @@
 # Project Roadmap
 
-Last updated: 2026-05-11
+Last updated: 2026-05-15
 
 ## Project Overview
 
@@ -94,6 +94,7 @@ Rules:
   - success state
   - mock submit service
   - `siteLocale` captured from current route
+- Russian-only Telegram team notifications for public bookings, dashboard manual bookings, dashboard status changes, and dashboard therapist assignment changes.
 
 ## Booking System Plan
 
@@ -102,6 +103,8 @@ Current state:
 - The booking form is frontend-only.
 - Validation is handled with Zod and React Hook Form.
 - `createBookingRequest()` is a mock service function.
+- Date availability is currently config-driven in `src/lib/booking/booking-availability.ts`.
+- The custom date picker replaces the native browser calendar so the booking UI can stay on-brand.
 - No backend, database, authentication, or admin UI is connected yet.
 
 Next booking steps:
@@ -109,13 +112,28 @@ Next booking steps:
 - Finalize booking request fields and naming.
 - Replace placeholder specialist options with real salon data.
 - Add real contact destinations when available.
+- Replace mock availability config with Supabase-powered working days, closed dates, booked slots, and specialist availability.
 - Connect `createBookingRequest()` to Supabase after the booking MVP is stable.
 - Persist booking status:
   - `pending`
   - `confirmed`
   - `cancelled`
   - `completed`
-- Add email or messaging notification only after persistence is stable.
+- Keep Telegram team notifications server-side only and non-blocking now that booking persistence is stable.
+
+## Booking MVP Definition Of Done
+
+Booking MVP is considered finished when:
+
+- all user-facing booking copy is production-safe and does not mention internal implementation details
+- all form labels, validation messages, success messages, and error messages are localized
+- service and specialist values use stable ids suitable for database storage
+- date validation prevents past dates in schema, not only through browser attributes
+- submit success and failure states are visible and accessible
+- validation errors are connected to fields with accessible descriptions
+- mobile layout is manually checked at common viewport widths
+- keyboard-only form completion works
+- real contact destinations are available or clearly marked as pending before launch
 
 ## Future CRM/Admin Plan
 
@@ -130,6 +148,15 @@ Do not build CRM/admin too early. Future admin can include:
 - basic analytics
 - notification history
 
+Minimum future data model:
+
+- `bookings`: service id, specialist id, preferred date, preferred time, client name, phone, comment, site locale, status, timestamps
+- `services`: stable id, localized display data, duration, price range, active flag
+- `specialists`: stable id, public name, active flag, service capabilities
+- `booking_statuses`: pending, confirmed, cancelled, completed
+- `admin_users`: authenticated staff allowed to manage bookings
+- access boundary: Supabase RLS must prevent public reads and restrict writes to intended booking inserts
+
 Authentication should be introduced only when backend requirements are clear.
 
 ## AI Collaboration Workflow
@@ -140,6 +167,7 @@ Authentication should be introduced only when backend requirements are clear.
 - Changes should be incremental and focused.
 - Review findings should be converted into small, scoped tasks.
 - After each major development stage, update `docs/DEV_LOG.md`.
+- Ongoing implementation should happen on `develop` unless a feature branch is explicitly requested.
 
 ## Development Milestones
 
@@ -160,6 +188,7 @@ Near-term:
 - Replace placeholder specialist data with real staff names or labels.
 - Improve real content for services, benefits, testimonials, and about.
 - Manual QA on mobile and tablet.
+- Complete the Booking MVP Definition of Done.
 - Prepare Supabase schema proposal for booking requests.
 
 Later:
@@ -167,6 +196,7 @@ Later:
 - Supabase booking persistence.
 - Admin workflow for booking status.
 - Notifications.
+- Broader notification history and delivery tracking.
 - Performance and accessibility audit.
 - Production deployment hardening.
 
@@ -180,15 +210,19 @@ Later:
 - do not commit `.env`, `node_modules`, `.next`
 - no client authentication yet
 - no backend before booking MVP is finished
+- do not expose Telegram bot tokens to the frontend
 
 ## Git Workflow
 
-- Work on a separate branch for every task.
+- `main` is the stable production-ready branch.
+- `develop` is the active development branch.
+- Ongoing development happens directly on `develop`.
+- Avoid creating feature branches unless explicitly requested.
 - Keep changes scoped to the task.
 - Run lint and build before commit.
 - Use clear commit messages.
-- Push feature branches, not `main`.
-- Open a pull request when GitHub access allows it.
+- Push `develop`, never push directly to `main`.
+- Open a pull request from `develop` to `main` only when a milestone is ready.
 - If automated PR creation fails, provide a direct compare link.
 
 ## Future Ideas

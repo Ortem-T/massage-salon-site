@@ -1,0 +1,156 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+
+import { type Locale } from "@/i18n/config";
+import { requireDashboardUser } from "@/lib/dashboard/auth";
+import {
+  assignTherapistToBooking,
+  createManualBooking,
+  type CreateManualBookingInput,
+  DashboardBlockedTimeError,
+  DashboardForbiddenError,
+  updateBookingInternalNotes,
+  updateBookingStatus
+} from "@/lib/dashboard/bookings";
+import {
+  createScheduleBlock,
+  deleteScheduleBlock,
+  ScheduleBlockValidationError,
+  type ScheduleBlockInput,
+  updateScheduleBlock
+} from "@/lib/dashboard/schedule-blocks";
+import { type BookingStatus } from "@/lib/booking/booking-schema";
+
+export type DashboardActionResult = {
+  ok: boolean;
+  reason?: "forbidden" | "error" | "invalid" | "invalid_time" | "overlap" | "blocked";
+};
+
+type BookingActionInput = {
+  bookingId: string;
+};
+
+function toActionResult(error: unknown): DashboardActionResult {
+  if (error instanceof DashboardForbiddenError) {
+    return { ok: false, reason: "forbidden" };
+  }
+
+  if (error instanceof ScheduleBlockValidationError) {
+    return { ok: false, reason: error.reason };
+  }
+
+  if (error instanceof DashboardBlockedTimeError) {
+    return { ok: false, reason: "blocked" };
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    console.error("[dashboard action failed]", error);
+  }
+
+  return { ok: false, reason: "error" };
+}
+
+function revalidateDashboard(locale: Locale) {
+  revalidatePath(`/${locale}/dashboard`);
+  revalidatePath(`/${locale}/dashboard/bookings`);
+  revalidatePath(`/${locale}/dashboard/schedule`);
+}
+
+export async function updateBookingStatusAction(
+  locale: Locale,
+  input: BookingActionInput & { status: BookingStatus }
+): Promise<DashboardActionResult> {
+  try {
+    const user = await requireDashboardUser(locale);
+    await updateBookingStatus(user, input.bookingId, input.status);
+    revalidateDashboard(locale);
+    return { ok: true };
+  } catch (error) {
+    return toActionResult(error);
+  }
+}
+
+export async function updateBookingInternalNotesAction(
+  locale: Locale,
+  input: BookingActionInput & { internalNotes: string | null }
+): Promise<DashboardActionResult> {
+  try {
+    const user = await requireDashboardUser(locale);
+    await updateBookingInternalNotes(user, input.bookingId, input.internalNotes);
+    revalidateDashboard(locale);
+    return { ok: true };
+  } catch (error) {
+    return toActionResult(error);
+  }
+}
+
+export async function assignTherapistToBookingAction(
+  locale: Locale,
+  input: BookingActionInput & { therapistId: string | null }
+): Promise<DashboardActionResult> {
+  try {
+    const user = await requireDashboardUser(locale);
+    await assignTherapistToBooking(user, input.bookingId, input.therapistId);
+    revalidateDashboard(locale);
+    return { ok: true };
+  } catch (error) {
+    return toActionResult(error);
+  }
+}
+
+export async function createManualBookingAction(
+  locale: Locale,
+  input: CreateManualBookingInput
+): Promise<DashboardActionResult> {
+  try {
+    const user = await requireDashboardUser(locale);
+    await createManualBooking(user, input);
+    revalidateDashboard(locale);
+    return { ok: true };
+  } catch (error) {
+    return toActionResult(error);
+  }
+}
+
+export async function createScheduleBlockAction(
+  locale: Locale,
+  input: ScheduleBlockInput
+): Promise<DashboardActionResult> {
+  try {
+    const user = await requireDashboardUser(locale);
+    await createScheduleBlock(user, input);
+    revalidateDashboard(locale);
+    return { ok: true };
+  } catch (error) {
+    return toActionResult(error);
+  }
+}
+
+export async function updateScheduleBlockAction(
+  locale: Locale,
+  input: ScheduleBlockInput & { id: string }
+): Promise<DashboardActionResult> {
+  try {
+    const user = await requireDashboardUser(locale);
+    await updateScheduleBlock(user, input);
+    revalidateDashboard(locale);
+    return { ok: true };
+  } catch (error) {
+    return toActionResult(error);
+  }
+}
+
+export async function deleteScheduleBlockAction(
+  locale: Locale,
+  id: string
+): Promise<DashboardActionResult> {
+  try {
+    const user = await requireDashboardUser(locale);
+    await deleteScheduleBlock(user, id);
+    revalidateDashboard(locale);
+    return { ok: true };
+  } catch (error) {
+    return toActionResult(error);
+  }
+}
