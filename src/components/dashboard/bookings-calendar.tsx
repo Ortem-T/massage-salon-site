@@ -54,6 +54,7 @@ type BookingsCalendarProps = {
   bookings: DashboardBooking[];
   dataError: boolean;
   dictionary: Dictionary;
+  initialDate?: string;
   locale: Locale;
   role: DashboardRole;
   serviceCatalog: ServiceCatalogItem[];
@@ -87,6 +88,14 @@ const focusableSelector = [
 
 function todayKey() {
   return toDateKey(new Date());
+}
+
+function isDateKey(value: string | undefined): value is string {
+  return Boolean(value?.match(/^\d{4}-\d{2}-\d{2}$/));
+}
+
+function getInitialDate(value: string | undefined) {
+  return isDateKey(value) ? value : todayKey();
 }
 
 function toDateKey(date: Date) {
@@ -178,6 +187,7 @@ export function BookingsCalendar({
   bookings,
   dataError,
   dictionary,
+  initialDate,
   locale,
   role,
   serviceCatalog,
@@ -186,7 +196,7 @@ export function BookingsCalendar({
   const router = useRouter();
   const calendar = dictionary.dashboard.calendar;
   const [view, setView] = useState<CalendarView>("day");
-  const [selectedDate, setSelectedDate] = useState(todayKey());
+  const [selectedDate, setSelectedDate] = useState(() => getInitialDate(initialDate));
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [therapistFilter, setTherapistFilter] = useState("all");
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);

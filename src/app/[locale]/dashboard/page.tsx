@@ -9,10 +9,16 @@ import { getServiceCatalog } from "@/lib/services/catalog";
 
 type DashboardPageProps = {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ date?: string | string[] }>;
 };
 
-export default async function DashboardPage({ params }: DashboardPageProps) {
+function getDateSearchParam(searchParams: { date?: string | string[] }) {
+  return Array.isArray(searchParams.date) ? searchParams.date[0] : searchParams.date;
+}
+
+export default async function DashboardPage({ params, searchParams }: DashboardPageProps) {
   const { locale: rawLocale } = await params;
+  const initialDate = getDateSearchParam(await searchParams);
 
   if (!isLocale(rawLocale)) {
     notFound();
@@ -31,6 +37,7 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
       bookings={data.bookings}
       dataError={data.error}
       dictionary={dictionary}
+      initialDate={initialDate}
       locale={locale}
       role={user.role}
       serviceCatalog={serviceCatalog}

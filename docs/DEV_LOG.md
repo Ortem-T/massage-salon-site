@@ -1,6 +1,6 @@
 # Development Log
 
-Last updated: 2026-05-14
+Last updated: 2026-05-15
 
 This log is shared context for human and AI-assisted development. Update it after every major development stage so future Codex, `web-coder`, and `grill-me` sessions can continue without rediscovering project history.
 
@@ -8,7 +8,7 @@ This log is shared context for human and AI-assisted development. Update it afte
 
 Raine is a premium multilingual massage salon homepage for Novi Sad, Serbia. The homepage MVP exists and uses locale-based routing for Serbian, Russian, and English. The visual direction has moved toward calm luxury wellness with Japanese spa influence, warm natural colors, refined typography, soft shadows, and gentle motion.
 
-The booking form MVP is integrated into the homepage and now submits through a Next API route to Supabase. The form collects service, specialist, preferred date, preferred time, client name, phone number, and optional comment. The current site locale is passed as `siteLocale` and persisted as the booking `locale`. A protected dashboard foundation now exists for Supabase Auth staff users with `admin` and `therapist` roles. A dashboard MVP schema migration has been drafted but still needs to be applied manually in Supabase. The first dashboard bookings UI is calendar-first and supports day, week, and month views. Real face/body services now have a Supabase seed migration with localized Serbian, Russian, and English translations, and homepage/public/manual booking service options are designed to read from that shared catalog. Public booking specialists now come from active Supabase therapists with localized display names; the generic "any available specialist" option has been removed. Public contact data now uses real messenger-first salon channels, a centralized contact config, and a Google Maps embed driven by an environment variable.
+The booking form MVP is integrated into the homepage and now submits through a Next API route to Supabase. The form collects service, specialist, preferred date, preferred time, client name, phone number, and optional comment. The current site locale is passed as `siteLocale` and persisted as the booking `locale`. A protected dashboard foundation now exists for Supabase Auth staff users with `admin` and `therapist` roles. A dashboard MVP schema migration has been drafted but still needs to be applied manually in Supabase. The first dashboard bookings UI is calendar-first and supports day, week, and month views. Real face/body services now have a Supabase seed migration with localized Serbian, Russian, and English translations, and homepage/public/manual booking service options are designed to read from that shared catalog. Public booking specialists now come from active Supabase therapists with localized display names; the generic "any available specialist" option has been removed. Public contact data now uses real messenger-first salon channels, a centralized contact config, and a Google Maps embed driven by an environment variable. Telegram team notifications are now wired for booking creation, status changes, and dashboard therapist assignment changes, with Russian-only server-side messages.
 
 ## Completed Tasks
 
@@ -68,10 +68,11 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Updated the homepage About salon copy and stats in Serbian, Russian, and English to use clearer salon positioning and real specialist/procedure counts.
 - Updated two homepage benefits card texts in Serbian, Russian, and English to mention cozy atmosphere, music, coffee, natural oils, and gentle aromas.
 - Removed the standalone homepage WhatsApp CTA block and redesigned the About salon section as a dark green premium brand block while keeping existing About copy and stats.
+- Added server-side Telegram booking notifications using `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, and `NEXT_PUBLIC_SITE_URL`. Notifications are Russian-only for now, include an inline dashboard day button when the site URL is configured, and failures are logged server-side without blocking booking creation or updates.
 
 ## Current Focus
 
-The current focus is validating admin/therapist schedule block workflows against real RLS and doing mobile QA on the real public booking flow. The real service, therapist, availability, and schedule-block migrations have been applied to the hosted `raine` Supabase project and public reads are limited to safe catalog/availability data. Contact data is now production-shaped, but deployment still needs a restricted `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY` for the embedded map. Homepage public catalog reads are now ISR-friendly and should be revalidated rather than forcing every request through Supabase.
+The current focus is validating admin/therapist schedule block workflows against real RLS and doing mobile QA on the real public booking flow. The real service, therapist, availability, and schedule-block migrations have been applied to the hosted `raine` Supabase project and public reads are limited to safe catalog/availability data. Contact data is now production-shaped, but deployment still needs a restricted `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY` for the embedded map. Telegram deployment needs server-only `TELEGRAM_BOT_TOKEN`, full `TELEGRAM_CHAT_ID` such as `-1003965424928`, and `NEXT_PUBLIC_SITE_URL` for dashboard buttons. Homepage public catalog reads are now ISR-friendly and should be revalidated rather than forcing every request through Supabase.
 
 ## Git Workflow
 
@@ -94,6 +95,7 @@ The current focus is validating admin/therapist schedule block workflows against
 - Apply the dashboard manual booking migration in the hosted Supabase project and verify admin/therapist insert policies.
 - Add therapist-specific working hours later if needed; MVP public availability uses the centralized default 10:00-19:00 schedule, all 7 days.
 - Add manual QA checklist for launch.
+- Verify Telegram booking notifications in the team chat after deployment env vars are configured.
 - Create Supabase Auth staff users and set `app_metadata.role` to either `admin` or `therapist`.
 - Seed initial `profiles` and `therapists` rows after the dashboard schema migration is applied.
 - Re-run `20260513140000_real_service_catalog.sql` only when restoring or reseeding; it is slug-based and idempotent.
@@ -159,10 +161,19 @@ The current focus is validating admin/therapist schedule block workflows against
 - Confirm a signed-in Auth user without `app_metadata.role` is redirected to login with a staff-access error.
 - Confirm Serbian dashboard dates render in Latin script.
 - Confirm manual booking source channel and duration are visible after creation.
+- Confirm public website booking creates a Russian Telegram message.
+- Confirm dashboard manual booking creates a Russian Telegram message.
+- Confirm booking status changes create Russian Telegram messages with old and new status labels.
+- Confirm therapist assignment or reassignment creates a Russian Telegram message when the dashboard action is used.
+- Confirm the Telegram inline button opens `/ru/dashboard?date=YYYY-MM-DD` for the booking day.
+- Confirm missing Telegram env vars do not crash public or dashboard booking operations.
+- Confirm `TELEGRAM_BOT_TOKEN` does not appear in frontend bundles, committed files, or GitHub.
 
 ## Known Issues
 
 - Google Maps embed requires `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY`; without it, the contact section shows a styled map fallback and the external Google Maps link still works.
+- Telegram notifications require `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`; without them, booking operations continue and the notification is skipped server-side.
+- Telegram dashboard buttons require `NEXT_PUBLIC_SITE_URL`; without it, messages are still sent without the inline button.
 - Booking persistence depends on applying the Supabase migration and setting public Supabase env vars locally and in deployment.
 - Clients, services, and therapists dashboard pages are placeholders only; the bookings calendar is the first operational dashboard view.
 - Dashboard schema migration has not been applied to the hosted Supabase project yet.
@@ -196,6 +207,8 @@ The current focus is validating admin/therapist schedule block workflows against
 - Use `src/lib/booking/booking-availability.ts` as the shared source for duration rounding, blocked intervals, default time slot generation, and before-insert slot checks.
 - Keep public salon contact data centralized in `src/config/contacts.ts`; translated labels and messages stay in dictionaries. The phone number may exist inside the WhatsApp URL, but visible UI must not render it as plain text.
 - Use `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY` for the embedded map instead of committing Google Maps keys to source.
+- Use server-only `TELEGRAM_BOT_TOKEN` and full `TELEGRAM_CHAT_ID` values for team notifications; do not expose the bot token with `NEXT_PUBLIC_` or store it in Supabase.
+- Keep Telegram notification failures non-blocking for booking creation, status updates, and therapist assignment changes.
 - Keep the custom branded booking calendar, but support roving keyboard focus instead of replacing it with a new component dependency.
 - Keep UI primitives local and lightweight rather than pulling in a full component dependency for every shadcn/ui part.
 - Avoid full CRM workflows until the booking/dashboard foundation is stable.

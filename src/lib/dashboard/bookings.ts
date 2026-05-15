@@ -14,6 +14,12 @@ import {
 } from "@/lib/dashboard/constants";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import {
+  notifyTelegramBookingStatusChange,
+  notifyTelegramNewBooking,
+  notifyTelegramTherapistAssignmentChange,
+  type TelegramBookingDetails
+} from "@/server/telegram/bookingNotifications";
 
 export type DashboardBooking = {
   id: string;
@@ -158,6 +164,7 @@ type DashboardTherapistRow = {
 };
 
 type ActiveServiceRow = {
+  id: string;
   slug: string;
   duration_minutes: number;
 };
@@ -452,12 +459,96 @@ async function getActiveServiceBySlug(slug: string): Promise<ActiveServiceRow | 
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("services")
-    .select("slug, duration_minutes")
+    .select("id, slug, duration_minutes")
     .eq("slug", slug)
     .eq("active", true)
     .maybeSingle();
 
   return error || !data ? null : data;
+}
+
+async function getRussianServiceNameBySlug(slug: string) {
+  const supabase = await createSupabaseServerClient();
+  const { data: service, error: serviceError } = await supabase
+    .from("services")
+    .select("id, slug")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (serviceError || !service) {
+    return slug;
+  }
+
+  const { data: translation } = await supabase
+    .from("service_translations")
+    .select("name")
+    .eq("service_id", service.id)
+    .eq("locale", "ru")
+    .maybeSingle();
+
+  return translation?.name ?? service.slug;
+}
+
+async function getTherapistDisplayNameById(therapistId: string | null | undefined) {
+  if (!therapistId) {
+    return null;
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("therapists")
+    .select("display_name")
+    .eq("id", therapistId)
+    .maybeSingle();
+
+  return error || !data ? null : data.display_name;
+}
+
+async function getDashboardActorName(user: DashboardUser) {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("full_name, email")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (!error && data) {
+    return data.full_name || data.email || user.email || user.role;
+  }
+
+  return user.email || user.role;
+}
+
+async function toTelegramBookingDetails(booking: DashboardBooking, therapistName?: string | null): Promise<TelegramBookingDetails> {
+  const serviceName = await getRussianServiceNameBySlug(booking.service);
+  const resolvedTherapistName =
+    therapistName !== undefined
+      ? therapistName
+      : (await getTherapistDisplayNameById(booking.therapistId)) ?? (booking.therapistId ? booking.specialist : null);
+
+  return {
+    service: serviceName,
+    preferredDate: booking.preferredDate,
+    preferredTime: booking.preferredTime,
+    durationMinutes: booking.durationMinutes,
+    clientName: booking.clientName,
+    clientPhone: booking.clientPhone,
+    clientLocale: booking.locale,
+    source: booking.source,
+    sourceChannel: booking.sourceChannel,
+    therapistName: resolvedTherapistName,
+    clientComment: booking.clientComment,
+    internalNotes: booking.internalNotes,
+    status: booking.status
+  };
+}
+
+async function notifyTelegramSafely(task: () => Promise<void>) {
+  try {
+    await task();
+  } catch (error) {
+    console.error("[telegram] booking notification preparation failed", error);
+  }
 }
 
 function validateManualBookingInput(input: CreateManualBookingInput) {
@@ -566,6 +657,24 @@ export async function createManualBooking(user: DashboardUser, input: CreateManu
     .maybeSingle();
 
   assertUpdatedBooking(data, error);
+
+  await notifyTelegramSafely(async () => {
+    await notifyTelegramNewBooking({
+      service: await getRussianServiceNameBySlug(normalized.service),
+      preferredDate: normalized.preferredDate,
+      preferredTime: normalized.preferredTime,
+      durationMinutes: input.durationMinutes ?? service.duration_minutes,
+      clientName: normalized.clientName,
+      clientPhone: normalized.clientPhone,
+      clientLocale: input.locale,
+      source: "dashboard",
+      sourceChannel: input.sourceChannel,
+      therapistName: therapistId ? specialist : null,
+      clientComment: normalizeOptionalText(input.clientComment),
+      internalNotes: normalizeInternalNotes(input.internalNotes),
+      status: input.status
+    });
+  });
 }
 
 export async function updateBookingStatus(user: DashboardUser, bookingId: string, status: BookingStatus) {
@@ -578,6 +687,11 @@ export async function updateBookingStatus(user: DashboardUser, bookingId: string
   }
 
   const supabase = await createSupabaseServerClient();
+  const existingBooking = await assertCanManageBooking(user, bookingId);
+
+  if (existingBooking.status === status) {
+    return;
+  }
 
   if (user.role === "therapist") {
     const therapistIds = await getTherapistIdsForUser(user.id);
@@ -586,7 +700,6 @@ export async function updateBookingStatus(user: DashboardUser, bookingId: string
       throw new DashboardForbiddenError();
     }
 
-    await assertCanManageBooking(user, bookingId);
     const { data, error } = await supabase
       .from("bookings")
       .update({ status })
@@ -596,12 +709,19 @@ export async function updateBookingStatus(user: DashboardUser, bookingId: string
       .maybeSingle();
 
     assertUpdatedBooking(data, error);
-
-    return;
+  } else {
+    const { data, error } = await supabase.from("bookings").update({ status }).eq("id", bookingId).select("id").maybeSingle();
+    assertUpdatedBooking(data, error);
   }
 
-  const { data, error } = await supabase.from("bookings").update({ status }).eq("id", bookingId).select("id").maybeSingle();
-  assertUpdatedBooking(data, error);
+  await notifyTelegramSafely(async () => {
+    await notifyTelegramBookingStatusChange({
+      booking: await toTelegramBookingDetails({ ...existingBooking, status }),
+      oldStatus: existingBooking.status,
+      newStatus: status,
+      changedBy: await getDashboardActorName(user)
+    });
+  });
 }
 
 export async function updateBookingInternalNotes(user: DashboardUser, bookingId: string, internalNotes: string | null) {
@@ -644,25 +764,46 @@ export async function assignTherapistToBooking(user: DashboardUser, bookingId: s
   }
 
   const supabase = await createSupabaseServerClient();
+  const nextTherapistId = therapistId?.trim() || null;
+  const existingBooking = await assertCanManageBooking(user, bookingId);
+  let nextTherapist: DashboardTherapist | null = null;
 
-  if (therapistId) {
-    const { data: therapist, error: therapistError } = await supabase
-      .from("therapists")
-      .select("id")
-      .eq("id", therapistId)
-      .eq("active", true)
-      .maybeSingle();
+  if (nextTherapistId) {
+    nextTherapist = await getActiveTherapistById(nextTherapistId);
 
-    if (therapistError || !therapist) {
+    if (!nextTherapist) {
       throw new DashboardForbiddenError();
     }
   }
 
+  if (existingBooking.therapistId === nextTherapistId) {
+    return;
+  }
+
+  const previousTherapistName =
+    (await getTherapistDisplayNameById(existingBooking.therapistId)) ?? (existingBooking.therapistId ? existingBooking.specialist : null);
+  const nextTherapistName = nextTherapist?.displayName ?? null;
+
   const { data, error } = await supabase
     .from("bookings")
-    .update({ therapist_id: therapistId })
+    .update({ therapist_id: nextTherapistId, specialist: nextTherapistName ?? "unassigned" })
     .eq("id", bookingId)
     .select("id")
     .maybeSingle();
   assertUpdatedBooking(data, error);
+
+  await notifyTelegramSafely(async () => {
+    await notifyTelegramTherapistAssignmentChange({
+      booking: await toTelegramBookingDetails(
+        {
+          ...existingBooking,
+          specialist: nextTherapistName ?? "unassigned",
+          therapistId: nextTherapistId
+        },
+        nextTherapistName
+      ),
+      previousTherapistName,
+      nextTherapistName
+    });
+  });
 }

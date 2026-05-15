@@ -1,6 +1,6 @@
 # Project Roadmap
 
-Last updated: 2026-05-11
+Last updated: 2026-05-15
 
 ## Project Overview
 
@@ -94,6 +94,7 @@ Rules:
   - success state
   - mock submit service
   - `siteLocale` captured from current route
+- Russian-only Telegram team notifications for public bookings, dashboard manual bookings, dashboard status changes, and dashboard therapist assignment changes.
 
 ## Booking System Plan
 
@@ -118,7 +119,7 @@ Next booking steps:
   - `confirmed`
   - `cancelled`
   - `completed`
-- Add email or messaging notification only after persistence is stable.
+- Keep Telegram team notifications server-side only and non-blocking now that booking persistence is stable.
 
 ## Booking MVP Definition Of Done
 
@@ -195,6 +196,7 @@ Later:
 - Supabase booking persistence.
 - Admin workflow for booking status.
 - Notifications.
+- Broader notification history and delivery tracking.
 - Performance and accessibility audit.
 - Production deployment hardening.
 
@@ -208,6 +210,7 @@ Later:
 - do not commit `.env`, `node_modules`, `.next`
 - no client authentication yet
 - no backend before booking MVP is finished
+- do not expose Telegram bot tokens to the frontend
 
 ## Git Workflow
 

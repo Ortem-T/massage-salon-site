@@ -8,6 +8,7 @@ import {
 import { bookingRequestPayloadSchema } from "@/lib/booking/booking-request-payload";
 import { defaultBookingAvailability } from "@/lib/booking/booking-options";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { notifyTelegramNewBooking } from "@/server/telegram/bookingNotifications";
 
 type PublicAvailabilityRow = {
   booking_date: string;
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
   const supabase = createSupabaseBrowserClient();
   const { data: service, error: serviceError } = await supabase
     .from("services")
-    .select("slug, duration_minutes")
+    .select("id, slug, duration_minutes")
     .eq("slug", payload.data.service)
     .eq("active", true)
     .eq("bookable_online", true)
@@ -74,6 +75,13 @@ export async function POST(request: Request) {
   if (serviceError || !service) {
     return NextResponse.json({ error: "Invalid booking service." }, { status: 400 });
   }
+
+  const { data: serviceTranslation } = await supabase
+    .from("service_translations")
+    .select("name")
+    .eq("service_id", service.id)
+    .eq("locale", "ru")
+    .maybeSingle();
 
   const { data: therapist, error: therapistError } = await supabase
     .from("therapists")
@@ -141,6 +149,19 @@ export async function POST(request: Request) {
   if (error) {
     return NextResponse.json({ error: "Booking request could not be created." }, { status: 500 });
   }
+
+  await notifyTelegramNewBooking({
+    service: serviceTranslation?.name ?? service.slug,
+    preferredDate: payload.data.preferred_date,
+    preferredTime: payload.data.preferred_time,
+    durationMinutes: service.duration_minutes,
+    clientName: payload.data.client_name,
+    clientPhone: payload.data.client_phone,
+    clientLocale: payload.data.locale,
+    source: "website",
+    therapistName: therapist.display_name,
+    clientComment: payload.data.client_comment
+  });
 
   return NextResponse.json({ booking: { status: "pending" } }, { status: 201 });
 }
