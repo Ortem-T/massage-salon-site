@@ -155,13 +155,11 @@ const en = {
     eyebrow: "Contact",
     title: "Contact us",
     subtitle: "Contact us in the way that feels easiest. We will reply and help you choose a suitable time.",
-    message:
-      "Send us a message through your preferred messenger or open the route on the map. We will reply calmly and help you choose a suitable time to visit.",
     addressLabel: "Location",
     landmarkLabel: "Landmark",
     hoursLabel: "Opening hours",
     everyDay: "Every day",
-    mapTitle: "RAINË on the map",
+    mapTitle: "Map",
     openInGoogleMaps: "Open in Google Maps",
     actions: {
       whatsapp: "WhatsApp",

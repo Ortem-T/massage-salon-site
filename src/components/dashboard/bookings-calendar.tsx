@@ -680,14 +680,11 @@ export function BookingsCalendar({
 
   return (
     <section className="space-y-6">
-      <div className="rounded-3xl border border-border/70 bg-card/82 p-5 shadow-soft sm:p-6">
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+      <div className="rounded-3xl border border-border/70 bg-card/82 p-4 shadow-soft sm:p-5">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">{calendar.eyebrow}</p>
-            <h1 className="mt-3 font-serif text-4xl font-semibold leading-tight text-primary sm:text-5xl">
-              {calendar.title}
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">{calendar.subtitle}</p>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{calendar.subtitle}</p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 xl:min-w-[42rem] xl:grid-cols-4">

@@ -42,7 +42,7 @@ export function Footer({ locale, dictionary }: FooterProps) {
             {brand.name}
           </Link>
           <p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground">{footer.text}</p>
-          <p className="mt-3 text-sm font-semibold text-primary">{contactConfig.landmark}</p>
+          <p className="mt-3 text-sm font-semibold text-primary">Sajmište</p>
           <p className="mt-1 max-w-sm text-sm leading-6 text-muted-foreground">{contactConfig.address}</p>
         </div>
         <div className="flex flex-col gap-4 lg:items-end">

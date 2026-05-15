@@ -162,13 +162,11 @@ const sr = {
     title: "Kontaktirajte nas",
     subtitle:
       "Javite nam se na način koji vam najviše odgovara. Odgovorićemo i pomoći da izaberete odgovarajuće vreme.",
-    message:
-      "Pošaljite nam poruku kroz omiljeni messenger ili otvorite rutu na mapi. Odgovorićemo mirno i pomoći da izaberete odgovarajuće vreme za posetu.",
     addressLabel: "Adresa",
     landmarkLabel: "Orijentir",
     hoursLabel: "Radno vreme",
     everyDay: "Svaki dan",
-    mapTitle: "RAINË na mapi",
+    mapTitle: "Mapa",
     openInGoogleMaps: "Otvori u Google Maps",
     actions: {
       whatsapp: "WhatsApp",

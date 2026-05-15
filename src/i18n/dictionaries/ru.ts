@@ -155,12 +155,11 @@ const ru = {
     eyebrow: "Контакты",
     title: "Свяжитесь с нами",
     subtitle: "Свяжитесь с нами удобным способом. Мы ответим и поможем подобрать подходящее время.",
-    message: "Напишите нам в удобный мессенджер или откройте маршрут на карте. Мы ответим спокойно и поможем выбрать подходящее время для визита.",
     addressLabel: "Локация",
     landmarkLabel: "Ориентир",
     hoursLabel: "Часы работы",
     everyDay: "Каждый день",
-    mapTitle: "RAINË на карте",
+    mapTitle: "Карта",
     openInGoogleMaps: "Открыть в Google Maps",
     actions: {
       whatsapp: "WhatsApp",

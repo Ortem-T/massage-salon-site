@@ -42,14 +42,12 @@ export function ContactSection({ dictionary }: ContactSectionProps) {
 
   return (
     <section id="contact" className="scroll-mt-28 bg-[#fffaf0] py-24 sm:py-32">
-      <div className="container-shell grid gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+      <div className="container-shell grid gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:items-stretch">
         <MotionReveal>
           <SectionHeader eyebrow={contact.eyebrow} title={contact.title} subtitle={contact.subtitle} />
 
           <div className="mt-10 rounded-xl border border-border/80 bg-background/70 p-5 shadow-soft sm:p-6">
-            <p className="max-w-xl text-sm leading-7 text-muted-foreground">{contact.message}</p>
-
-            <div className="mt-7 grid gap-4">
+            <div className="grid gap-4">
               <div className="rounded-lg border border-border/80 bg-card/72 p-4">
                 <p className="text-sm font-semibold text-accent">{contact.addressLabel}</p>
                 <p className="mt-2 flex items-start gap-2 text-base leading-7 text-foreground">
@@ -94,9 +92,9 @@ export function ContactSection({ dictionary }: ContactSectionProps) {
           </div>
         </MotionReveal>
 
-        <MotionReveal delay={0.1}>
+        <MotionReveal delay={0.1} className="h-full">
           <div
-            className="relative min-h-[380px] overflow-hidden rounded-xl border border-border bg-[#e2d5bf] shadow-[var(--shadow-soft)] sm:min-h-[500px]"
+            className="relative h-full min-h-[380px] overflow-hidden rounded-xl border border-border bg-[#e2d5bf] shadow-[var(--shadow-soft)] sm:min-h-[440px] lg:min-h-0"
             aria-label={contact.mapTitle}
           >
             {mapsEmbedUrl ? (
@@ -115,8 +113,7 @@ export function ContactSection({ dictionary }: ContactSectionProps) {
             <div className="absolute inset-x-4 bottom-4 rounded-lg border border-white/65 bg-card/88 p-4 shadow-[0_18px_58px_rgb(27_54_39/0.18)] backdrop-blur sm:inset-x-6 sm:bottom-6 sm:p-5">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="font-serif text-2xl text-primary">{contact.mapTitle}</p>
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">{contactConfig.address}</p>
+                  <p className="text-sm leading-6 text-muted-foreground">{contactConfig.address}</p>
                 </div>
 
                 <Button asChild variant="outline" className="w-full sm:w-auto">
