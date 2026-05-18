@@ -74,10 +74,11 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Switched the contact section Google Maps embed from address/API-key lookup to the real Raine Massage Salon Google Maps listing embed, and updated the external Google Maps link and JSON-LD `hasMap` value to the same listing.
 - Added therapist-service eligibility through the new `public.therapist_services` migration, updated and split body services into the new production price list, deactivated deprecated combined body service slugs without deleting historical bookings, and made public booking plus dashboard manual booking filter/validate therapists by selected service.
 - Added two body services for device-based lymphatic drainage: one-zone session and a 12-treatment course, both bookable online, 30 minutes, available to Sergey and Ekaterina through `therapist_services`, with the course treated as a regular first-appointment booking for the MVP.
+- Renamed the `taping-application` service translations to show the shorter public name "Taping" / "Tejping" / "Тейпирование" while keeping the one-application detail in the localized short descriptions.
 
 ## Current Focus
 
-The current focus is production launch polish after the Vercel deployment. The real service, therapist, availability, and schedule-block migrations have been applied to the hosted `raine` Supabase project and public reads are limited to safe catalog/availability data. Contact data is production-shaped and does not expose the phone number as plain text. The contact map now uses the real Raine Massage Salon Google Maps listing and no longer needs a Google Maps embed API key. SEO now targets `https://raine.rs` with localized homepage metadata, canonical/hreflang, sitemap, robots, and local business JSON-LD. The next database step is applying `20260518120000_service_catalog_restrictions.sql` and then `20260518130000_device_lymphatic_services.sql` so the deployed catalog includes the updated body service list, therapist-service restrictions, and device lymphatic drainage services. Deployment still needs Search Console sitemap submission and Google Business Profile setup. Telegram deployment needs server-only `TELEGRAM_BOT_TOKEN`, full `TELEGRAM_CHAT_ID` such as `-1003965424928`, and `NEXT_PUBLIC_SITE_URL=https://raine.rs` for dashboard buttons. Homepage testimonials remain hidden until real permission-safe reviews are available.
+The current focus is production launch polish after the Vercel deployment. The real service, therapist, availability, and schedule-block migrations have been applied to the hosted `raine` Supabase project and public reads are limited to safe catalog/availability data. Contact data is production-shaped and does not expose the phone number as plain text. The contact map now uses the real Raine Massage Salon Google Maps listing and no longer needs a Google Maps embed API key. SEO now targets `https://raine.rs` with localized homepage metadata, canonical/hreflang, sitemap, robots, and local business JSON-LD. The next database step is applying `20260518120000_service_catalog_restrictions.sql`, then `20260518130000_device_lymphatic_services.sql`, and then `20260518131000_update_taping_translation.sql` so the deployed catalog includes the updated body service list, therapist-service restrictions, device lymphatic drainage services, and the shorter Taping service name. Deployment still needs Search Console sitemap submission and Google Business Profile setup. Telegram deployment needs server-only `TELEGRAM_BOT_TOKEN`, full `TELEGRAM_CHAT_ID` such as `-1003965424928`, and `NEXT_PUBLIC_SITE_URL=https://raine.rs` for dashboard buttons. Homepage testimonials remain hidden until real permission-safe reviews are available.
 
 ## Git Workflow
 
@@ -112,6 +113,7 @@ The current focus is production launch polish after the Vercel deployment. The r
 - Re-run `20260513170000_schedule_blocks.sql` only when restoring schedule block support, staff RLS, and the safe public schedule block availability view.
 - Apply `20260518120000_service_catalog_restrictions.sql` in hosted Supabase to create `therapist_services`, seed the updated body price list, and activate service-specific therapist restrictions.
 - Apply `20260518130000_device_lymphatic_services.sql` after the restrictions migration to add the two device lymphatic drainage body services and assign them to both therapists.
+- Apply `20260518131000_update_taping_translation.sql` after the device lymphatic drainage migration to shorten the Taping service name without changing slug, duration, price, bookability, or therapist restriction.
 - Test admin status changes, therapist assignment, therapist status changes, and internal notes updates against hosted Supabase RLS.
 - Test manual booking creation for admin assigned, admin unassigned, therapist own, and therapist direct-request attempts against hosted Supabase RLS.
 
@@ -125,6 +127,7 @@ The current focus is production launch polish after the Vercel deployment. The r
 - Confirm public booking service options use the same real service names as the homepage.
 - Confirm public booking specialist options show only active real therapists, localized per route, with no generic "any available specialist" option.
 - Confirm public booking filters specialists by selected service: all face services show only Ekaterina; lymphatic drainage 60/90, men’s sports, men’s full body sports, and taping show only Sergey; relax/aroma and anti-cellulite 60/90 show both; women’s sports and women’s full body sports show only Ekaterina.
+- Confirm the Taping service appears as `Тейпирование`, `Tejping`, and `Taping`, with the one-application detail in the description.
 - Confirm device lymphatic drainage one-zone and 12-treatment course appear under Body and show both Sergey and Ekaterina in public booking and dashboard manual booking.
 - Confirm dashboard manual booking service options use the same real service names for admin and therapist users.
 - Confirm dashboard manual booking filters therapist options by selected service, and therapist-role users see only services assigned to their therapist profile.
@@ -191,6 +194,7 @@ The current focus is production launch polish after the Vercel deployment. The r
 - Manual booking creation requires applying `20260513130000_dashboard_manual_bookings.sql` in the hosted Supabase project.
 - Therapist-service restrictions require applying `20260518120000_service_catalog_restrictions.sql` in the hosted Supabase project.
 - Device lymphatic drainage services require applying `20260518130000_device_lymphatic_services.sql` after therapist-service restrictions.
+- The shortened Taping service name requires applying `20260518131000_update_taping_translation.sql` after the device lymphatic drainage migration.
 - The hosted Supabase project has `20260513140000_real_service_catalog.sql` applied; local or restored environments still need that migration before public service reads work.
 - The hosted Supabase project has `20260513160000_public_booking_availability_view.sql` applied; local or restored environments need it before real public availability works.
 - The hosted Supabase project has `20260513170000_schedule_blocks.sql` applied; local or restored environments need it before dashboard schedule blocks work.

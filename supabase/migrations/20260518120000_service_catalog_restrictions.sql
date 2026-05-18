@@ -172,9 +172,9 @@ with translation_rows(slug, locale, name, short_description) as (
     ('mens-full-body-sports-massage', 'ru', 'Спортивный мужской массаж всего тела', 'Двухчасовая интенсивная процедура для глубокой проработки всего тела, восстановления и снятия накопленного напряжения.'),
     ('mens-full-body-sports-massage', 'sr', 'Muška sportska masaža celog tela', 'Dvočasovni intenzivan tretman za dubinski rad na celom telu, oporavak i oslobađanje nakupljene napetosti.'),
     ('mens-full-body-sports-massage', 'en', 'Men''s Full Body Sports Massage', 'A two-hour intensive full body treatment for deep muscle work, recovery and release of accumulated tension.'),
-    ('taping-application', 'ru', 'Тейпирование — 1 аппликация', 'Одна аппликация тейпа для поддержки выбранной зоны тела, снижения дискомфорта и помощи в восстановлении после нагрузки.'),
-    ('taping-application', 'sr', 'Tejping — 1 aplikacija', 'Jedna aplikacija tejpa za podršku izabranoj zoni tela, smanjenje nelagodnosti i pomoć u oporavku nakon opterećenja.'),
-    ('taping-application', 'en', 'Taping — 1 Application', 'One tape application to support a selected body area, reduce discomfort and assist recovery after physical load.')
+    ('taping-application', 'ru', 'Тейпирование', 'Одна аппликация тейпа для поддержки выбранной зоны тела, снижения дискомфорта и помощи в восстановлении после нагрузки.'),
+    ('taping-application', 'sr', 'Tejping', 'Jedna aplikacija tejpa za podršku izabranoj zoni tela, smanjenje nelagodnosti i pomoć u oporavku nakon opterećenja.'),
+    ('taping-application', 'en', 'Taping', 'One tape application to support a selected body area, reduce discomfort and assist recovery after physical load.')
 ),
 target_services as (
   select id, slug
