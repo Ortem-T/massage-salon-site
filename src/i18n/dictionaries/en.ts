@@ -107,6 +107,8 @@ const en = {
     },
     availability: {
       selectTherapistFirst: "Select a therapist first",
+      selectSpecialistForService: "Select a service first",
+      noSpecialistsForService: "No specialists are available for this service",
       selectDateFirst: "Select a date first",
       loadingTimes: "Loading available times",
       noAvailableTimes: "No available times for this date",
@@ -116,7 +118,8 @@ const en = {
     },
     error: {
       message: "We could not send your request right now. Please try again or contact us directly.",
-      slotUnavailable: "This time is no longer available. Please choose another open slot."
+      slotUnavailable: "This time is no longer available. Please choose another open slot.",
+      serviceTherapistUnavailable: "This service is not available with the selected specialist. Please choose another specialist."
     },
     submit: "Book appointment",
     submitting: "Sending request",
@@ -299,6 +302,8 @@ const en = {
         placeholders: {
           service: "Choose service",
           therapist: "Choose therapist",
+          therapistForService: "Choose a service first",
+          noTherapistsForService: "No therapists for this service",
           duration: "Optional",
           clientName: "Client name",
           clientPhone: "+381 ...",
@@ -315,6 +320,7 @@ const en = {
           other: "Other"
         },
         ownTherapistFallback: "Your therapist profile is not connected yet.",
+        servicesAvailableToTherapist: "Only services available to this therapist are shown.",
         errors: {
           service: "Choose a service.",
           date: "Choose a date.",
@@ -323,6 +329,8 @@ const en = {
           clientName: "Enter the client name.",
           clientPhone: "Enter the client phone.",
           therapist: "Your therapist profile is required to create bookings.",
+          noTherapistsForService: "No therapists are available for this service.",
+          serviceTherapistUnavailable: "This therapist does not provide the selected service.",
           sourceChannel: "Choose a source channel.",
           blocked: "This time is blocked."
         },
@@ -378,6 +386,7 @@ const en = {
         saving: "Saving...",
         saved: "Saved.",
         forbidden: "This action is not available for your role.",
+        serviceRestriction: "The selected therapist does not provide this service.",
         confirmCancel: "Cancel this booking?",
         error: "Could not save changes."
       }

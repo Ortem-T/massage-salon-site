@@ -91,6 +91,13 @@ export class DashboardBlockedTimeError extends Error {
   }
 }
 
+export class DashboardServiceRestrictionError extends Error {
+  constructor() {
+    super("Selected therapist does not provide this service.");
+    this.name = "DashboardServiceRestrictionError";
+  }
+}
+
 function isBookingStatus(status: unknown): status is BookingStatus {
   return typeof status === "string" && bookingStatuses.includes(status as BookingStatus);
 }
@@ -467,6 +474,19 @@ async function getActiveServiceBySlug(slug: string): Promise<ActiveServiceRow | 
   return error || !data ? null : data;
 }
 
+async function isTherapistAllowedForService(serviceId: string, therapistId: string) {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("therapist_services")
+    .select("id")
+    .eq("service_id", serviceId)
+    .eq("therapist_id", therapistId)
+    .eq("active", true)
+    .maybeSingle();
+
+  return !error && Boolean(data);
+}
+
 async function getRussianServiceNameBySlug(slug: string) {
   const supabase = await createSupabaseServerClient();
   const { data: service, error: serviceError } = await supabase
@@ -623,6 +643,12 @@ export async function createManualBooking(user: DashboardUser, input: CreateManu
   }
 
   if (therapistId) {
+    const isAllowed = await isTherapistAllowedForService(service.id, therapistId);
+
+    if (!isAllowed) {
+      throw new DashboardServiceRestrictionError();
+    }
+
     const isAvailable = await isManualBookingSlotAvailable({
       therapistId,
       serviceDurationMinutes: input.durationMinutes ?? service.duration_minutes,
@@ -773,6 +799,12 @@ export async function assignTherapistToBooking(user: DashboardUser, bookingId: s
 
     if (!nextTherapist) {
       throw new DashboardForbiddenError();
+    }
+
+    const service = await getActiveServiceBySlug(existingBooking.service);
+
+    if (!service || !(await isTherapistAllowedForService(service.id, nextTherapistId))) {
+      throw new DashboardServiceRestrictionError();
     }
   }
 

@@ -107,6 +107,8 @@ const ru = {
     },
     availability: {
       selectTherapistFirst: "Сначала выберите массажиста",
+      selectSpecialistForService: "Сначала выберите услугу",
+      noSpecialistsForService: "Для этой услуги нет доступных специалистов",
       selectDateFirst: "Сначала выберите дату",
       loadingTimes: "Загружаем доступное время",
       noAvailableTimes: "На эту дату нет свободного времени",
@@ -116,7 +118,8 @@ const ru = {
     },
     error: {
       message: "Сейчас не удалось отправить заявку. Попробуйте еще раз или свяжитесь с нами напрямую.",
-      slotUnavailable: "Это время уже заняли. Пожалуйста, выберите другой свободный слот."
+      slotUnavailable: "Это время уже заняли. Пожалуйста, выберите другой свободный слот.",
+      serviceTherapistUnavailable: "Эта услуга недоступна у выбранного специалиста. Выберите другого специалиста."
     },
     submit: "Записаться",
     submitting: "Отправляем заявку",
@@ -299,6 +302,8 @@ const ru = {
         placeholders: {
           service: "Выберите услугу",
           therapist: "Выберите массажиста",
+          therapistForService: "Сначала выберите услугу",
+          noTherapistsForService: "Нет массажистов для этой услуги",
           duration: "Необязательно",
           clientName: "Имя клиента",
           clientPhone: "+381 ...",
@@ -315,6 +320,7 @@ const ru = {
           other: "Другое"
         },
         ownTherapistFallback: "Ваш профиль массажиста пока не подключен.",
+        servicesAvailableToTherapist: "Показаны только услуги, доступные этому массажисту.",
         errors: {
           service: "Выберите услугу.",
           date: "Выберите дату.",
@@ -323,6 +329,8 @@ const ru = {
           clientName: "Введите имя клиента.",
           clientPhone: "Введите телефон клиента.",
           therapist: "Чтобы создать запись, нужен ваш профиль массажиста.",
+          noTherapistsForService: "Для этой услуги нет доступных массажистов.",
+          serviceTherapistUnavailable: "Этот массажист не выполняет выбранную услугу.",
           sourceChannel: "Выберите источник.",
           blocked: "Это время заблокировано."
         },
@@ -378,6 +386,7 @@ const ru = {
         saving: "Сохраняем...",
         saved: "Сохранено.",
         forbidden: "Это действие недоступно для вашей роли.",
+        serviceRestriction: "Выбранный массажист не выполняет эту услугу.",
         confirmCancel: "Отменить эту запись?",
         error: "Не удалось сохранить изменения."
       }

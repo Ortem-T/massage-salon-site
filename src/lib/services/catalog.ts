@@ -14,6 +14,7 @@ export type ServiceCatalogItem = {
   active: boolean;
   bookableOnline: boolean;
   sortOrder: number;
+  allowedTherapistIds: string[];
   name: string;
   shortDescription: string;
   description: string | null;
@@ -36,6 +37,12 @@ type ServiceTranslationRow = {
   name: string;
   short_description: string;
   description: string | null;
+};
+
+type TherapistServiceRow = {
+  therapist_id: string;
+  service_id: string;
+  active: boolean;
 };
 
 type ServiceCatalogOptions = {
@@ -93,6 +100,22 @@ export function formatServicePrice(priceRsd: number | null, locale: Locale) {
   return `${new Intl.NumberFormat(numberLocale).format(priceRsd)} RSD`;
 }
 
+export function getAllowedTherapistIdsForService(serviceCatalog: ServiceCatalogItem[], serviceSlug: string) {
+  return serviceCatalog.find((service) => service.slug === serviceSlug)?.allowedTherapistIds ?? [];
+}
+
+export function isTherapistAllowedForService(
+  serviceCatalog: ServiceCatalogItem[],
+  serviceSlug: string,
+  therapistId: string | null | undefined
+) {
+  if (!therapistId) {
+    return false;
+  }
+
+  return getAllowedTherapistIdsForService(serviceCatalog, serviceSlug).includes(therapistId);
+}
+
 export async function getServiceCatalog(
   locale: Locale,
   options: ServiceCatalogOptions = {}
@@ -135,6 +158,21 @@ export async function getServiceCatalog(
       });
     }
 
+    const { data: therapistServices, error: therapistServicesError } = await supabase
+      .from("therapist_services")
+      .select("therapist_id, service_id, active")
+      .in("service_id", serviceIds)
+      .eq("active", true);
+    const allowedTherapistsByServiceId = new Map<string, string[]>();
+
+    if (!therapistServicesError) {
+      (therapistServices as TherapistServiceRow[] | null)?.forEach((relationship) => {
+        const existing = allowedTherapistsByServiceId.get(relationship.service_id) ?? [];
+        existing.push(relationship.therapist_id);
+        allowedTherapistsByServiceId.set(relationship.service_id, existing);
+      });
+    }
+
     return serviceRows.flatMap((service) => {
       if (!isServiceCategory(service.category)) {
         return [];
@@ -152,6 +190,7 @@ export async function getServiceCatalog(
           active: service.active,
           bookableOnline: service.bookable_online ?? true,
           sortOrder: service.sort_order ?? 0,
+          allowedTherapistIds: allowedTherapistsByServiceId.get(service.id) ?? [],
           ...translation
         }
       ];

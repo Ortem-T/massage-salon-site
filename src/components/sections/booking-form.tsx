@@ -17,7 +17,11 @@ import { type Dictionary } from "@/i18n/dictionaries";
 import { getTodayValue, isBookingDateSelectable, parseDateValue, toDateValue } from "@/lib/booking/booking-availability";
 import { type BookingFormValues, createBookingFormSchema } from "@/lib/booking/booking-schema";
 import { BookingRequestError, createBookingRequest } from "@/lib/booking/create-booking-request";
-import { type ServiceCatalogItem } from "@/lib/services/catalog";
+import {
+  getAllowedTherapistIdsForService,
+  isTherapistAllowedForService,
+  type ServiceCatalogItem
+} from "@/lib/services/catalog";
 import { type TherapistCatalogItem } from "@/lib/therapists/catalog";
 import { cn } from "@/lib/utils";
 
@@ -132,6 +136,14 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
     () => serviceCatalog.find((service) => service.slug === selectedService) ?? null,
     [selectedService, serviceCatalog]
   );
+  const allowedTherapistIds = useMemo(
+    () => (selectedService ? getAllowedTherapistIdsForService(serviceCatalog, selectedService) : []),
+    [selectedService, serviceCatalog]
+  );
+  const availableTherapists = useMemo(
+    () => therapistCatalog.filter((therapist) => allowedTherapistIds.includes(therapist.id)),
+    [allowedTherapistIds, therapistCatalog]
+  );
   const availableTimeSlots = useMemo(
     () => (selectedDate ? (availabilityByDate[selectedDate]?.availableTimeSlots ?? []) : []),
     [availabilityByDate, selectedDate]
@@ -139,6 +151,11 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
   const canLoadAvailability = Boolean(selectedService && selectedTherapist && selectedServiceItem);
   const isCalendarDisabled = !selectedService || !selectedTherapist;
   const isTimeDisabled = !selectedService || !selectedTherapist || !selectedDate || isAvailabilityLoading || availableTimeSlots.length === 0;
+  const specialistPlaceholder = !selectedService
+    ? booking.availability.selectSpecialistForService
+    : availableTherapists.length === 0
+      ? booking.availability.noSpecialistsForService
+      : booking.fields.specialist.placeholder;
   const isDateSelectable = useCallback(
     (value: string) => {
       if (!canLoadAvailability) {
@@ -168,6 +185,25 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
     setAvailabilityByDate({});
     setAvailabilityError(false);
   }, [selectedService, selectedTherapist, setValue]);
+
+  useEffect(() => {
+    if (!selectedService) {
+      if (selectedTherapist) {
+        setValue("specialist", "", { shouldDirty: true, shouldValidate: true });
+      }
+
+      return;
+    }
+
+    if (availableTherapists.length === 1 && selectedTherapist !== availableTherapists[0].id) {
+      setValue("specialist", availableTherapists[0].id, { shouldDirty: true, shouldValidate: true });
+      return;
+    }
+
+    if (selectedTherapist && !allowedTherapistIds.includes(selectedTherapist)) {
+      setValue("specialist", "", { shouldDirty: true, shouldValidate: true });
+    }
+  }, [allowedTherapistIds, availableTherapists, selectedService, selectedTherapist, setValue]);
 
   useEffect(() => {
     if (!canLoadAvailability) {
@@ -253,6 +289,11 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
     setIsSuccess(false);
     setSubmitError(null);
 
+    if (!isTherapistAllowedForService(serviceCatalog, values.service, values.specialist)) {
+      setSubmitError(booking.error.serviceTherapistUnavailable);
+      return;
+    }
+
     try {
       await createBookingRequest({ ...values, siteLocale: locale });
       setAvailabilityRefreshKey((current) => current + 1);
@@ -263,6 +304,12 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
         setSubmitError(booking.error.slotUnavailable);
         setAvailabilityRefreshKey((current) => current + 1);
         setValue("preferredTime", "", { shouldDirty: true, shouldValidate: true });
+        return;
+      }
+
+      if (error instanceof BookingRequestError && error.code === "service_therapist_unavailable") {
+        setSubmitError(booking.error.serviceTherapistUnavailable);
+        setValue("specialist", "", { shouldDirty: true, shouldValidate: true });
         return;
       }
 
@@ -344,11 +391,12 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
                 <Select
                   id="booking-specialist"
                   aria-invalid={!!errors.specialist}
-                  aria-describedby={errors.specialist ? "booking-specialist-error" : undefined}
+                  aria-describedby={errors.specialist || (selectedService && availableTherapists.length === 0) ? "booking-specialist-error" : undefined}
+                  disabled={!selectedService || availableTherapists.length === 0}
                   {...register("specialist")}
                 >
-                  <option value="">{booking.fields.specialist.placeholder}</option>
-                  {therapistCatalog.map((therapist) => (
+                  <option value="">{specialistPlaceholder}</option>
+                  {availableTherapists.map((therapist) => (
                     <option key={therapist.id} value={therapist.id}>
                       {therapist.publicTitle ? `${therapist.displayName} · ${therapist.publicTitle}` : therapist.displayName}
                     </option>
@@ -356,7 +404,13 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
                 </Select>
                 <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
               </div>
-              <FieldError id="booking-specialist-error" message={errors.specialist?.message} />
+              <FieldError
+                id="booking-specialist-error"
+                message={
+                  errors.specialist?.message ??
+                  (selectedService && availableTherapists.length === 0 ? booking.availability.noSpecialistsForService : undefined)
+                }
+              />
             </div>
           </div>
 

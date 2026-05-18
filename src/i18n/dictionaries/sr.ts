@@ -113,6 +113,8 @@ const sr = {
     },
     availability: {
       selectTherapistFirst: "Prvo izaberite terapeuta",
+      selectSpecialistForService: "Prvo izaberite uslugu",
+      noSpecialistsForService: "Nema dostupnih specijalista za ovu uslugu",
       selectDateFirst: "Prvo izaberite datum",
       loadingTimes: "Učitavamo dostupna vremena",
       noAvailableTimes: "Nema slobodnih termina za ovaj datum",
@@ -122,7 +124,8 @@ const sr = {
     },
     error: {
       message: "Zahtev trenutno nije moguće poslati. Pokušajte ponovo ili nas kontaktirajte direktno.",
-      slotUnavailable: "Ovaj termin je upravo zauzet. Izaberite drugo slobodno vreme."
+      slotUnavailable: "Ovaj termin je upravo zauzet. Izaberite drugo slobodno vreme.",
+      serviceTherapistUnavailable: "Ova usluga nije dostupna kod izabranog specijaliste. Izaberite drugog specijalistu."
     },
     submit: "Zakaži termin",
     submitting: "Šaljemo zahtev",
@@ -306,6 +309,8 @@ const sr = {
         placeholders: {
           service: "Izaberite uslugu",
           therapist: "Izaberite terapeuta",
+          therapistForService: "Prvo izaberite uslugu",
+          noTherapistsForService: "Nema terapeuta za ovu uslugu",
           duration: "Opcionalno",
           clientName: "Ime klijenta",
           clientPhone: "+381 ...",
@@ -322,6 +327,7 @@ const sr = {
           other: "Drugo"
         },
         ownTherapistFallback: "Vaš profil terapeuta još nije povezan.",
+        servicesAvailableToTherapist: "Prikazane su samo usluge dostupne ovom terapeutu.",
         errors: {
           service: "Izaberite uslugu.",
           date: "Izaberite datum.",
@@ -330,6 +336,8 @@ const sr = {
           clientName: "Unesite ime klijenta.",
           clientPhone: "Unesite telefon klijenta.",
           therapist: "Za kreiranje termina potreban je vaš profil terapeuta.",
+          noTherapistsForService: "Nema dostupnih terapeuta za ovu uslugu.",
+          serviceTherapistUnavailable: "Ovaj terapeut ne radi izabranu uslugu.",
           sourceChannel: "Izaberite izvor.",
           blocked: "Ovo vreme je blokirano."
         },
@@ -385,6 +393,7 @@ const sr = {
         saving: "Čuvamo...",
         saved: "Sačuvano.",
         forbidden: "Ova radnja nije dostupna za vašu ulogu.",
+        serviceRestriction: "Izabrani terapeut ne radi ovu uslugu.",
         confirmCancel: "Otkazati ovaj termin?",
         error: "Izmene nije moguće sačuvati."
       }

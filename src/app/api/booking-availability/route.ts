@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
   const supabase = createSupabaseBrowserClient();
   const { data: service, error: serviceError } = await supabase
     .from("services")
-    .select("slug, duration_minutes")
+    .select("id, slug, duration_minutes")
     .eq("slug", serviceSlug)
     .eq("active", true)
     .eq("bookable_online", true)
@@ -98,6 +98,24 @@ export async function GET(request: NextRequest) {
 
   if (therapistError || !therapist) {
     return NextResponse.json({ error: "Invalid therapist." }, { status: 400 });
+  }
+
+  const { data: therapistService, error: therapistServiceError } = await supabase
+    .from("therapist_services")
+    .select("id")
+    .eq("service_id", service.id)
+    .eq("therapist_id", therapist.id)
+    .eq("active", true)
+    .maybeSingle();
+
+  if (therapistServiceError || !therapistService) {
+    return NextResponse.json(
+      {
+        code: "service_therapist_unavailable",
+        error: "Selected therapist does not provide this service."
+      },
+      { status: 400 }
+    );
   }
 
   const { data: rows, error: availabilityError } = await supabase

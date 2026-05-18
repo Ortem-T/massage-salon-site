@@ -10,6 +10,7 @@ import {
   type CreateManualBookingInput,
   DashboardBlockedTimeError,
   DashboardForbiddenError,
+  DashboardServiceRestrictionError,
   updateBookingInternalNotes,
   updateBookingStatus
 } from "@/lib/dashboard/bookings";
@@ -24,7 +25,7 @@ import { type BookingStatus } from "@/lib/booking/booking-schema";
 
 export type DashboardActionResult = {
   ok: boolean;
-  reason?: "forbidden" | "error" | "invalid" | "invalid_time" | "overlap" | "blocked";
+  reason?: "forbidden" | "error" | "invalid" | "invalid_time" | "overlap" | "blocked" | "service_restriction";
 };
 
 type BookingActionInput = {
@@ -42,6 +43,10 @@ function toActionResult(error: unknown): DashboardActionResult {
 
   if (error instanceof DashboardBlockedTimeError) {
     return { ok: false, reason: "blocked" };
+  }
+
+  if (error instanceof DashboardServiceRestrictionError) {
+    return { ok: false, reason: "service_restriction" };
   }
 
   if (process.env.NODE_ENV !== "production") {
