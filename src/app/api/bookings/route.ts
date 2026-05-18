@@ -94,6 +94,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid booking specialist." }, { status: 400 });
   }
 
+  const { data: therapistService, error: therapistServiceError } = await supabase
+    .from("therapist_services")
+    .select("id")
+    .eq("service_id", service.id)
+    .eq("therapist_id", therapist.id)
+    .eq("active", true)
+    .maybeSingle();
+
+  if (therapistServiceError || !therapistService) {
+    return NextResponse.json(
+      {
+        code: "service_therapist_unavailable",
+        error: "Selected specialist does not provide this service."
+      },
+      { status: 400 }
+    );
+  }
+
   const { data: availabilityRows, error: availabilityError } = await supabase
     .from("public_booking_availability")
     .select("booking_date, preferred_time, therapist_id, duration_minutes, status")

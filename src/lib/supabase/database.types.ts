@@ -204,6 +204,24 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["therapist_translations"]["Insert"]>;
         Relationships: [];
       };
+      therapist_services: {
+        Row: {
+          id: string;
+          therapist_id: string;
+          service_id: string;
+          active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          therapist_id: string;
+          service_id: string;
+          active?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["therapist_services"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: {
       public_booking_availability: {

@@ -211,9 +211,9 @@ translation_rows(slug, locale, name, short_description) as (
     ('full-body-sports-massage-120', 'ru', 'Спортивный массаж всего тела', 'Двухчасовой спортивный массаж всего тела для глубокой проработки мышц, восстановления и снятия накопленного напряжения.'),
     ('full-body-sports-massage-120', 'sr', 'Sportska masaža celog tela', 'Dvočasovna sportska masaža celog tela za dubinski rad na mišićima, oporavak i oslobađanje nakupljene napetosti.'),
     ('full-body-sports-massage-120', 'en', 'Full Body Sports Massage', 'A two-hour full body sports massage for deep muscle work, recovery and release of accumulated tension.'),
-    ('taping-application', 'ru', 'Тейпирование — 1 аппликация', 'Одна аппликация тейпа для поддержки зоны тела, снижения дискомфорта и помощи в восстановлении после нагрузки.'),
-    ('taping-application', 'sr', 'Tejping — 1 aplikacija', 'Jedna aplikacija tejpa za podršku određenoj zoni tela, smanjenje nelagodnosti i pomoć u oporavku nakon opterećenja.'),
-    ('taping-application', 'en', 'Taping — 1 Application', 'One tape application to support a body area, reduce discomfort and assist recovery after physical load.')
+    ('taping-application', 'ru', 'Тейпирование', 'Одна аппликация тейпа для поддержки выбранной зоны тела, снижения дискомфорта и помощи в восстановлении после нагрузки.'),
+    ('taping-application', 'sr', 'Tejping', 'Jedna aplikacija tejpa za podršku izabranoj zoni tela, smanjenje nelagodnosti i pomoć u oporavku nakon opterećenja.'),
+    ('taping-application', 'en', 'Taping', 'One tape application to support a selected body area, reduce discomfort and assist recovery after physical load.')
 )
 insert into public.service_translations (
   service_id,

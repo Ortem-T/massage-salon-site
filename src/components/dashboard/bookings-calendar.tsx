@@ -26,7 +26,11 @@ import {
   type ManualBookingSourceChannel
 } from "@/lib/dashboard/constants";
 import { type DashboardBooking, type DashboardTherapist } from "@/lib/dashboard/bookings";
-import { type ServiceCatalogItem } from "@/lib/services/catalog";
+import {
+  getAllowedTherapistIdsForService,
+  isTherapistAllowedForService,
+  type ServiceCatalogItem
+} from "@/lib/services/catalog";
 import { cn } from "@/lib/utils";
 
 type CalendarView = "day" | "week" | "month";
@@ -255,6 +259,22 @@ export function BookingsCalendar({
     () => new Map(serviceCatalog.map((service) => [service.slug, String(service.durationMinutes)])),
     [serviceCatalog]
   );
+  const ownTherapistId = role === "therapist" ? (therapists[0]?.id ?? "") : "";
+  const manualServiceCatalog = useMemo(
+    () =>
+      role === "therapist"
+        ? serviceCatalog.filter((service) => service.allowedTherapistIds.includes(ownTherapistId))
+        : serviceCatalog,
+    [ownTherapistId, role, serviceCatalog]
+  );
+  const manualAllowedTherapistIds = useMemo(
+    () => (manualBookingForm.service ? getAllowedTherapistIdsForService(serviceCatalog, manualBookingForm.service) : []),
+    [manualBookingForm.service, serviceCatalog]
+  );
+  const manualAvailableTherapists = useMemo(
+    () => therapists.filter((therapist) => manualAllowedTherapistIds.includes(therapist.id)),
+    [manualAllowedTherapistIds, therapists]
+  );
   const manualCanLoadAvailability = Boolean(
     manualBookingForm.service &&
     manualBookingForm.therapistId &&
@@ -276,6 +296,13 @@ export function BookingsCalendar({
   }, [bookings, role, statusFilter, therapistFilter]);
 
   const selectedBooking = filteredBookings.find((booking) => booking.id === selectedBookingId) ?? null;
+  const assignmentAvailableTherapists = useMemo(
+    () =>
+      selectedBooking
+        ? therapists.filter((therapist) => isTherapistAllowedForService(serviceCatalog, selectedBooking.service, therapist.id))
+        : [],
+    [selectedBooking, serviceCatalog, therapists]
+  );
   const visibleDays = view === "day" ? [selectedDate] : view === "week" ? getWeekDays(selectedDate) : getMonthDays(selectedDate);
   const visibleBookings = filteredBookings.filter((booking) => visibleDays.includes(booking.preferredDate));
 
@@ -398,7 +425,6 @@ export function BookingsCalendar({
   }
 
   function openCreateBooking() {
-    const ownTherapistId = role === "therapist" ? (therapists[0]?.id ?? "") : "";
     const defaultDate = isBookingDateSelectable(selectedDate, manualMinDate) ? selectedDate : "";
 
     setSelectedBookingId(null);
@@ -473,9 +499,20 @@ export function BookingsCalendar({
   }
 
   function updateManualBookingService(service: string) {
+    const allowedTherapistIds = getAllowedTherapistIdsForService(serviceCatalog, service);
+    const nextTherapistId =
+      role === "therapist"
+        ? (allowedTherapistIds.includes(ownTherapistId) ? ownTherapistId : "")
+        : allowedTherapistIds.length === 1
+          ? allowedTherapistIds[0]
+          : allowedTherapistIds.includes(manualBookingForm.therapistId)
+            ? manualBookingForm.therapistId
+            : "";
+
     setManualBookingForm((current) => ({
       ...current,
       service,
+      therapistId: nextTherapistId,
       durationMinutes: serviceDurations.get(service) ?? current.durationMinutes,
       preferredTime: ""
     }));
@@ -523,7 +560,11 @@ export function BookingsCalendar({
     }
 
     if (!manualBookingForm.therapistId) {
-      errors.therapistId = create.errors.therapist;
+      errors.therapistId = manualBookingForm.service && manualAvailableTherapists.length === 0
+        ? create.errors.noTherapistsForService
+        : create.errors.therapist;
+    } else if (!isTherapistAllowedForService(serviceCatalog, manualBookingForm.service, manualBookingForm.therapistId)) {
+      errors.therapistId = create.errors.serviceTherapistUnavailable;
     }
 
     setManualBookingErrors(errors);
@@ -570,7 +611,13 @@ export function BookingsCalendar({
       return;
     }
 
-    setMessage(result.reason === "forbidden" ? calendar.actions.forbidden : calendar.actions.error);
+    setMessage(
+      result.reason === "forbidden"
+        ? calendar.actions.forbidden
+        : result.reason === "service_restriction"
+          ? calendar.actions.serviceRestriction
+          : calendar.actions.error
+    );
   }
 
   function runAction(action: () => Promise<DashboardActionResult>) {
@@ -671,6 +718,15 @@ export function BookingsCalendar({
           preferredTime: calendar.create.errors.blocked
         }));
         setMessage(calendar.create.errors.blocked);
+        return;
+      }
+
+      if (result.reason === "service_restriction") {
+        setManualBookingErrors((current) => ({
+          ...current,
+          therapistId: calendar.create.errors.serviceTherapistUnavailable
+        }));
+        setMessage(calendar.create.errors.serviceTherapistUnavailable);
         return;
       }
 
@@ -941,7 +997,7 @@ export function BookingsCalendar({
                     aria-invalid={Boolean(manualBookingErrors.service)}
                   >
                     <option value="">{calendar.create.placeholders.service}</option>
-                    {serviceCatalog.map((service) => (
+                    {manualServiceCatalog.map((service) => (
                       <option key={service.slug} value={service.slug}>
                         {service.name}
                       </option>
@@ -1093,9 +1149,16 @@ export function BookingsCalendar({
                         value={manualBookingForm.therapistId}
                         onChange={(event) => updateManualBookingField("therapistId", event.target.value)}
                         aria-invalid={Boolean(manualBookingErrors.therapistId)}
+                        disabled={!manualBookingForm.service || manualAvailableTherapists.length === 0}
                       >
-                        <option value="">{calendar.create.placeholders.therapist}</option>
-                        {therapists.map((therapist) => (
+                        <option value="">
+                          {!manualBookingForm.service
+                            ? calendar.create.placeholders.therapistForService
+                            : manualAvailableTherapists.length === 0
+                              ? calendar.create.placeholders.noTherapistsForService
+                              : calendar.create.placeholders.therapist}
+                        </option>
+                        {manualAvailableTherapists.map((therapist) => (
                           <option key={therapist.id} value={therapist.id}>
                             {therapist.displayName}
                           </option>
@@ -1130,6 +1193,9 @@ export function BookingsCalendar({
                     <p className="mt-1 text-sm font-semibold text-primary">
                       {therapistNames.get(manualBookingForm.therapistId) ?? calendar.create.ownTherapistFallback}
                     </p>
+                    {manualServiceCatalog.length > 0 ? (
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">{calendar.create.servicesAvailableToTherapist}</p>
+                    ) : null}
                     <ManualFieldError message={manualBookingErrors.therapistId} />
                   </div>
                 )}
@@ -1256,7 +1322,7 @@ export function BookingsCalendar({
                     onChange={(event) => setAssignedTherapistId(event.target.value || null)}
                   >
                     <option value="">{calendar.filters.unassignedTherapist}</option>
-                    {therapists.map((therapist) => (
+                    {assignmentAvailableTherapists.map((therapist) => (
                       <option key={therapist.id} value={therapist.id}>
                         {therapist.displayName}
                       </option>
