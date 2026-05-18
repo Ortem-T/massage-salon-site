@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 
@@ -7,6 +8,16 @@ import { getDictionary } from "@/i18n/dictionaries";
 import { requireDashboardUser } from "@/lib/dashboard/auth";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false
+    }
+  }
+};
 
 type DashboardLayoutProps = {
   children: ReactNode;

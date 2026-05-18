@@ -6,10 +6,17 @@ type TestimonialItem = {
 
 const sr = {
   seo: {
-    title: "RAINË | Premium masaža u Novom Sadu",
+    title: "Raine — Masaža u Novom Sadu | Profesionalni tretmani za telo i lice",
     description:
-      "Luxury wellness masažni salon u Novom Sadu sa japanskom spa estetikom, pažljivim terapeutima i ritualima za duboki oporavak.",
-    keywords: ["masaža Novi Sad", "spa Novi Sad", "wellness salon", "relax masaža", "Raine Spa"]
+      "Masaža u Novom Sadu u mirnoj atmosferi. Tretmani za telo i lice, relaks masaža, sportska masaža, limfna drenaža i nega lica.",
+    keywords: [
+      "masaža Novi Sad",
+      "relaks masaža Novi Sad",
+      "sportska masaža Novi Sad",
+      "limfna drenaža Novi Sad",
+      "masaža lica Novi Sad",
+      "anticelulit masaža Novi Sad"
+    ]
   },
   brand: {
     name: "RAINË",

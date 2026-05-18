@@ -1,6 +1,6 @@
 # Development Log
 
-Last updated: 2026-05-15
+Last updated: 2026-05-18
 
 This log is shared context for human and AI-assisted development. Update it after every major development stage so future Codex, `web-coder`, and `grill-me` sessions can continue without rediscovering project history.
 
@@ -70,10 +70,11 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Removed the standalone homepage WhatsApp CTA block and redesigned the About salon section as a dark green premium brand block while keeping existing About copy and stats.
 - Added server-side Telegram booking notifications using `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, and `NEXT_PUBLIC_SITE_URL`. Notifications are Russian-only for now, include an inline dashboard day button when the site URL is configured, and failures are logged server-side without blocking booking creation or updates.
 - Completed a pre-deployment Vercel audit: lint and production build pass, required env placeholders are documented, local env files and build artifacts are ignored, tracked code contains no Telegram bot token, Supabase service-role key, or Google Maps API key, `/sr`, `/ru`, and `/en` smoke-test successfully, unauthenticated dashboard access redirects to login, and a public booking API smoke-test returns `201`.
+- Added the local SEO foundation for `https://raine.rs`: localized production titles/descriptions, absolute canonical and hreflang URLs, sitemap and robots using the production domain, Open Graph locale metadata, LocalBusiness/HealthAndBeautyBusiness JSON-LD, noindex metadata for login/dashboard routes, and `docs/SEO_CHECKLIST.md` for Search Console and Google Business Profile follow-up.
 
 ## Current Focus
 
-The current focus is Vercel deployment preparation. The real service, therapist, availability, and schedule-block migrations have been applied to the hosted `raine` Supabase project and public reads are limited to safe catalog/availability data. Contact data is production-shaped and does not expose the phone number as plain text, but deployment still needs a restricted `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY` for the embedded map. Telegram deployment needs server-only `TELEGRAM_BOT_TOKEN`, full `TELEGRAM_CHAT_ID` such as `-1003965424928`, and `NEXT_PUBLIC_SITE_URL` set to the public HTTPS site URL for dashboard buttons. Homepage testimonials remain hidden until real permission-safe reviews are available.
+The current focus is production launch polish after the Vercel deployment. The real service, therapist, availability, and schedule-block migrations have been applied to the hosted `raine` Supabase project and public reads are limited to safe catalog/availability data. Contact data is production-shaped and does not expose the phone number as plain text. SEO now targets `https://raine.rs` with localized homepage metadata, canonical/hreflang, sitemap, robots, and local business JSON-LD. Deployment still needs a restricted `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY`, Search Console sitemap submission, and Google Business Profile setup. Telegram deployment needs server-only `TELEGRAM_BOT_TOKEN`, full `TELEGRAM_CHAT_ID` such as `-1003965424928`, and `NEXT_PUBLIC_SITE_URL=https://raine.rs` for dashboard buttons. Homepage testimonials remain hidden until real permission-safe reviews are available.
 
 ## Git Workflow
 
@@ -97,6 +98,9 @@ The current focus is Vercel deployment preparation. The real service, therapist,
 - Add therapist-specific working hours later if needed; MVP public availability uses the centralized default 10:00-19:00 schedule, all 7 days.
 - Add manual QA checklist for launch.
 - Verify Telegram booking notifications in the team chat after deployment env vars are configured.
+- Verify `https://raine.rs/sitemap.xml` and `https://raine.rs/robots.txt` after the next deployment.
+- Add `https://raine.rs` to Google Search Console and submit the sitemap.
+- Create or claim the Google Business Profile for Raine.
 - Create Supabase Auth staff users and set `app_metadata.role` to either `admin` or `therapist`.
 - Seed initial `profiles` and `therapists` rows after the dashboard schema migration is applied.
 - Re-run `20260513140000_real_service_catalog.sql` only when restoring or reseeding; it is slug-based and idempotent.

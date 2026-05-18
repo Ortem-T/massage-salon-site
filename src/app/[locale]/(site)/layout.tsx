@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
+import { getLocalBusinessJsonLd } from "@/config/seo";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 
@@ -26,6 +27,12 @@ export default async function SiteLayout({ children, params }: SiteLayoutProps) 
       <Navbar locale={locale} dictionary={dictionary} />
       {children}
       <Footer locale={locale} dictionary={dictionary} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(getLocalBusinessJsonLd())
+        }}
+      />
     </>
   );
 }
