@@ -1,9 +1,16 @@
 const en = {
   seo: {
-    title: "RAINË | Premium massage in Novi Sad",
+    title: "Raine — Massage in Novi Sad | Body and Face Treatments",
     description:
-      "A luxury wellness massage salon in Novi Sad with a Japanese spa aesthetic, attentive therapists, and rituals for deep recovery.",
-    keywords: ["massage Novi Sad", "spa Novi Sad", "wellness salon", "relax massage", "Raine Spa"]
+      "Massage salon in Novi Sad with body and face treatments, relaxing massage, sports massage, lymphatic drainage and facial care.",
+    keywords: [
+      "massage Novi Sad",
+      "relaxing massage Novi Sad",
+      "sports massage Novi Sad",
+      "lymphatic drainage Novi Sad",
+      "face massage Novi Sad",
+      "anti-cellulite massage Novi Sad"
+    ]
   },
   brand: {
     name: "RAINË",

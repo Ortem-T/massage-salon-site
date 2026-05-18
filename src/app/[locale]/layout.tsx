@@ -11,15 +11,21 @@ import "@fontsource/cormorant-garamond/600.css";
 import "@fontsource/cormorant-garamond/700.css";
 import "../globals.css";
 
-import { defaultLocale, isLocale, locales, type Locale } from "@/i18n/config";
+import {
+  getDefaultLocalizedUrl,
+  getLocalizedUrl,
+  getLocalizedUrls,
+  openGraphLocales,
+  siteName,
+  siteUrl
+} from "@/config/seo";
+import { isLocale, locales, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 
 type LocaleLayoutProps = {
   children: ReactNode;
   params: Promise<{ locale: string }>;
 };
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://raine-spa.rs";
 
 export async function generateMetadata({ params }: LocaleLayoutProps): Promise<Metadata> {
   const { locale: rawLocale } = await params;
@@ -30,7 +36,8 @@ export async function generateMetadata({ params }: LocaleLayoutProps): Promise<M
 
   const locale = rawLocale;
   const dictionary = await getDictionary(locale);
-  const languages = Object.fromEntries(locales.map((item) => [item, `${siteUrl}/${item}`]));
+  const languages = getLocalizedUrls();
+  const alternateLocales = locales.filter((item) => item !== locale).map((item) => openGraphLocales[item]);
 
   return {
     metadataBase: new URL(siteUrl),
@@ -58,18 +65,19 @@ export async function generateMetadata({ params }: LocaleLayoutProps): Promise<M
       ]
     },
     alternates: {
-      canonical: `/${locale}`,
+      canonical: getLocalizedUrl(locale),
       languages: {
         ...languages,
-        "x-default": `/${defaultLocale}`
+        "x-default": getDefaultLocalizedUrl()
       }
     },
     openGraph: {
       title: dictionary.seo.title,
       description: dictionary.seo.description,
-      url: `/${locale}`,
-      siteName: dictionary.brand.name,
-      locale,
+      url: getLocalizedUrl(locale),
+      siteName,
+      locale: openGraphLocales[locale],
+      alternateLocale: alternateLocales,
       type: "website",
       images: [
         {

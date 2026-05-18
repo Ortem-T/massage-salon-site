@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,17 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { signInDashboard } from "./actions";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: "Dashboard login",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false
+    }
+  }
+};
 
 type LoginPageProps = {
   params: Promise<{ locale: string }>;
