@@ -8,7 +8,7 @@ This log is shared context for human and AI-assisted development. Update it afte
 
 Raine is a premium multilingual massage salon homepage for Novi Sad, Serbia. The homepage MVP exists and uses locale-based routing for Serbian, Russian, and English. The visual direction has moved toward calm luxury wellness with Japanese spa influence, warm natural colors, refined typography, soft shadows, and gentle motion.
 
-The booking form MVP is integrated into the homepage and now submits through a Next API route to Supabase. The form collects service, specialist, preferred date, preferred time, client name, phone number, and optional comment. The current site locale is passed as `siteLocale` and persisted as the booking `locale`. A protected dashboard foundation now exists for Supabase Auth staff users with `admin` and `therapist` roles. A dashboard MVP schema migration has been drafted but still needs to be applied manually in Supabase. The first dashboard bookings UI is calendar-first and supports day, week, and month views. Real face/body services now have a Supabase seed migration with localized Serbian, Russian, and English translations, and homepage/public/manual booking service options are designed to read from that shared catalog. Public booking specialists now come from active Supabase therapists with localized display names; the generic "any available specialist" option has been removed. Public contact data now uses real messenger-first salon channels, a centralized contact config, and a Google Maps embed driven by an environment variable. Telegram team notifications are now wired for booking creation, status changes, and dashboard therapist assignment changes, with Russian-only server-side messages.
+The booking form MVP is integrated into the homepage and now submits through a Next API route to Supabase. The form collects service, specialist, preferred date, preferred time, client name, phone number, and optional comment. The current site locale is passed as `siteLocale` and persisted as the booking `locale`. A protected dashboard foundation now exists for Supabase Auth staff users with `admin` and `therapist` roles. A dashboard MVP schema migration has been drafted but still needs to be applied manually in Supabase. The first dashboard bookings UI is calendar-first and supports day, week, and month views. Real face/body services now have a Supabase seed migration with localized Serbian, Russian, and English translations, and homepage/public/manual booking service options are designed to read from that shared catalog. Public booking specialists now come from active Supabase therapists with localized display names; the generic "any available specialist" option has been removed. Public contact data now uses real messenger-first salon channels, a centralized contact config, and a Google Maps embed for the real Raine Massage Salon listing. Telegram team notifications are now wired for booking creation, status changes, and dashboard therapist assignment changes, with Russian-only server-side messages.
 
 ## Completed Tasks
 
@@ -71,10 +71,11 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Added server-side Telegram booking notifications using `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, and `NEXT_PUBLIC_SITE_URL`. Notifications are Russian-only for now, include an inline dashboard day button when the site URL is configured, and failures are logged server-side without blocking booking creation or updates.
 - Completed a pre-deployment Vercel audit: lint and production build pass, required env placeholders are documented, local env files and build artifacts are ignored, tracked code contains no Telegram bot token, Supabase service-role key, or Google Maps API key, `/sr`, `/ru`, and `/en` smoke-test successfully, unauthenticated dashboard access redirects to login, and a public booking API smoke-test returns `201`.
 - Added the local SEO foundation for `https://raine.rs`: localized production titles/descriptions, absolute canonical and hreflang URLs, sitemap and robots using the production domain, Open Graph locale metadata, LocalBusiness/HealthAndBeautyBusiness JSON-LD, noindex metadata for login/dashboard routes, and `docs/SEO_CHECKLIST.md` for Search Console and Google Business Profile follow-up.
+- Switched the contact section Google Maps embed from address/API-key lookup to the real Raine Massage Salon Google Maps listing embed, and updated the external Google Maps link and JSON-LD `hasMap` value to the same listing.
 
 ## Current Focus
 
-The current focus is production launch polish after the Vercel deployment. The real service, therapist, availability, and schedule-block migrations have been applied to the hosted `raine` Supabase project and public reads are limited to safe catalog/availability data. Contact data is production-shaped and does not expose the phone number as plain text. SEO now targets `https://raine.rs` with localized homepage metadata, canonical/hreflang, sitemap, robots, and local business JSON-LD. Deployment still needs a restricted `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY`, Search Console sitemap submission, and Google Business Profile setup. Telegram deployment needs server-only `TELEGRAM_BOT_TOKEN`, full `TELEGRAM_CHAT_ID` such as `-1003965424928`, and `NEXT_PUBLIC_SITE_URL=https://raine.rs` for dashboard buttons. Homepage testimonials remain hidden until real permission-safe reviews are available.
+The current focus is production launch polish after the Vercel deployment. The real service, therapist, availability, and schedule-block migrations have been applied to the hosted `raine` Supabase project and public reads are limited to safe catalog/availability data. Contact data is production-shaped and does not expose the phone number as plain text. The contact map now uses the real Raine Massage Salon Google Maps listing and no longer needs a Google Maps embed API key. SEO now targets `https://raine.rs` with localized homepage metadata, canonical/hreflang, sitemap, robots, and local business JSON-LD. Deployment still needs Search Console sitemap submission and Google Business Profile setup. Telegram deployment needs server-only `TELEGRAM_BOT_TOKEN`, full `TELEGRAM_CHAT_ID` such as `-1003965424928`, and `NEXT_PUBLIC_SITE_URL=https://raine.rs` for dashboard buttons. Homepage testimonials remain hidden until real permission-safe reviews are available.
 
 ## Git Workflow
 
@@ -107,7 +108,6 @@ The current focus is production launch polish after the Vercel deployment. The r
 - Re-run `20260513150000_public_therapist_catalog.sql` only when restoring or reseeding therapist translations.
 - Re-run `20260513160000_public_booking_availability_view.sql` only when restoring the safe public availability view and column-level booking grants.
 - Re-run `20260513170000_schedule_blocks.sql` only when restoring schedule block support, staff RLS, and the safe public schedule block availability view.
-- Add `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY` locally and in deployment with HTTP referrer restrictions before launch.
 - Test admin status changes, therapist assignment, therapist status changes, and internal notes updates against hosted Supabase RLS.
 - Test manual booking creation for admin assigned, admin unassigned, therapist own, and therapist direct-request attempts against hosted Supabase RLS.
 
@@ -142,7 +142,7 @@ The current focus is production launch polish after the Vercel deployment. The r
 - Confirm internal schedule block reasons are visible in dashboard only and not exposed in public booking UI/API responses.
 - Confirm `/sr`, `/ru`, and `/en` contact sections show the real address, Novosadski sajam landmark, daily 10:00-19:00 hours, and localized contact copy.
 - Confirm footer contact links show WhatsApp, Telegram, and Instagram only.
-- Confirm the Google Maps iframe renders when `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY` is configured, and the fallback remains clean without it.
+- Confirm the Google Maps iframe renders on `/sr`, `/ru`, and `/en` and opens the real Raine Massage Salon listing.
 - Confirm the visible site UI does not display the personal phone number as plain text.
 - Confirm validation errors are announced or discoverable by assistive technology.
 - Confirm selected language switcher state remains readable on hover.
@@ -176,7 +176,6 @@ The current focus is production launch polish after the Vercel deployment. The r
 
 ## Known Issues
 
-- Google Maps embed requires `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY`; without it, the contact section shows a styled map fallback and the external Google Maps link still works.
 - Telegram notifications require `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`; without them, booking operations continue and the notification is skipped server-side.
 - Telegram dashboard buttons require `NEXT_PUBLIC_SITE_URL`; without it, messages are still sent without the inline button.
 - Booking persistence depends on applying the Supabase migration and setting public Supabase env vars locally and in deployment.
@@ -211,7 +210,7 @@ The current focus is production launch polish after the Vercel deployment. The r
 - Keep schedule block reasons private in `public.schedule_blocks`; public booking reads only `public.public_schedule_block_availability`, which exposes blocked date/time/scope fields and never internal comments.
 - Use `src/lib/booking/booking-availability.ts` as the shared source for duration rounding, blocked intervals, default time slot generation, and before-insert slot checks.
 - Keep public salon contact data centralized in `src/config/contacts.ts`; translated labels and messages stay in dictionaries. The phone number may exist inside the WhatsApp URL, but visible UI must not render it as plain text.
-- Use `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY` for the embedded map instead of committing Google Maps keys to source.
+- Store the real Raine Massage Salon Google Maps listing URL and iframe embed URL in `src/config/contacts.ts`; do not use address-query embeds or Google Maps API keys for the contact map.
 - Use server-only `TELEGRAM_BOT_TOKEN` and full `TELEGRAM_CHAT_ID` values for team notifications; do not expose the bot token with `NEXT_PUBLIC_` or store it in Supabase.
 - Keep Telegram notification failures non-blocking for booking creation, status updates, and therapist assignment changes.
 - Keep the custom branded booking calendar, but support roving keyboard focus instead of replacing it with a new component dependency.

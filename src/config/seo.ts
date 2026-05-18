@@ -1,4 +1,4 @@
-import { contactConfig, getGoogleMapsSearchUrl } from "@/config/contacts";
+import { contactConfig } from "@/config/contacts";
 import { defaultLocale, locales, type Locale } from "@/i18n/config";
 
 export const productionSiteUrl = "https://raine.rs";
@@ -51,7 +51,7 @@ export function getLocalBusinessJsonLd() {
       name: "Novi Sad"
     },
     openingHours: "Mo-Su 10:00-19:00",
-    hasMap: getGoogleMapsSearchUrl(),
+    hasMap: contactConfig.googleMapsUrl,
     sameAs: [contactConfig.instagramUrl, contactConfig.telegramUrl],
     availableLanguage: locales.map((locale) => ({
       "@type": "Language",
