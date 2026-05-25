@@ -1,6 +1,6 @@
 # Development Log
 
-Last updated: 2026-05-18
+Last updated: 2026-05-25
 
 This log is shared context for human and AI-assisted development. Update it after every major development stage so future Codex, `web-coder`, and `grill-me` sessions can continue without rediscovering project history.
 
@@ -77,6 +77,7 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Renamed the `taping-application` service translations to show the shorter public name "Taping" / "Tejping" / "Тейпирование" while keeping the one-application detail in the localized short descriptions.
 - Updated the homepage services eyebrow to Services & Prices, added localized booking buttons to bookable service rows, wired service buttons to preselect the booking form via `?service=...#booking`, and made the form auto-select a therapist only when exactly one active therapist is allowed for the selected service.
 - Updated Serbian microcurrent wording to use `mikrostrujna` instead of `mikrotalasna`, including `Mikrostrujna terapija lica` for facial microcurrents and related microcurrent service descriptions.
+- Updated the dashboard booking experience to show Supabase service duration and RSD price in manual booking service options, selected service summaries, day-view booking cards, compact card tooltips, and booking details while keeping therapist-service restrictions in place.
 
 ## Current Focus
 
@@ -133,7 +134,12 @@ The current focus is production launch polish after the Vercel deployment. The r
 - Confirm the Taping service appears as `Тейпирование`, `Tejping`, and `Taping`, with the one-application detail in the description.
 - Confirm device lymphatic drainage one-zone and 12-treatment course appear under Body and show both Sergey and Ekaterina in public booking and dashboard manual booking.
 - Confirm dashboard manual booking service options use the same real service names for admin and therapist users.
+- Confirm dashboard manual booking service options show localized service names with Supabase duration and RSD price.
+- Confirm dashboard manual booking selected service summary shows service name, duration, price, category, and allowed therapist names.
 - Confirm dashboard manual booking filters therapist options by selected service, and therapist-role users see only services assigned to their therapist profile.
+- Confirm admin day-view booking cards show duration and price metadata from the service catalog.
+- Confirm therapist day-view booking cards show duration and price only for their own visible bookings.
+- Confirm booking details show service duration and price, including fallback text if either value is missing.
 - Check mobile widths around 360px, 390px, 430px, 768px, and desktop.
 - Confirm homepage has no horizontal scroll at 360px, 375px, 390px, 430px, and 768px.
 - Confirm hero and navbar "book" CTAs scroll to the booking form, while messenger CTAs still open WhatsApp.

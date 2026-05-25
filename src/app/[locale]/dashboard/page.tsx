@@ -5,7 +5,7 @@ import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { requireDashboardUser } from "@/lib/dashboard/auth";
 import { getBookingsForDashboard } from "@/lib/dashboard/bookings";
-import { getServiceCatalog } from "@/lib/services/catalog";
+import { getDashboardServiceCatalogData } from "@/lib/services/dashboard-catalog";
 
 type DashboardPageProps = {
   params: Promise<{ locale: string }>;
@@ -26,10 +26,10 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
 
   const locale: Locale = rawLocale;
   const user = await requireDashboardUser(locale);
-  const [dictionary, data, serviceCatalog] = await Promise.all([
+  const [dictionary, data, serviceCatalogData] = await Promise.all([
     getDictionary(locale),
     getBookingsForDashboard(user),
-    getServiceCatalog(locale, { bookableOnlineOnly: false })
+    getDashboardServiceCatalogData(locale, { activeOnly: false, bookableOnlineOnly: false })
   ]);
 
   return (
@@ -40,7 +40,8 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
       initialDate={initialDate}
       locale={locale}
       role={user.role}
-      serviceCatalog={serviceCatalog}
+      serviceCatalog={serviceCatalogData.services}
+      serviceCatalogError={serviceCatalogData.error}
       therapists={data.therapists}
     />
   );

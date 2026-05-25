@@ -1,24 +1,6 @@
 import { defaultLocale, type Locale } from "@/i18n/config";
-import { createSupabasePublicClient } from "@/lib/supabase/client";
-
-export const serviceCategories = ["face", "body"] as const;
-
-export type ServiceCategory = (typeof serviceCategories)[number];
-
-export type ServiceCatalogItem = {
-  id: string;
-  slug: string;
-  category: ServiceCategory;
-  durationMinutes: number;
-  priceRsd: number | null;
-  active: boolean;
-  bookableOnline: boolean;
-  sortOrder: number;
-  allowedTherapistIds: string[];
-  name: string;
-  shortDescription: string;
-  description: string | null;
-};
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { serviceCategories, type ServiceCatalogItem, type ServiceCategory, type ServiceCatalogResult } from "@/lib/services/catalog";
 
 type ServiceRow = {
   id: string;
@@ -45,14 +27,9 @@ type TherapistServiceRow = {
   active: boolean;
 };
 
-type ServiceCatalogOptions = {
+type DashboardServiceCatalogOptions = {
   activeOnly?: boolean;
   bookableOnlineOnly?: boolean;
-};
-
-export type ServiceCatalogResult = {
-  services: ServiceCatalogItem[];
-  error: boolean;
 };
 
 const fallbackLocales = {
@@ -92,48 +69,12 @@ function getTranslation(
   };
 }
 
-export function formatServiceDuration(durationMinutes: number | null | undefined, locale: Locale) {
-  if (!durationMinutes) {
-    return "";
-  }
-
-  return `${durationMinutes} ${locale === "ru" ? "мин" : "min"}`;
-}
-
-export function formatServicePrice(priceRsd: number | null | undefined) {
-  if (priceRsd === null) {
-    return "";
-  }
-
-  if (priceRsd === undefined) {
-    return "";
-  }
-
-  return `${priceRsd} RSD`;
-}
-
-export function getAllowedTherapistIdsForService(serviceCatalog: ServiceCatalogItem[], serviceSlug: string) {
-  return serviceCatalog.find((service) => service.slug === serviceSlug)?.allowedTherapistIds ?? [];
-}
-
-export function isTherapistAllowedForService(
-  serviceCatalog: ServiceCatalogItem[],
-  serviceSlug: string,
-  therapistId: string | null | undefined
-) {
-  if (!therapistId) {
-    return false;
-  }
-
-  return getAllowedTherapistIdsForService(serviceCatalog, serviceSlug).includes(therapistId);
-}
-
-export async function getServiceCatalogData(
+export async function getDashboardServiceCatalogData(
   locale: Locale,
-  options: ServiceCatalogOptions = {}
+  options: DashboardServiceCatalogOptions = {}
 ): Promise<ServiceCatalogResult> {
   try {
-    const supabase = createSupabasePublicClient();
+    const supabase = await createSupabaseServerClient();
     const query = supabase
       .from("services")
       .select("id, slug, category, duration_minutes, price_rsd, active, bookable_online, sort_order")
@@ -166,7 +107,6 @@ export async function getServiceCatalogData(
       .select("service_id, locale, name, short_description, description")
       .in("service_id", serviceIds)
       .in("locale", translationLocales);
-
     const translationsByServiceId = new Map<string, ServiceTranslationRow[]>();
 
     if (!translationsError) {
@@ -192,7 +132,7 @@ export async function getServiceCatalogData(
       });
     }
 
-    const catalog = serviceRows.flatMap((service) => {
+    const catalog: ServiceCatalogItem[] = serviceRows.flatMap((service) => {
       if (!isServiceCategory(service.category)) {
         return [];
       }
@@ -219,13 +159,4 @@ export async function getServiceCatalogData(
   } catch {
     return { services: [], error: true };
   }
-}
-
-export async function getServiceCatalog(
-  locale: Locale,
-  options: ServiceCatalogOptions = {}
-): Promise<ServiceCatalogItem[]> {
-  const result = await getServiceCatalogData(locale, options);
-
-  return result.services;
 }

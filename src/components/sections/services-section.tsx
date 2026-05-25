@@ -62,11 +62,11 @@ export function ServicesSection({ dictionary, locale, serviceCatalog }: Services
                             <div className="grid gap-4 sm:grid-cols-[auto_auto] sm:items-center sm:justify-between lg:min-w-44 lg:grid-cols-1 lg:justify-items-end">
                               <p className="flex items-center gap-2 text-sm font-semibold text-accent">
                                 <Clock aria-hidden="true" className="size-4" />
-                                {formatServiceDuration(service.durationMinutes, services.durationUnit)}
+                                {formatServiceDuration(service.durationMinutes, locale)}
                               </p>
                               <div className="grid gap-3 sm:justify-items-end">
                                 <p className="text-lg font-semibold text-primary">
-                                  {formatServicePrice(service.priceRsd, locale)}
+                                  {formatServicePrice(service.priceRsd)}
                                 </p>
                                 {service.active && service.bookableOnline ? (
                                   <ServiceBookingButton

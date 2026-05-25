@@ -324,6 +324,16 @@ const en = {
         },
         ownTherapistFallback: "Your therapist profile is not connected yet.",
         servicesAvailableToTherapist: "Only services available to this therapist are shown.",
+        noServicesAvailable: "No services are available for manual booking.",
+        servicesLoadError: "Failed to load services.",
+        serviceSummary: {
+          title: "Service details",
+          service: "Service",
+          duration: "Duration",
+          price: "Price",
+          category: "Category",
+          therapists: "Allowed therapists"
+        },
         errors: {
           service: "Choose a service.",
           date: "Choose a date.",
@@ -369,6 +379,9 @@ const en = {
         phone: "Phone",
         service: "Service",
         duration: "Duration",
+        price: "Price",
+        durationNotSet: "Duration not set",
+        priceNotSet: "Price not set",
         sourceChannel: "Source",
         locale: "Locale",
         therapist: "Therapist",

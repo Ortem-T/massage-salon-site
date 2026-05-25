@@ -331,6 +331,16 @@ const sr = {
         },
         ownTherapistFallback: "Vaš profil terapeuta još nije povezan.",
         servicesAvailableToTherapist: "Prikazane su samo usluge dostupne ovom terapeutu.",
+        noServicesAvailable: "Nema dostupnih usluga za ručni unos.",
+        servicesLoadError: "Usluge nije moguće učitati.",
+        serviceSummary: {
+          title: "Detalji usluge",
+          service: "Usluga",
+          duration: "Trajanje",
+          price: "Cena",
+          category: "Kategorija",
+          therapists: "Dostupni terapeuti"
+        },
         errors: {
           service: "Izaberite uslugu.",
           date: "Izaberite datum.",
@@ -376,6 +386,9 @@ const sr = {
         phone: "Telefon",
         service: "Usluga",
         duration: "Trajanje",
+        price: "Cena",
+        durationNotSet: "Trajanje nije navedeno",
+        priceNotSet: "Cena nije navedena",
         sourceChannel: "Izvor",
         locale: "Jezik",
         therapist: "Terapeut",

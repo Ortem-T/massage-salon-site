@@ -324,6 +324,16 @@ const ru = {
         },
         ownTherapistFallback: "Ваш профиль массажиста пока не подключен.",
         servicesAvailableToTherapist: "Показаны только услуги, доступные этому массажисту.",
+        noServicesAvailable: "Нет доступных услуг для ручной записи.",
+        servicesLoadError: "Не удалось загрузить услуги.",
+        serviceSummary: {
+          title: "Детали услуги",
+          service: "Услуга",
+          duration: "Длительность",
+          price: "Цена",
+          category: "Категория",
+          therapists: "Доступные массажисты"
+        },
         errors: {
           service: "Выберите услугу.",
           date: "Выберите дату.",
@@ -369,6 +379,9 @@ const ru = {
         phone: "Телефон",
         service: "Услуга",
         duration: "Длительность",
+        price: "Цена",
+        durationNotSet: "Длительность не указана",
+        priceNotSet: "Цена не указана",
         sourceChannel: "Источник",
         locale: "Язык",
         therapist: "Массажист",
