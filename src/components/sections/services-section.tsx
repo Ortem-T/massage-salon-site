@@ -4,6 +4,7 @@ import Link from "next/link";
 import { MotionReveal } from "@/components/motion/motion-reveal";
 import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/sections/section-header";
+import { ServiceBookingButton } from "@/components/sections/service-booking-button";
 import { type Locale } from "@/i18n/config";
 import { type Dictionary } from "@/i18n/dictionaries";
 import {
@@ -58,14 +59,23 @@ export function ServicesSection({ dictionary, locale, serviceCatalog }: Services
                             <p className="max-w-2xl text-base leading-8 text-muted-foreground">
                               {service.shortDescription}
                             </p>
-                            <div className="flex items-center justify-between gap-6 lg:min-w-40 lg:flex-col lg:items-end">
+                            <div className="grid gap-4 sm:grid-cols-[auto_auto] sm:items-center sm:justify-between lg:min-w-44 lg:grid-cols-1 lg:justify-items-end">
                               <p className="flex items-center gap-2 text-sm font-semibold text-accent">
                                 <Clock aria-hidden="true" className="size-4" />
-                                {formatServiceDuration(service.durationMinutes, services.durationUnit)}
+                                {formatServiceDuration(service.durationMinutes, locale)}
                               </p>
-                              <p className="text-right text-lg font-semibold text-primary">
-                                {formatServicePrice(service.priceRsd, locale)}
-                              </p>
+                              <div className="grid gap-3 sm:justify-items-end">
+                                <p className="text-lg font-semibold text-primary">
+                                  {formatServicePrice(service.priceRsd)}
+                                </p>
+                                {service.active && service.bookableOnline ? (
+                                  <ServiceBookingButton
+                                    label={services.cardBookingCta}
+                                    locale={locale}
+                                    serviceSlug={service.slug}
+                                  />
+                                ) : null}
+                              </div>
                             </div>
                           </article>
                         </MotionReveal>

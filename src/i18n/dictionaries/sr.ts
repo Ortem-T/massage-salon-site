@@ -43,7 +43,7 @@ const sr = {
     note: "Mirna zona, pažljivi terapeuti, prirodna ulja."
   },
   services: {
-    eyebrow: "Usluge",
+    eyebrow: "Usluge i cene",
     title: "Tretmani prilagođeni vama",
     subtitle:
       "Svaki dolazak počinje kratkom konsultacijom, kako bi intenzitet, tempo i fokus tretmana odgovarali vašem stanju i osećaju.",
@@ -52,6 +52,7 @@ const sr = {
       body: "Telo"
     },
     bookingCta: "Zakaži uslugu",
+    cardBookingCta: "Zakaži termin",
     durationUnit: "min",
     empty: "Katalog usluga trenutno nije dostupan. Kontaktirajte nas direktno za termine."
   },
@@ -113,8 +114,10 @@ const sr = {
     },
     availability: {
       selectTherapistFirst: "Prvo izaberite terapeuta",
-      selectSpecialistForService: "Prvo izaberite uslugu",
+      selectServiceFirst: "Prvo izaberite uslugu",
+      selectSpecialistForService: "Izaberite specijalistu za ovu uslugu",
       noSpecialistsForService: "Nema dostupnih specijalista za ovu uslugu",
+      specialistAutoSelected: "Specijalista je automatski izabran",
       selectDateFirst: "Prvo izaberite datum",
       loadingTimes: "Učitavamo dostupna vremena",
       noAvailableTimes: "Nema slobodnih termina za ovaj datum",
@@ -124,8 +127,9 @@ const sr = {
     },
     error: {
       message: "Zahtev trenutno nije moguće poslati. Pokušajte ponovo ili nas kontaktirajte direktno.",
-      slotUnavailable: "Ovaj termin je upravo zauzet. Izaberite drugo slobodno vreme.",
-      serviceTherapistUnavailable: "Ova usluga nije dostupna kod izabranog specijaliste. Izaberite drugog specijalistu."
+      slotUnavailable: "Ovaj termin je već zauzet. Molimo izaberite drugo vreme.",
+      serviceTherapistUnavailable: "Ova usluga nije dostupna kod izabranog specijaliste. Izaberite drugog specijalistu.",
+      rateLimited: "Previše pokušaja. Pokušajte kasnije."
     },
     submit: "Zakaži termin",
     submitting: "Šaljemo zahtev",
@@ -328,6 +332,16 @@ const sr = {
         },
         ownTherapistFallback: "Vaš profil terapeuta još nije povezan.",
         servicesAvailableToTherapist: "Prikazane su samo usluge dostupne ovom terapeutu.",
+        noServicesAvailable: "Nema dostupnih usluga za ručni unos.",
+        servicesLoadError: "Usluge nije moguće učitati.",
+        serviceSummary: {
+          title: "Detalji usluge",
+          service: "Usluga",
+          duration: "Trajanje",
+          price: "Cena",
+          category: "Kategorija",
+          therapists: "Dostupni terapeuti"
+        },
         errors: {
           service: "Izaberite uslugu.",
           date: "Izaberite datum.",
@@ -373,6 +387,9 @@ const sr = {
         phone: "Telefon",
         service: "Usluga",
         duration: "Trajanje",
+        price: "Cena",
+        durationNotSet: "Trajanje nije navedeno",
+        priceNotSet: "Cena nije navedena",
         sourceChannel: "Izvor",
         locale: "Jezik",
         therapist: "Terapeut",

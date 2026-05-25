@@ -17,6 +17,7 @@ import { type Dictionary } from "@/i18n/dictionaries";
 import { getTodayValue, isBookingDateSelectable, parseDateValue, toDateValue } from "@/lib/booking/booking-availability";
 import { type BookingFormValues, createBookingFormSchema } from "@/lib/booking/booking-schema";
 import { BookingRequestError, createBookingRequest } from "@/lib/booking/create-booking-request";
+import { bookingServiceQueryParam, bookingServiceSelectEvent } from "@/lib/booking/service-preselection";
 import {
   getAllowedTherapistIdsForService,
   isTherapistAllowedForService,
@@ -35,13 +36,12 @@ type BookingFormProps = {
 type FieldErrorProps = {
   id: string;
   message?: string;
+  tone?: "error" | "muted";
 };
 
 type AvailabilityDay = {
   available: boolean;
   availableTimeSlots: string[];
-  selectedTherapistBookingCount: number;
-  otherTherapistBookingCount: number;
 };
 
 type AvailabilityResponse = {
@@ -52,6 +52,13 @@ function getMonthStartValue(value: string) {
   const date = parseDateValue(value) ?? new Date();
 
   return toDateValue(new Date(date.getFullYear(), date.getMonth(), 1));
+}
+
+function addDaysValue(value: string, days: number) {
+  const date = parseDateValue(value) ?? new Date();
+  date.setDate(date.getDate() + days);
+
+  return toDateValue(date);
 }
 
 function getCalendarRange(monthStartValue: string) {
@@ -70,7 +77,7 @@ function getCalendarRange(monthStartValue: string) {
   };
 }
 
-function FieldError({ id, message }: FieldErrorProps) {
+function FieldError({ id, message, tone = "error" }: FieldErrorProps) {
   if (!message) {
     return <p aria-hidden="true" className="min-h-6 text-sm leading-6" />;
   }
@@ -78,9 +85,9 @@ function FieldError({ id, message }: FieldErrorProps) {
   return (
     <p
       id={id}
-      role="alert"
-      aria-live="polite"
-      className="min-h-6 text-sm leading-6 text-accent"
+      role={tone === "error" ? "alert" : undefined}
+      aria-live={tone === "error" ? "polite" : undefined}
+      className={cn("min-h-6 text-sm leading-6", tone === "error" ? "text-accent" : "text-muted-foreground")}
     >
       {message}
     </p>
@@ -92,25 +99,29 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
   const [isSuccess, setIsSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const today = useMemo(() => getTodayValue(), []);
+  const maxBookingDate = useMemo(() => addDaysValue(today, 60), [today]);
   const [visibleMonth, setVisibleMonth] = useState(() => getMonthStartValue(today));
   const [availabilityByDate, setAvailabilityByDate] = useState<Record<string, AvailabilityDay>>({});
   const [isAvailabilityLoading, setIsAvailabilityLoading] = useState(false);
   const [availabilityError, setAvailabilityError] = useState(false);
   const [availabilityRefreshKey, setAvailabilityRefreshKey] = useState(0);
   const previousSelectionRef = useRef({ service: "", therapist: "" });
+  const autoSelectionServiceRef = useRef("");
   const availabilityRange = useMemo(() => getCalendarRange(visibleMonth), [visibleMonth]);
   const schema = useMemo(
     () =>
       createBookingFormSchema(booking.validation, {
         minDate: today,
-        isDateSelectable: (value) => isBookingDateSelectable(value, today)
+        maxDate: maxBookingDate,
+        isDateSelectable: (value) => isBookingDateSelectable(value, today, maxBookingDate)
       }),
-    [booking.validation, today]
+    [booking.validation, maxBookingDate, today]
   );
 
   const {
     register,
     handleSubmit,
+    getValues,
     reset,
     setValue,
     watch,
@@ -125,7 +136,8 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
       preferredTime: "",
       clientName: "",
       phoneNumber: "",
-      comment: ""
+      comment: "",
+      website: ""
     }
   });
   const selectedService = watch("service");
@@ -152,20 +164,65 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
   const isCalendarDisabled = !selectedService || !selectedTherapist;
   const isTimeDisabled = !selectedService || !selectedTherapist || !selectedDate || isAvailabilityLoading || availableTimeSlots.length === 0;
   const specialistPlaceholder = !selectedService
-    ? booking.availability.selectSpecialistForService
+    ? booking.availability.selectServiceFirst
     : availableTherapists.length === 0
       ? booking.availability.noSpecialistsForService
-      : booking.fields.specialist.placeholder;
+      : booking.availability.selectSpecialistForService;
+  const isSpecialistAutoSelected = Boolean(
+    selectedService &&
+      availableTherapists.length === 1 &&
+      selectedTherapist &&
+      selectedTherapist === availableTherapists[0]?.id
+  );
   const isDateSelectable = useCallback(
     (value: string) => {
       if (!canLoadAvailability) {
         return false;
       }
 
-      return isBookingDateSelectable(value, today) && Boolean(availabilityByDate[value]?.available);
+      return isBookingDateSelectable(value, today, maxBookingDate) && Boolean(availabilityByDate[value]?.available);
     },
-    [availabilityByDate, canLoadAvailability, today]
+    [availabilityByDate, canLoadAvailability, maxBookingDate, today]
   );
+
+  useEffect(() => {
+    function applyPreselectedService(serviceSlug: string | null) {
+      const requestedService = serviceSlug?.trim();
+
+      if (!requestedService || getValues("service") === requestedService) {
+        return;
+      }
+
+      const serviceExists = serviceCatalog.some(
+        (service) => service.slug === requestedService && service.active && service.bookableOnline
+      );
+
+      if (!serviceExists) {
+        return;
+      }
+
+      setValue("service", requestedService, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+    }
+
+    function applyPreselectedServiceFromUrl() {
+      applyPreselectedService(new URLSearchParams(window.location.search).get(bookingServiceQueryParam));
+    }
+
+    function handleServiceSelect(event: Event) {
+      const detail = (event as CustomEvent<{ serviceSlug?: string }>).detail;
+      applyPreselectedService(detail?.serviceSlug ?? null);
+    }
+
+    applyPreselectedServiceFromUrl();
+
+    window.addEventListener(bookingServiceSelectEvent, handleServiceSelect);
+    window.addEventListener("popstate", applyPreselectedServiceFromUrl);
+
+    return () => {
+      window.removeEventListener(bookingServiceSelectEvent, handleServiceSelect);
+      window.removeEventListener("popstate", applyPreselectedServiceFromUrl);
+    };
+  }, [getValues, serviceCatalog, setValue]);
 
   useEffect(() => {
     const previous = previousSelectionRef.current;
@@ -187,6 +244,9 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
   }, [selectedService, selectedTherapist, setValue]);
 
   useEffect(() => {
+    const serviceChanged = autoSelectionServiceRef.current !== selectedService;
+    autoSelectionServiceRef.current = selectedService;
+
     if (!selectedService) {
       if (selectedTherapist) {
         setValue("specialist", "", { shouldDirty: true, shouldValidate: true });
@@ -195,12 +255,15 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
       return;
     }
 
-    if (availableTherapists.length === 1 && selectedTherapist !== availableTherapists[0].id) {
-      setValue("specialist", availableTherapists[0].id, { shouldDirty: true, shouldValidate: true });
+    if (availableTherapists.length === 1) {
+      if (selectedTherapist !== availableTherapists[0].id) {
+        setValue("specialist", availableTherapists[0].id, { shouldDirty: true, shouldValidate: true });
+      }
+
       return;
     }
 
-    if (selectedTherapist && !allowedTherapistIds.includes(selectedTherapist)) {
+    if (selectedTherapist && (serviceChanged || !allowedTherapistIds.includes(selectedTherapist))) {
       setValue("specialist", "", { shouldDirty: true, shouldValidate: true });
     }
   }, [allowedTherapistIds, availableTherapists, selectedService, selectedTherapist, setValue]);
@@ -313,23 +376,13 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
         return;
       }
 
+      if (error instanceof BookingRequestError && error.code === "rate_limited") {
+        setSubmitError(booking.error.rateLimited);
+        return;
+      }
+
       setSubmitError(booking.error.message);
     }
-  }
-
-  function getDateHint(value: string) {
-    const day = availabilityByDate[value];
-
-    if (
-      !day ||
-      day.available ||
-      day.selectedTherapistBookingCount === 0 ||
-      day.otherTherapistBookingCount === 0
-    ) {
-      return null;
-    }
-
-    return booking.availability.otherTherapistBookings;
   }
 
   const timePlaceholder = isAvailabilityLoading
@@ -363,6 +416,17 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
         ) : null}
 
         <form className="grid gap-6" onSubmit={handleSubmit(onSubmit)} noValidate>
+          <div aria-hidden="true" className="pointer-events-none absolute -left-[9999px] top-auto size-px overflow-hidden">
+            <label htmlFor="booking-website">Website</label>
+            <input
+              id="booking-website"
+              type="text"
+              tabIndex={-1}
+              autoComplete="off"
+              {...register("website")}
+            />
+          </div>
+
           <div className="grid gap-4 lg:grid-cols-2 lg:gap-5">
             <div className="group grid gap-2.5">
               <Label htmlFor="booking-service">{booking.fields.service.label}</Label>
@@ -406,9 +470,14 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
               </div>
               <FieldError
                 id="booking-specialist-error"
+                tone={errors.specialist || (selectedService && availableTherapists.length === 0) ? "error" : "muted"}
                 message={
                   errors.specialist?.message ??
-                  (selectedService && availableTherapists.length === 0 ? booking.availability.noSpecialistsForService : undefined)
+                  (selectedService && availableTherapists.length === 0
+                    ? booking.availability.noSpecialistsForService
+                    : isSpecialistAutoSelected
+                      ? booking.availability.specialistAutoSelected
+                      : undefined)
                 }
               />
             </div>
@@ -429,7 +498,6 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
                 locale={locale}
                 copy={booking.calendar}
                 disabled={isCalendarDisabled}
-                getDateHint={getDateHint}
                 invalid={!!errors.preferredDate}
                 errorId={errors.preferredDate || availabilityError ? "booking-date-error" : undefined}
                 isDateSelectable={isDateSelectable}

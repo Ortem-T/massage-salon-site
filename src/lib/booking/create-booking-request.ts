@@ -11,14 +11,22 @@ export type BookingRequest = BookingRequestPayload & {
 };
 
 export class BookingRequestError extends Error {
-  constructor(public readonly code: "slot_unavailable" | "service_therapist_unavailable" | "unknown") {
+  constructor(
+    public readonly code:
+      | "slot_unavailable"
+      | "service_therapist_unavailable"
+      | "rate_limited"
+      | "invalid_booking_date"
+      | "invalid_booking_time"
+      | "unknown"
+  ) {
     super("Booking request could not be created.");
     this.name = "BookingRequestError";
   }
 }
 
 export async function createBookingRequest(values: BookingRequestInput): Promise<BookingRequest> {
-  const response = await fetch("/api/bookings", {
+  const response = await fetch("/api/bookings/public", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -29,7 +37,13 @@ export async function createBookingRequest(values: BookingRequestInput): Promise
   if (!response.ok) {
     const data = await response.json().catch(() => null) as { code?: string } | null;
 
-    if (data?.code === "slot_unavailable" || data?.code === "service_therapist_unavailable") {
+    if (
+      data?.code === "slot_unavailable" ||
+      data?.code === "service_therapist_unavailable" ||
+      data?.code === "rate_limited" ||
+      data?.code === "invalid_booking_date" ||
+      data?.code === "invalid_booking_time"
+    ) {
       throw new BookingRequestError(data.code);
     }
 

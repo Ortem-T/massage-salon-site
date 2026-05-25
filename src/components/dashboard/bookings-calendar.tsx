@@ -27,6 +27,8 @@ import {
 } from "@/lib/dashboard/constants";
 import { type DashboardBooking, type DashboardTherapist } from "@/lib/dashboard/bookings";
 import {
+  formatServiceDuration,
+  formatServicePrice,
   getAllowedTherapistIdsForService,
   isTherapistAllowedForService,
   type ServiceCatalogItem
@@ -67,6 +69,7 @@ type BookingsCalendarProps = {
   locale: Locale;
   role: DashboardRole;
   serviceCatalog: ServiceCatalogItem[];
+  serviceCatalogError: boolean;
   therapists: DashboardTherapist[];
 };
 
@@ -212,6 +215,7 @@ export function BookingsCalendar({
   locale,
   role,
   serviceCatalog,
+  serviceCatalogError,
   therapists
 }: BookingsCalendarProps) {
   const router = useRouter();
@@ -255,18 +259,24 @@ export function BookingsCalendar({
     () => new Map(serviceCatalog.map((service) => [service.slug, service.name])),
     [serviceCatalog]
   );
+  const servicesBySlug = useMemo(
+    () => new Map(serviceCatalog.map((service) => [service.slug, service])),
+    [serviceCatalog]
+  );
   const serviceDurations = useMemo(
     () => new Map(serviceCatalog.map((service) => [service.slug, String(service.durationMinutes)])),
     [serviceCatalog]
   );
+  const activeServiceCatalog = useMemo(() => serviceCatalog.filter((service) => service.active), [serviceCatalog]);
   const ownTherapistId = role === "therapist" ? (therapists[0]?.id ?? "") : "";
   const manualServiceCatalog = useMemo(
     () =>
       role === "therapist"
-        ? serviceCatalog.filter((service) => service.allowedTherapistIds.includes(ownTherapistId))
-        : serviceCatalog,
-    [ownTherapistId, role, serviceCatalog]
+        ? activeServiceCatalog.filter((service) => service.allowedTherapistIds.includes(ownTherapistId))
+        : activeServiceCatalog,
+    [activeServiceCatalog, ownTherapistId, role]
   );
+  const selectedManualService = manualBookingForm.service ? (servicesBySlug.get(manualBookingForm.service) ?? null) : null;
   const manualAllowedTherapistIds = useMemo(
     () => (manualBookingForm.service ? getAllowedTherapistIdsForService(serviceCatalog, manualBookingForm.service) : []),
     [manualBookingForm.service, serviceCatalog]
@@ -274,6 +284,15 @@ export function BookingsCalendar({
   const manualAvailableTherapists = useMemo(
     () => therapists.filter((therapist) => manualAllowedTherapistIds.includes(therapist.id)),
     [manualAllowedTherapistIds, therapists]
+  );
+  const selectedManualServiceTherapists = useMemo(
+    () =>
+      selectedManualService
+        ? selectedManualService.allowedTherapistIds
+            .map((therapistId) => therapistNames.get(therapistId))
+            .filter((name): name is string => Boolean(name))
+        : [],
+    [selectedManualService, therapistNames]
   );
   const manualCanLoadAvailability = Boolean(
     manualBookingForm.service &&
@@ -296,6 +315,7 @@ export function BookingsCalendar({
   }, [bookings, role, statusFilter, therapistFilter]);
 
   const selectedBooking = filteredBookings.find((booking) => booking.id === selectedBookingId) ?? null;
+  const selectedBookingServiceMeta = selectedBooking ? getBookingServiceMeta(selectedBooking) : null;
   const assignmentAvailableTherapists = useMemo(
     () =>
       selectedBooking
@@ -310,6 +330,27 @@ export function BookingsCalendar({
     status,
     count: bookings.filter((booking) => booking.status === status).length
   }));
+
+  function getServiceOptionLabel(service: ServiceCatalogItem) {
+    return [service.name, formatServiceDuration(service.durationMinutes, locale), formatServicePrice(service.priceRsd)]
+      .filter(Boolean)
+      .join(" - ");
+  }
+
+  function getBookingServiceMeta(booking: DashboardBooking) {
+    const service = servicesBySlug.get(booking.service);
+    const durationText = formatServiceDuration(booking.durationMinutes ?? service?.durationMinutes, locale);
+    const priceText = formatServicePrice(service?.priceRsd);
+    const compactText = [durationText, priceText].filter(Boolean).join(" · ");
+
+    return {
+      service,
+      serviceName: service?.name ?? serviceLabels.get(booking.service) ?? booking.service,
+      durationText,
+      priceText,
+      compactText
+    };
+  }
 
   useEffect(() => {
     if (!selectedBookingId && !isCreateOpen) {
@@ -543,10 +584,6 @@ export function BookingsCalendar({
       errors.preferredTime = create.errors.time;
     }
 
-    if (manualBookingForm.durationMinutes && Number(manualBookingForm.durationMinutes) <= 0) {
-      errors.durationMinutes = create.errors.duration;
-    }
-
     if (manualBookingForm.clientName.trim().length < 2) {
       errors.clientName = create.errors.clientName;
     }
@@ -689,12 +726,11 @@ export function BookingsCalendar({
 
     setMessage(null);
     startTransition(async () => {
-      const durationMinutes = manualBookingForm.durationMinutes ? Number(manualBookingForm.durationMinutes) : null;
       const result = await createManualBookingAction(locale, {
         service: manualBookingForm.service,
         preferredDate: manualBookingForm.preferredDate,
         preferredTime: manualBookingForm.preferredTime,
-        durationMinutes,
+        durationMinutes: selectedManualService?.durationMinutes ?? null,
         clientName: manualBookingForm.clientName,
         clientPhone: manualBookingForm.clientPhone,
         clientComment: manualBookingForm.clientComment,
@@ -887,10 +923,13 @@ export function BookingsCalendar({
                 <div className={cn("mt-3 space-y-2", isCompactView && "max-h-[calc(100%-2rem)] overflow-hidden")}>
                   {dayBookings.length > 0 ? (
                     <>
-                      {dayBookings.slice(0, isCompactView ? 4 : dayBookings.length).map((booking) =>
-                        isCompactView ? (
+                      {dayBookings.slice(0, isCompactView ? 4 : dayBookings.length).map((booking) => {
+                        const serviceMeta = getBookingServiceMeta(booking);
+
+                        return isCompactView ? (
                           <div
                             key={booking.id}
+                            title={[booking.preferredTime, serviceMeta.serviceName, serviceMeta.compactText].filter(Boolean).join(" - ")}
                             className={cn(
                               "w-full truncate rounded-lg border px-2 py-1 text-left text-xs font-semibold leading-5",
                               statusStyles[booking.status]
@@ -900,7 +939,7 @@ export function BookingsCalendar({
                               {calendar.statusShort[booking.status]}
                             </span>
                             <span className="mr-1 tabular-nums">{booking.preferredTime}</span>
-                            <span>{serviceLabels.get(booking.service) ?? booking.service}</span>
+                            <span>{serviceMeta.serviceName}</span>
                           </div>
                         ) : (
                           <button
@@ -915,19 +954,24 @@ export function BookingsCalendar({
                             <span className="block text-xs font-semibold uppercase tracking-[0.12em]">
                               {booking.preferredTime}
                             </span>
-                            <span className="mt-1 block font-semibold text-foreground">
-                              {serviceLabels.get(booking.service) ?? booking.service}
-                            </span>
-                            <span className="mt-1 block text-xs text-muted-foreground">{booking.clientName}</span>
+                            <span className="mt-1 block font-semibold text-foreground">{booking.clientName}</span>
+                            <span className="mt-1 block text-sm text-foreground/85">{serviceMeta.serviceName}</span>
+                            {serviceMeta.compactText ? (
+                              <span className="mt-1 block text-xs font-semibold text-primary/80">
+                                {serviceMeta.compactText}
+                              </span>
+                            ) : null}
                             <span className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                              <span>{dictionary.booking.statuses[booking.status]}</span>
+                              <span>
+                                {calendar.details.status}: {dictionary.booking.statuses[booking.status]}
+                              </span>
                               {role === "admin" ? (
                                 <span>{therapistNames.get(booking.therapistId ?? "") ?? booking.specialist}</span>
                               ) : null}
                             </span>
                           </button>
-                        )
-                      )}
+                        );
+                      })}
                       {isCompactView && dayBookings.length > 4 ? (
                         <p className="px-2 text-xs font-semibold text-muted-foreground">
                           +{dayBookings.length - 4}
@@ -995,14 +1039,20 @@ export function BookingsCalendar({
                     value={manualBookingForm.service}
                     onChange={(event) => updateManualBookingService(event.target.value)}
                     aria-invalid={Boolean(manualBookingErrors.service)}
+                    disabled={serviceCatalogError || manualServiceCatalog.length === 0}
                   >
                     <option value="">{calendar.create.placeholders.service}</option>
                     {manualServiceCatalog.map((service) => (
                       <option key={service.slug} value={service.slug}>
-                        {service.name}
+                        {getServiceOptionLabel(service)}
                       </option>
                     ))}
                   </Select>
+                  {serviceCatalogError ? (
+                    <p className="text-sm leading-5 text-accent">{calendar.create.servicesLoadError}</p>
+                  ) : manualServiceCatalog.length === 0 ? (
+                    <p className="text-sm leading-5 text-muted-foreground">{calendar.create.noServicesAvailable}</p>
+                  ) : null}
                   <ManualFieldError message={manualBookingErrors.service} />
                 </div>
 
@@ -1074,23 +1124,6 @@ export function BookingsCalendar({
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="manual-duration" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                    {calendar.create.fields.duration}
-                  </label>
-                  <Input
-                    id="manual-duration"
-                    type="number"
-                    min={1}
-                    inputMode="numeric"
-                    value={manualBookingForm.durationMinutes}
-                    onChange={(event) => updateManualBookingField("durationMinutes", event.target.value)}
-                    placeholder={calendar.create.placeholders.duration}
-                    aria-invalid={Boolean(manualBookingErrors.durationMinutes)}
-                  />
-                  <ManualFieldError message={manualBookingErrors.durationMinutes} />
-                </div>
-
-                <div className="space-y-2">
                   <label htmlFor="manual-locale" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                     {calendar.create.fields.locale}
                   </label>
@@ -1106,6 +1139,38 @@ export function BookingsCalendar({
                   <ManualFieldError />
                 </div>
               </div>
+
+              {selectedManualService ? (
+                <div className="rounded-2xl border border-primary/12 bg-secondary/45 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-accent">
+                    {calendar.create.serviceSummary.title}
+                  </p>
+                  <dl className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    {[
+                      [calendar.create.serviceSummary.service, selectedManualService.name],
+                      [calendar.create.serviceSummary.duration, formatServiceDuration(selectedManualService.durationMinutes, locale)],
+                      [
+                        calendar.create.serviceSummary.price,
+                        formatServicePrice(selectedManualService.priceRsd) || calendar.details.priceNotSet
+                      ],
+                      [calendar.create.serviceSummary.category, dictionary.services.categories[selectedManualService.category]]
+                    ].map(([label, value]) => (
+                      <div key={label}>
+                        <dt className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                          {label}
+                        </dt>
+                        <dd className="mt-1 text-sm font-semibold text-foreground">{value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                  {selectedManualServiceTherapists.length > 0 ? (
+                    <p className="mt-3 text-xs leading-5 text-muted-foreground">
+                      <span className="font-semibold text-primary">{calendar.create.serviceSummary.therapists}: </span>
+                      {selectedManualServiceTherapists.join(", ")}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
@@ -1283,10 +1348,12 @@ export function BookingsCalendar({
               {[
                 [calendar.details.client, selectedBooking.clientName],
                 [calendar.details.phone, selectedBooking.clientPhone],
-                [calendar.details.service, serviceLabels.get(selectedBooking.service) ?? selectedBooking.service],
-                ...(selectedBooking.durationMinutes
-                  ? [[calendar.details.duration, `${selectedBooking.durationMinutes} ${calendar.create.durationUnit}`]]
-                  : []),
+                [calendar.details.service, selectedBookingServiceMeta?.serviceName ?? selectedBooking.service],
+                [
+                  calendar.details.duration,
+                  selectedBookingServiceMeta?.durationText || calendar.details.durationNotSet
+                ],
+                [calendar.details.price, selectedBookingServiceMeta?.priceText || calendar.details.priceNotSet],
                 ...(selectedBooking.sourceChannel
                   ? [[calendar.details.sourceChannel, calendar.create.sourceChannels[selectedBooking.sourceChannel]]]
                   : []),

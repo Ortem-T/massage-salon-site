@@ -37,7 +37,7 @@ const en = {
     note: "Quiet space, attentive therapists, natural oils."
   },
   services: {
-    eyebrow: "Services",
+    eyebrow: "Services & Prices",
     title: "Treatments tailored to you",
     subtitle:
       "Every visit begins with a short consultation, so the intensity, pace and focus of the treatment match how you feel and what your body needs.",
@@ -46,6 +46,7 @@ const en = {
       body: "Body"
     },
     bookingCta: "Book a service",
+    cardBookingCta: "Book appointment",
     durationUnit: "min",
     empty: "The service catalog is temporarily unavailable. Please contact us directly to book."
   },
@@ -107,8 +108,10 @@ const en = {
     },
     availability: {
       selectTherapistFirst: "Select a therapist first",
-      selectSpecialistForService: "Select a service first",
+      selectServiceFirst: "Select a service first",
+      selectSpecialistForService: "Select a specialist for this service",
       noSpecialistsForService: "No specialists are available for this service",
+      specialistAutoSelected: "Specialist selected automatically",
       selectDateFirst: "Select a date first",
       loadingTimes: "Loading available times",
       noAvailableTimes: "No available times for this date",
@@ -118,8 +121,9 @@ const en = {
     },
     error: {
       message: "We could not send your request right now. Please try again or contact us directly.",
-      slotUnavailable: "This time is no longer available. Please choose another open slot.",
-      serviceTherapistUnavailable: "This service is not available with the selected specialist. Please choose another specialist."
+      slotUnavailable: "This time is no longer available. Please choose another time.",
+      serviceTherapistUnavailable: "This service is not available with the selected specialist. Please choose another specialist.",
+      rateLimited: "Too many attempts. Please try again later."
     },
     submit: "Book appointment",
     submitting: "Sending request",
@@ -321,6 +325,16 @@ const en = {
         },
         ownTherapistFallback: "Your therapist profile is not connected yet.",
         servicesAvailableToTherapist: "Only services available to this therapist are shown.",
+        noServicesAvailable: "No services are available for manual booking.",
+        servicesLoadError: "Failed to load services.",
+        serviceSummary: {
+          title: "Service details",
+          service: "Service",
+          duration: "Duration",
+          price: "Price",
+          category: "Category",
+          therapists: "Allowed therapists"
+        },
         errors: {
           service: "Choose a service.",
           date: "Choose a date.",
@@ -366,6 +380,9 @@ const en = {
         phone: "Phone",
         service: "Service",
         duration: "Duration",
+        price: "Price",
+        durationNotSet: "Duration not set",
+        priceNotSet: "Price not set",
         sourceChannel: "Source",
         locale: "Locale",
         therapist: "Therapist",
