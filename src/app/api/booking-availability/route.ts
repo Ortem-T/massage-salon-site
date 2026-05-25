@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import {
   calculateAvailableTimeSlots,
-  getAllBookingsByDate,
-  getTherapistBookingsByDate,
   type AvailabilityBooking,
   type AvailabilityScheduleBlock
 } from "@/lib/booking/booking-availability";
@@ -142,9 +140,6 @@ export async function GET(request: NextRequest) {
   const scheduleBlocks = ((blockRows ?? []) as PublicScheduleBlockRow[]).map(toAvailabilityScheduleBlock);
   const days = Object.fromEntries(
     getDateRange(startDate!, endDate!).map((date) => {
-      const dateBookings = getAllBookingsByDate(date, bookings);
-      const therapistBookings = getTherapistBookingsByDate(therapistId, date, bookings);
-      const otherTherapistBookingCount = dateBookings.filter((booking) => booking.therapistId !== therapistId).length;
       const availableTimeSlots = calculateAvailableTimeSlots({
         therapistId,
         serviceDurationMinutes: service.duration_minutes,
@@ -162,9 +157,7 @@ export async function GET(request: NextRequest) {
         date,
         {
           available: availableTimeSlots.length > 0,
-          availableTimeSlots,
-          selectedTherapistBookingCount: therapistBookings.length,
-          otherTherapistBookingCount
+          availableTimeSlots
         }
       ];
     })

@@ -42,8 +42,6 @@ type FieldErrorProps = {
 type AvailabilityDay = {
   available: boolean;
   availableTimeSlots: string[];
-  selectedTherapistBookingCount: number;
-  otherTherapistBookingCount: number;
 };
 
 type AvailabilityResponse = {
@@ -54,6 +52,13 @@ function getMonthStartValue(value: string) {
   const date = parseDateValue(value) ?? new Date();
 
   return toDateValue(new Date(date.getFullYear(), date.getMonth(), 1));
+}
+
+function addDaysValue(value: string, days: number) {
+  const date = parseDateValue(value) ?? new Date();
+  date.setDate(date.getDate() + days);
+
+  return toDateValue(date);
 }
 
 function getCalendarRange(monthStartValue: string) {
@@ -94,6 +99,7 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
   const [isSuccess, setIsSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const today = useMemo(() => getTodayValue(), []);
+  const maxBookingDate = useMemo(() => addDaysValue(today, 60), [today]);
   const [visibleMonth, setVisibleMonth] = useState(() => getMonthStartValue(today));
   const [availabilityByDate, setAvailabilityByDate] = useState<Record<string, AvailabilityDay>>({});
   const [isAvailabilityLoading, setIsAvailabilityLoading] = useState(false);
@@ -106,9 +112,10 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
     () =>
       createBookingFormSchema(booking.validation, {
         minDate: today,
-        isDateSelectable: (value) => isBookingDateSelectable(value, today)
+        maxDate: maxBookingDate,
+        isDateSelectable: (value) => isBookingDateSelectable(value, today, maxBookingDate)
       }),
-    [booking.validation, today]
+    [booking.validation, maxBookingDate, today]
   );
 
   const {
@@ -129,7 +136,8 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
       preferredTime: "",
       clientName: "",
       phoneNumber: "",
-      comment: ""
+      comment: "",
+      website: ""
     }
   });
   const selectedService = watch("service");
@@ -172,9 +180,9 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
         return false;
       }
 
-      return isBookingDateSelectable(value, today) && Boolean(availabilityByDate[value]?.available);
+      return isBookingDateSelectable(value, today, maxBookingDate) && Boolean(availabilityByDate[value]?.available);
     },
-    [availabilityByDate, canLoadAvailability, today]
+    [availabilityByDate, canLoadAvailability, maxBookingDate, today]
   );
 
   useEffect(() => {
@@ -368,23 +376,13 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
         return;
       }
 
+      if (error instanceof BookingRequestError && error.code === "rate_limited") {
+        setSubmitError(booking.error.rateLimited);
+        return;
+      }
+
       setSubmitError(booking.error.message);
     }
-  }
-
-  function getDateHint(value: string) {
-    const day = availabilityByDate[value];
-
-    if (
-      !day ||
-      day.available ||
-      day.selectedTherapistBookingCount === 0 ||
-      day.otherTherapistBookingCount === 0
-    ) {
-      return null;
-    }
-
-    return booking.availability.otherTherapistBookings;
   }
 
   const timePlaceholder = isAvailabilityLoading
@@ -418,6 +416,17 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
         ) : null}
 
         <form className="grid gap-6" onSubmit={handleSubmit(onSubmit)} noValidate>
+          <div aria-hidden="true" className="pointer-events-none absolute -left-[9999px] top-auto size-px overflow-hidden">
+            <label htmlFor="booking-website">Website</label>
+            <input
+              id="booking-website"
+              type="text"
+              tabIndex={-1}
+              autoComplete="off"
+              {...register("website")}
+            />
+          </div>
+
           <div className="grid gap-4 lg:grid-cols-2 lg:gap-5">
             <div className="group grid gap-2.5">
               <Label htmlFor="booking-service">{booking.fields.service.label}</Label>
@@ -489,7 +498,6 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
                 locale={locale}
                 copy={booking.calendar}
                 disabled={isCalendarDisabled}
-                getDateHint={getDateHint}
                 invalid={!!errors.preferredDate}
                 errorId={errors.preferredDate || availabilityError ? "booking-date-error" : undefined}
                 isDateSelectable={isDateSelectable}

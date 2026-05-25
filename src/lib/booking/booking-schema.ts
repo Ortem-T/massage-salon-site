@@ -18,6 +18,7 @@ export type BookingValidationMessages = {
 
 type BookingFormSchemaOptions = {
   minDate?: string;
+  maxDate?: string;
   isDateSelectable?: (value: string) => boolean;
 };
 
@@ -29,13 +30,17 @@ export function createBookingFormSchema(messages: BookingValidationMessages, opt
       (value) => !value || !options.minDate || value >= options.minDate,
       { message: messages.datePast }
     ).refine(
+      (value) => !value || !options.maxDate || value <= options.maxDate,
+      { message: messages.dateUnavailable }
+    ).refine(
       (value) => !value || !options.isDateSelectable || options.isDateSelectable(value),
       { message: messages.dateUnavailable }
     ),
     preferredTime: z.string().min(1, messages.time),
-    clientName: z.string().trim().min(2, messages.name),
-    phoneNumber: z.string().trim().min(6, messages.phone),
-    comment: z.string().max(500, messages.comment).optional()
+    clientName: z.string().trim().min(2, messages.name).max(80, messages.name),
+    phoneNumber: z.string().trim().min(6, messages.phone).max(30, messages.phone),
+    comment: z.string().max(500, messages.comment).optional(),
+    website: z.string().max(120).optional()
   });
 }
 

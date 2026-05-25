@@ -261,6 +261,6 @@ export function getAvailableTimeSlots(value: string) {
   });
 }
 
-export function isBookingDateSelectable(value: string, minDate: string) {
-  return Boolean(value) && value >= minDate && isWorkingDay(value);
+export function isBookingDateSelectable(value: string, minDate: string, maxDate?: string) {
+  return Boolean(value) && value >= minDate && (!maxDate || value <= maxDate) && isWorkingDay(value);
 }

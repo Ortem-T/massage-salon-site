@@ -121,8 +121,9 @@ const en = {
     },
     error: {
       message: "We could not send your request right now. Please try again or contact us directly.",
-      slotUnavailable: "This time is no longer available. Please choose another open slot.",
-      serviceTherapistUnavailable: "This service is not available with the selected specialist. Please choose another specialist."
+      slotUnavailable: "This time is no longer available. Please choose another time.",
+      serviceTherapistUnavailable: "This service is not available with the selected specialist. Please choose another specialist.",
+      rateLimited: "Too many attempts. Please try again later."
     },
     submit: "Book appointment",
     submitting: "Sending request",

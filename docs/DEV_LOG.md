@@ -78,6 +78,8 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Updated the homepage services eyebrow to Services & Prices, added localized booking buttons to bookable service rows, wired service buttons to preselect the booking form via `?service=...#booking`, and made the form auto-select a therapist only when exactly one active therapist is allowed for the selected service.
 - Updated Serbian microcurrent wording to use `mikrostrujna` instead of `mikrotalasna`, including `Mikrostrujna terapija lica` for facial microcurrents and related microcurrent service descriptions.
 - Updated the dashboard booking experience to show Supabase service duration and RSD price in manual booking service options, selected service summaries, day-view booking cards, compact card tooltips, and booking details while keeping therapist-service restrictions in place.
+- Added first-stage public booking security hardening: public form submissions now target `POST /api/bookings/public`, the server validates payload/date/time/service/therapist eligibility more strictly, applies Origin/Referer checks, in-memory IP and phone rate limits, a hidden honeypot field, before-insert availability re-checks, and safe error codes before sending Telegram only after successful inserts. Public availability responses now expose only availability and slots.
+- Created `docs/SECURITY.md` with the current security model, public booking protections, rate-limit limitations, Origin-check limitations, public data exposure notes, and the recommended stage 2 hardening path.
 
 ## Current Focus
 
@@ -236,6 +238,7 @@ The current focus is production launch polish after the Vercel deployment. The r
 - Store the real Raine Massage Salon Google Maps listing URL and iframe embed URL in `src/config/contacts.ts`; do not use address-query embeds or Google Maps API keys for the contact map.
 - Use server-only `TELEGRAM_BOT_TOKEN` and full `TELEGRAM_CHAT_ID` values for team notifications; do not expose the bot token with `NEXT_PUBLIC_` or store it in Supabase.
 - Keep Telegram notification failures non-blocking for booking creation, status updates, and therapist assignment changes.
+- Keep public booking protection layered: endpoint validation, basic Origin/Referer checks, honeypot, rate limits, RLS, and availability re-checks all help, but none replaces durable rate limiting or database-level conflict prevention.
 - Keep the custom branded booking calendar, but support roving keyboard focus instead of replacing it with a new component dependency.
 - Keep UI primitives local and lightweight rather than pulling in a full component dependency for every shadcn/ui part.
 - Avoid full CRM workflows until the booking/dashboard foundation is stable.

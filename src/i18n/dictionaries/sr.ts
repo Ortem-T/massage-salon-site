@@ -127,8 +127,9 @@ const sr = {
     },
     error: {
       message: "Zahtev trenutno nije moguće poslati. Pokušajte ponovo ili nas kontaktirajte direktno.",
-      slotUnavailable: "Ovaj termin je upravo zauzet. Izaberite drugo slobodno vreme.",
-      serviceTherapistUnavailable: "Ova usluga nije dostupna kod izabranog specijaliste. Izaberite drugog specijalistu."
+      slotUnavailable: "Ovaj termin je već zauzet. Molimo izaberite drugo vreme.",
+      serviceTherapistUnavailable: "Ova usluga nije dostupna kod izabranog specijaliste. Izaberite drugog specijalistu.",
+      rateLimited: "Previše pokušaja. Pokušajte kasnije."
     },
     submit: "Zakaži termin",
     submitting: "Šaljemo zahtev",
