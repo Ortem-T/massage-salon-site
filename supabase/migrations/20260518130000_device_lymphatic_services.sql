@@ -46,7 +46,7 @@ with translation_rows(slug, locale, name, short_description, description) as (
       'device-lymphatic-drainage-one-zone',
       'sr',
       'Aparatna limfna drenaža — jedna zona',
-      'Tretman mikrotalasnim aparatom za nežan rad sa osećajem otoka, težine i umora u izabranoj zoni tela.',
+      'Tretman mikrostrujnim aparatom za nežan rad sa osećajem otoka, težine i umora u izabranoj zoni tela.',
       'Za izraženiji i dugotrajniji efekat obično se preporučuje kurs od najmanje 12 tretmana.'
     ),
     (
@@ -67,7 +67,7 @@ with translation_rows(slug, locale, name, short_description, description) as (
       'device-lymphatic-drainage-course-12',
       'sr',
       'Aparatna limfna drenaža — kurs od 12 tretmana',
-      'Kurs od 12 tretmana mikrotalasnim aparatom za redovan i nežan rad sa osećajem otoka, težine i umora u telu.',
+      'Kurs od 12 tretmana mikrostrujnim aparatom za redovan i nežan rad sa osećajem otoka, težine i umora u telu.',
       'Kurs se zakazuje kao običan termin za prvi tretman. Naredne termine administrator ili stručnjak dogovara ručno.'
     ),
     (

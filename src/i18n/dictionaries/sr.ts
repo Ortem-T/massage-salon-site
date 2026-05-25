@@ -43,7 +43,7 @@ const sr = {
     note: "Mirna zona, pažljivi terapeuti, prirodna ulja."
   },
   services: {
-    eyebrow: "Usluge",
+    eyebrow: "Usluge i cene",
     title: "Tretmani prilagođeni vama",
     subtitle:
       "Svaki dolazak počinje kratkom konsultacijom, kako bi intenzitet, tempo i fokus tretmana odgovarali vašem stanju i osećaju.",
@@ -52,6 +52,7 @@ const sr = {
       body: "Telo"
     },
     bookingCta: "Zakaži uslugu",
+    cardBookingCta: "Zakaži termin",
     durationUnit: "min",
     empty: "Katalog usluga trenutno nije dostupan. Kontaktirajte nas direktno za termine."
   },
@@ -113,8 +114,10 @@ const sr = {
     },
     availability: {
       selectTherapistFirst: "Prvo izaberite terapeuta",
-      selectSpecialistForService: "Prvo izaberite uslugu",
+      selectServiceFirst: "Prvo izaberite uslugu",
+      selectSpecialistForService: "Izaberite specijalistu za ovu uslugu",
       noSpecialistsForService: "Nema dostupnih specijalista za ovu uslugu",
+      specialistAutoSelected: "Specijalista je automatski izabran",
       selectDateFirst: "Prvo izaberite datum",
       loadingTimes: "Učitavamo dostupna vremena",
       noAvailableTimes: "Nema slobodnih termina za ovaj datum",

@@ -37,7 +37,7 @@ const en = {
     note: "Quiet space, attentive therapists, natural oils."
   },
   services: {
-    eyebrow: "Services",
+    eyebrow: "Services & Prices",
     title: "Treatments tailored to you",
     subtitle:
       "Every visit begins with a short consultation, so the intensity, pace and focus of the treatment match how you feel and what your body needs.",
@@ -46,6 +46,7 @@ const en = {
       body: "Body"
     },
     bookingCta: "Book a service",
+    cardBookingCta: "Book appointment",
     durationUnit: "min",
     empty: "The service catalog is temporarily unavailable. Please contact us directly to book."
   },
@@ -107,8 +108,10 @@ const en = {
     },
     availability: {
       selectTherapistFirst: "Select a therapist first",
-      selectSpecialistForService: "Select a service first",
+      selectServiceFirst: "Select a service first",
+      selectSpecialistForService: "Select a specialist for this service",
       noSpecialistsForService: "No specialists are available for this service",
+      specialistAutoSelected: "Specialist selected automatically",
       selectDateFirst: "Select a date first",
       loadingTimes: "Loading available times",
       noAvailableTimes: "No available times for this date",
