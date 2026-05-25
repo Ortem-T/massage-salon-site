@@ -21,6 +21,7 @@ export function HeroSection({ locale, dictionary }: HeroSectionProps) {
         alt=""
         fill
         priority
+        unoptimized
         sizes="100vw"
         className="absolute inset-0 -z-20 object-cover object-[62%_center] sm:object-center"
       />
