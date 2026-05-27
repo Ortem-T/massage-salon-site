@@ -18,6 +18,7 @@ export function getDashboardNavigation(
     { href: `/${locale}/dashboard`, label: labels.overview },
     { href: `/${locale}/dashboard/bookings`, label: labels.bookings },
     { href: `/${locale}/dashboard/schedule`, label: labels.schedule },
+    { href: `/${locale}/dashboard/promotions`, label: labels.promotions, adminOnly: true },
     { href: `/${locale}/dashboard/clients`, label: labels.clients, adminOnly: true },
     { href: `/${locale}/dashboard/services`, label: labels.services, adminOnly: true },
     { href: `/${locale}/dashboard/therapists`, label: labels.therapists, adminOnly: true }

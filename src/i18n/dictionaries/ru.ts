@@ -239,6 +239,7 @@ const ru = {
       overview: "Обзор",
       bookings: "Записи",
       schedule: "Расписание",
+      promotions: "Акции",
       clients: "Клиенты",
       services: "Услуги",
       therapists: "Массажисты"
@@ -268,6 +269,44 @@ const ru = {
         eyebrow: "Массажисты",
         title: "Управление массажистами",
         body: "Админ-инструменты для профилей команды, доступности и услуг специалистов будут здесь."
+      }
+    },
+    promotions: {
+      eyebrow: "Акции",
+      title: "Промо-карточка записи",
+      subtitle: "Управляйте спокойным промо-блоком, который заменяет подсказку слева от формы записи на главной странице.",
+      listTitle: "Акции",
+      formTitle: "Настройки акции",
+      create: "Создать акцию",
+      edit: "Редактировать",
+      active: "Активна",
+      inactive: "Выключена",
+      enable: "Включить",
+      disable: "Выключить",
+      save: "Сохранить",
+      saving: "Сохраняем...",
+      preview: "Превью",
+      noPromotions: "Акций пока нет.",
+      untitled: "Без названия",
+      forbidden: "Только администраторы могут управлять акциями.",
+      previewTitleFallback: "Заголовок акции",
+      previewDescriptionFallback: "Описание акции появится здесь.",
+      fields: {
+        placement: "Размещение",
+        badge: "Бейдж",
+        title: "Заголовок",
+        description: "Описание",
+        startsAt: "Дата начала",
+        endsAt: "Дата окончания"
+      },
+      placementLabels: {
+        booking_section_card: "Карточка в блоке записи"
+      },
+      messages: {
+        saved: "Акция сохранена.",
+        enabled: "Акция включена.",
+        disabled: "Акция выключена.",
+        error: "Не удалось сохранить акцию."
       }
     },
     calendar: {

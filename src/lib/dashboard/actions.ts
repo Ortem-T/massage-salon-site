@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import { type Locale } from "@/i18n/config";
+import { locales, type Locale } from "@/i18n/config";
 import { requireDashboardUser } from "@/lib/dashboard/auth";
 import {
   assignTherapistToBooking,
@@ -21,6 +21,11 @@ import {
   type ScheduleBlockInput,
   updateScheduleBlock
 } from "@/lib/dashboard/schedule-blocks";
+import {
+  savePromotion,
+  setPromotionActive,
+  type SavePromotionInput
+} from "@/lib/dashboard/promotions";
 import { type BookingStatus } from "@/lib/booking/booking-schema";
 
 export type DashboardActionResult = {
@@ -60,6 +65,10 @@ function revalidateDashboard(locale: Locale) {
   revalidatePath(`/${locale}/dashboard`);
   revalidatePath(`/${locale}/dashboard/bookings`);
   revalidatePath(`/${locale}/dashboard/schedule`);
+  revalidatePath(`/${locale}/dashboard/promotions`);
+  locales.forEach((siteLocale) => {
+    revalidatePath(`/${siteLocale}`);
+  });
 }
 
 export async function updateBookingStatusAction(
@@ -153,6 +162,34 @@ export async function deleteScheduleBlockAction(
   try {
     const user = await requireDashboardUser(locale);
     await deleteScheduleBlock(user, id);
+    revalidateDashboard(locale);
+    return { ok: true };
+  } catch (error) {
+    return toActionResult(error);
+  }
+}
+
+export async function savePromotionAction(
+  locale: Locale,
+  input: SavePromotionInput
+): Promise<DashboardActionResult> {
+  try {
+    const user = await requireDashboardUser(locale);
+    await savePromotion(user, input);
+    revalidateDashboard(locale);
+    return { ok: true };
+  } catch (error) {
+    return toActionResult(error);
+  }
+}
+
+export async function setPromotionActiveAction(
+  locale: Locale,
+  input: { id: string; active: boolean }
+): Promise<DashboardActionResult> {
+  try {
+    const user = await requireDashboardUser(locale);
+    await setPromotionActive(user, input.id, input.active);
     revalidateDashboard(locale);
     return { ok: true };
   } catch (error) {

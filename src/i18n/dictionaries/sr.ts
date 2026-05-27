@@ -246,6 +246,7 @@ const sr = {
       overview: "Pregled",
       bookings: "Termini",
       schedule: "Raspored",
+      promotions: "Akcije",
       clients: "Klijenti",
       services: "Usluge",
       therapists: "Terapeuti"
@@ -275,6 +276,44 @@ const sr = {
         eyebrow: "Terapeuti",
         title: "Upravljanje terapeutima",
         body: "Admin alati za profile tima, dostupnost i usluge koje terapeut radi biće ovde."
+      }
+    },
+    promotions: {
+      eyebrow: "Akcije",
+      title: "Promo kartica zakazivanja",
+      subtitle: "Upravljajte mirnom ponudom koja može da zameni pomoćnu karticu pored forme za zakazivanje na početnoj strani.",
+      listTitle: "Akcije",
+      formTitle: "Podešavanja akcije",
+      create: "Napravi akciju",
+      edit: "Izmeni",
+      active: "Aktivna",
+      inactive: "Isključena",
+      enable: "Uključi",
+      disable: "Isključi",
+      save: "Sačuvaj",
+      saving: "Čuvamo...",
+      preview: "Pregled",
+      noPromotions: "Još nema akcija.",
+      untitled: "Bez naslova",
+      forbidden: "Samo administratori mogu da upravljaju akcijama.",
+      previewTitleFallback: "Naslov akcije",
+      previewDescriptionFallback: "Opis akcije će biti prikazan ovde.",
+      fields: {
+        placement: "Pozicija",
+        badge: "Oznaka",
+        title: "Naslov",
+        description: "Opis",
+        startsAt: "Datum početka",
+        endsAt: "Datum završetka"
+      },
+      placementLabels: {
+        booking_section_card: "Kartica u bloku za zakazivanje"
+      },
+      messages: {
+        saved: "Akcija je sačuvana.",
+        enabled: "Akcija je uključena.",
+        disabled: "Akcija je isključena.",
+        error: "Akciju nije moguće sačuvati."
       }
     },
     calendar: {

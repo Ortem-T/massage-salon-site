@@ -8,6 +8,7 @@ import { TestimonialsSection } from "@/components/sections/testimonials-section"
 import { homepageFeatures } from "@/config/homepage";
 import { isLocale, locales, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
+import { getActivePromotionForPlacement } from "@/lib/promotions/public";
 import { getServiceCatalog } from "@/lib/services/catalog";
 import { getTherapistCatalog } from "@/lib/therapists/catalog";
 
@@ -24,10 +25,11 @@ export function generateStaticParams() {
 export default async function HomePage({ params }: HomePageProps) {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "sr";
-  const [dictionary, serviceCatalog, therapistCatalog] = await Promise.all([
+  const [dictionary, serviceCatalog, therapistCatalog, bookingSectionPromotion] = await Promise.all([
     getDictionary(locale),
     getServiceCatalog(locale, { bookableOnlineOnly: true }),
-    getTherapistCatalog(locale)
+    getTherapistCatalog(locale),
+    getActivePromotionForPlacement(locale, "booking_section_card")
   ]);
 
   return (
@@ -38,6 +40,7 @@ export default async function HomePage({ params }: HomePageProps) {
       <BookingSection
         locale={locale}
         dictionary={dictionary}
+        promotion={bookingSectionPromotion}
         serviceCatalog={serviceCatalog}
         therapistCatalog={therapistCatalog}
       />

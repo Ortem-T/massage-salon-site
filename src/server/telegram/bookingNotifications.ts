@@ -21,6 +21,7 @@ export type TelegramBookingDetails = {
   clientComment?: string | null;
   internalNotes?: string | null;
   status?: BookingStatus;
+  promotionTitle?: string | null;
 };
 
 type NotifyBookingStatusChangeInput = {
@@ -151,6 +152,7 @@ export async function notifyTelegramNewBooking(booking: TelegramBookingDetails) 
       line("Язык клиента", localeLabels[booking.clientLocale]),
       line("Источник", formatSource(booking.source)),
       channel ? line("Канал", channel) : null,
+      optionalLine("Акция", booking.promotionTitle),
       line("Специалист", formatTherapist(booking.therapistName)),
       optionalLine("Комментарий клиента", booking.clientComment),
       booking.source === "dashboard" ? optionalLine("Внутренняя заметка", booking.internalNotes) : null

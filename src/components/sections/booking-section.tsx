@@ -3,17 +3,19 @@ import { BookingForm } from "@/components/sections/booking-form";
 import { SectionHeader } from "@/components/sections/section-header";
 import { type Locale } from "@/i18n/config";
 import { type Dictionary } from "@/i18n/dictionaries";
+import { type ActivePromotion } from "@/lib/promotions/public";
 import { type ServiceCatalogItem } from "@/lib/services/catalog";
 import { type TherapistCatalogItem } from "@/lib/therapists/catalog";
 
 type BookingSectionProps = {
   locale: Locale;
   dictionary: Dictionary;
+  promotion: ActivePromotion | null;
   serviceCatalog: ServiceCatalogItem[];
   therapistCatalog: TherapistCatalogItem[];
 };
 
-export function BookingSection({ locale, dictionary, serviceCatalog, therapistCatalog }: BookingSectionProps) {
+export function BookingSection({ locale, dictionary, promotion, serviceCatalog, therapistCatalog }: BookingSectionProps) {
   const { booking } = dictionary;
 
   return (
@@ -27,8 +29,15 @@ export function BookingSection({ locale, dictionary, serviceCatalog, therapistCa
           <SectionHeader eyebrow={booking.eyebrow} title={booking.title} subtitle={booking.subtitle} />
           <div className="mt-10 rounded-xl border border-border/70 bg-background/72 p-6 shadow-[0_18px_54px_rgb(27_54_39/0.08)] backdrop-blur md:p-7">
             <div className="mb-5 h-px w-16 bg-accent/55" />
-            <p className="font-serif text-3xl leading-[0.96] text-primary sm:text-4xl">{booking.aside.title}</p>
-            <p className="mt-5 text-sm leading-7 text-muted-foreground">{booking.aside.body}</p>
+            {promotion?.badge ? (
+              <p className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-accent">{promotion.badge}</p>
+            ) : null}
+            <p className="font-serif text-3xl leading-[0.96] text-primary sm:text-4xl">
+              {promotion?.title ?? booking.aside.title}
+            </p>
+            <p className="mt-5 text-sm leading-7 text-muted-foreground">
+              {promotion?.description ?? booking.aside.body}
+            </p>
           </div>
         </MotionReveal>
         <MotionReveal delay={0.1}>

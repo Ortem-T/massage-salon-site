@@ -8,6 +8,7 @@ import {
 } from "@/lib/booking/booking-availability";
 import { bookingRequestPayloadSchema } from "@/lib/booking/booking-request-payload";
 import { defaultBookingAvailability } from "@/lib/booking/booking-options";
+import { getActivePromotionForPlacement } from "@/lib/promotions/public";
 import { createSupabasePublicClient } from "@/lib/supabase/client";
 import { notifyTelegramNewBooking } from "@/server/telegram/bookingNotifications";
 import { isAllowedPublicOrigin } from "@/server/security/origin";
@@ -168,6 +169,7 @@ export async function handlePublicBookingPost(request: Request) {
   }
 
   const supabase = createSupabasePublicClient();
+  const activePromotion = await getActivePromotionForPlacement(payload.data.locale, "booking_section_card");
   const { data: service, error: serviceError } = await supabase
     .from("services")
     .select("id, slug, duration_minutes")
@@ -259,6 +261,13 @@ export async function handlePublicBookingPost(request: Request) {
       locale: payload.data.locale,
       therapist_id: therapist.id,
       duration_minutes: service.duration_minutes,
+      ...(activePromotion
+        ? {
+            promotion_id: activePromotion.id,
+            promotion_snapshot_title: activePromotion.title,
+            promotion_snapshot_description: activePromotion.description
+          }
+        : {}),
       status: "pending",
       source: "website"
     });
@@ -279,7 +288,8 @@ export async function handlePublicBookingPost(request: Request) {
     clientLocale: payload.data.locale,
     source: "website",
     therapistName: therapist.display_name,
-    clientComment: payload.data.client_comment
+    clientComment: payload.data.client_comment,
+    promotionTitle: activePromotion?.telegramTitle ?? null
   });
 
   return NextResponse.json({ booking: { status: "pending" } }, { status: 201 });

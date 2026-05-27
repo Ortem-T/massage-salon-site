@@ -1,6 +1,6 @@
 # Development Log
 
-Last updated: 2026-05-25
+Last updated: 2026-05-27
 
 This log is shared context for human and AI-assisted development. Update it after every major development stage so future Codex, `web-coder`, and `grill-me` sessions can continue without rediscovering project history.
 
@@ -78,6 +78,7 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Updated the homepage services eyebrow to Services & Prices, added localized booking buttons to bookable service rows, wired service buttons to preselect the booking form via `?service=...#booking`, and made the form auto-select a therapist only when exactly one active therapist is allowed for the selected service.
 - Updated Serbian microcurrent wording to use `mikrostrujna` instead of `mikrotalasna`, including `Mikrostrujna terapija lica` for facial microcurrents and related microcurrent service descriptions.
 - Updated the dashboard booking experience to show Supabase service duration and RSD price in manual booking service options, selected service summaries, day-view booking cards, compact card tooltips, and booking details while keeping therapist-service restrictions in place.
+- Added an admin-managed homepage booking-section promotion card: new promotions schema/RLS migration, admin-only dashboard management, localized public promo fallback logic, booking promo snapshots, and Telegram promo context for public bookings.
 - Added first-stage public booking security hardening: public form submissions now target `POST /api/bookings/public`, the server validates payload/date/time/service/therapist eligibility more strictly, applies Origin/Referer checks, in-memory IP and phone rate limits, a hidden honeypot field, before-insert availability re-checks, and safe error codes before sending Telegram only after successful inserts. Public availability responses now expose only availability and slots.
 - Created `docs/SECURITY.md` with the current security model, public booking protections, rate-limit limitations, Origin-check limitations, public data exposure notes, and the recommended stage 2 hardening path.
 
@@ -120,6 +121,7 @@ The current focus is production launch polish after the Vercel deployment. The r
 - Apply `20260518130000_device_lymphatic_services.sql` after the restrictions migration to add the two device lymphatic drainage body services and assign them to both therapists.
 - Apply `20260518131000_update_taping_translation.sql` after the device lymphatic drainage migration to shorten the Taping service name without changing slug, duration, price, bookability, or therapist restriction.
 - Apply `20260525120000_update_facial_microcurrents_serbian_translation.sql` after the service catalog migrations to correct Serbian microcurrent wording.
+- Apply `20260527120000_promotions.sql` to add promotion tables, promotion booking snapshot columns, RLS policies, and the initial booking-section promo content.
 - Test admin status changes, therapist assignment, therapist status changes, and internal notes updates against hosted Supabase RLS.
 - Test manual booking creation for admin assigned, admin unassigned, therapist own, and therapist direct-request attempts against hosted Supabase RLS.
 
@@ -142,6 +144,11 @@ The current focus is production launch polish after the Vercel deployment. The r
 - Confirm admin day-view booking cards show duration and price metadata from the service catalog.
 - Confirm therapist day-view booking cards show duration and price only for their own visible bookings.
 - Confirm booking details show service duration and price, including fallback text if either value is missing.
+- Confirm no active booking-section promo shows the default booking info card.
+- Confirm an active booking-section promo replaces the default booking info card on `/sr`, `/ru`, and `/en`.
+- Confirm admin users can create, edit, enable, and disable promotions from dashboard.
+- Confirm therapist users do not see promotion navigation and cannot manage promotions directly.
+- Confirm public bookings created during an active promo include promo context in Telegram notifications.
 - Check mobile widths around 360px, 390px, 430px, 768px, and desktop.
 - Confirm homepage has no horizontal scroll at 360px, 375px, 390px, 430px, and 768px.
 - Confirm hero and navbar "book" CTAs scroll to the booking form, while messenger CTAs still open WhatsApp.

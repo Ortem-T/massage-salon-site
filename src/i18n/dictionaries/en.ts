@@ -239,6 +239,7 @@ const en = {
       overview: "Overview",
       bookings: "Bookings",
       schedule: "Schedule",
+      promotions: "Promotions",
       clients: "Clients",
       services: "Services",
       therapists: "Therapists"
@@ -268,6 +269,44 @@ const en = {
         eyebrow: "Therapists",
         title: "Therapist management",
         body: "Admin tools for staff profiles, availability, and service capabilities will live here."
+      }
+    },
+    promotions: {
+      eyebrow: "Promotions",
+      title: "Booking promo card",
+      subtitle: "Manage the calm offer card that can replace the helper note beside the homepage booking form.",
+      listTitle: "Promotions",
+      formTitle: "Promotion settings",
+      create: "Create promotion",
+      edit: "Edit",
+      active: "Active",
+      inactive: "Disabled",
+      enable: "Enable",
+      disable: "Disable",
+      save: "Save",
+      saving: "Saving...",
+      preview: "Preview",
+      noPromotions: "No promotions yet.",
+      untitled: "Untitled",
+      forbidden: "Only admins can manage promotions.",
+      previewTitleFallback: "Promotion title",
+      previewDescriptionFallback: "Promotion description will appear here.",
+      fields: {
+        placement: "Placement",
+        badge: "Badge",
+        title: "Title",
+        description: "Description",
+        startsAt: "Start date",
+        endsAt: "End date"
+      },
+      placementLabels: {
+        booking_section_card: "Booking section card"
+      },
+      messages: {
+        saved: "Promotion saved.",
+        enabled: "Promotion enabled.",
+        disabled: "Promotion disabled.",
+        error: "Could not save promotion."
       }
     },
     calendar: {
