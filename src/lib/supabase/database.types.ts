@@ -24,6 +24,9 @@ export type Database = {
           source: string;
           source_channel: ManualBookingSourceChannel | null;
           duration_minutes: number | null;
+          promotion_id: string | null;
+          promotion_snapshot_title: string | null;
+          promotion_snapshot_description: string | null;
           client_id: string | null;
           therapist_id: string | null;
           internal_notes: string | null;
@@ -44,6 +47,9 @@ export type Database = {
           source?: string;
           source_channel?: ManualBookingSourceChannel | null;
           duration_minutes?: number | null;
+          promotion_id?: string | null;
+          promotion_snapshot_title?: string | null;
+          promotion_snapshot_description?: string | null;
           client_id?: string | null;
           therapist_id?: string | null;
           internal_notes?: string | null;
@@ -92,6 +98,52 @@ export type Database = {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
+        Relationships: [];
+      };
+      promotions: {
+        Row: {
+          id: string;
+          active: boolean;
+          placement: "booking_section_card";
+          starts_at: string | null;
+          ends_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          active?: boolean;
+          placement?: "booking_section_card";
+          starts_at?: string | null;
+          ends_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["promotions"]["Insert"]>;
+        Relationships: [];
+      };
+      promotion_translations: {
+        Row: {
+          id: string;
+          promotion_id: string;
+          locale: Locale;
+          badge: string | null;
+          title: string;
+          description: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          promotion_id: string;
+          locale: Locale;
+          badge?: string | null;
+          title: string;
+          description: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["promotion_translations"]["Insert"]>;
         Relationships: [];
       };
       services: {
