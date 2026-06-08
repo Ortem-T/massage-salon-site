@@ -24,14 +24,16 @@ export type BlockedInterval = {
   endMinutes: number;
 };
 
+type BookingStartWindow = {
+  firstStart: string;
+  lastStart: string;
+};
+
 type CalculateAvailableTimeSlotsInput = {
   therapistId: string;
   serviceDurationMinutes: number;
   date: string;
-  workingHours?: {
-    start: string;
-    end: string;
-  };
+  bookingWindow?: BookingStartWindow;
   breakMinutes?: number;
   bookings?: AvailabilityBooking[];
   scheduleBlocks?: AvailabilityScheduleBlock[];
@@ -127,20 +129,25 @@ export function calculateBlockedIntervalsFromScheduleBlocks(
   options: {
     date: string;
     therapistId: string;
-    workingHours?: {
-      start: string;
-      end: string;
-    };
+    bookingWindow?: BookingStartWindow;
   }
 ): BlockedInterval[] {
-  const workingHours = options.workingHours ?? {
-    start: defaultBookingAvailability.workdayStart,
-    end: defaultBookingAvailability.workdayEnd
+  const bookingWindow = options.bookingWindow ?? {
+    firstStart: defaultBookingAvailability.firstBookingStart,
+    lastStart: defaultBookingAvailability.lastBookingStart
   };
-  const workdayStart = timeToMinutes(workingHours.start);
-  const workdayEnd = timeToMinutes(workingHours.end);
+  const firstBookingStart = timeToMinutes(bookingWindow.firstStart);
+  const lastBookingStart = timeToMinutes(bookingWindow.lastStart);
+  const fullDayBlockEnd = lastBookingStart === null
+    ? null
+    : lastBookingStart + defaultBookingAvailability.slotStepMinutes;
 
-  if (workdayStart === null || workdayEnd === null || workdayStart >= workdayEnd) {
+  if (
+    firstBookingStart === null ||
+    lastBookingStart === null ||
+    fullDayBlockEnd === null ||
+    firstBookingStart > lastBookingStart
+  ) {
     return [];
   }
 
@@ -155,8 +162,8 @@ export function calculateBlockedIntervalsFromScheduleBlocks(
       if (block.blockType === "full_day") {
         return [
           {
-            startMinutes: workdayStart,
-            endMinutes: workdayEnd
+            startMinutes: firstBookingStart,
+            endMinutes: fullDayBlockEnd
           }
         ];
       }
@@ -174,8 +181,8 @@ export function calculateBlockedIntervalsFromScheduleBlocks(
 
       return [
         {
-          startMinutes: Math.max(startMinutes, workdayStart),
-          endMinutes: Math.min(endMinutes, workdayEnd)
+          startMinutes: Math.max(startMinutes, firstBookingStart),
+          endMinutes: Math.min(endMinutes, fullDayBlockEnd)
         }
       ];
     })
@@ -203,9 +210,9 @@ export function calculateAvailableTimeSlots({
   therapistId,
   serviceDurationMinutes,
   date,
-  workingHours = {
-    start: defaultBookingAvailability.workdayStart,
-    end: defaultBookingAvailability.workdayEnd
+  bookingWindow = {
+    firstStart: defaultBookingAvailability.firstBookingStart,
+    lastStart: defaultBookingAvailability.lastBookingStart
   },
   breakMinutes = defaultBookingAvailability.breakMinutes,
   bookings = [],
@@ -215,10 +222,10 @@ export function calculateAvailableTimeSlots({
     return [];
   }
 
-  const workdayStart = timeToMinutes(workingHours.start);
-  const workdayEnd = timeToMinutes(workingHours.end);
+  const firstBookingStart = timeToMinutes(bookingWindow.firstStart);
+  const lastBookingStart = timeToMinutes(bookingWindow.lastStart);
 
-  if (workdayStart === null || workdayEnd === null || workdayStart >= workdayEnd) {
+  if (firstBookingStart === null || lastBookingStart === null || firstBookingStart > lastBookingStart) {
     return [];
   }
 
@@ -229,12 +236,16 @@ export function calculateAvailableTimeSlots({
     ...calculateBlockedIntervalsFromScheduleBlocks(scheduleBlocks, {
       date,
       therapistId,
-      workingHours
+      bookingWindow
     })
   ].sort((a, b) => a.startMinutes - b.startMinutes);
   const slots: string[] = [];
 
-  for (let startMinutes = workdayStart; startMinutes + slotDuration <= workdayEnd; startMinutes += 30) {
+  for (
+    let startMinutes = firstBookingStart;
+    startMinutes <= lastBookingStart;
+    startMinutes += defaultBookingAvailability.slotStepMinutes
+  ) {
     const candidate = {
       startMinutes,
       endMinutes: startMinutes + slotDuration

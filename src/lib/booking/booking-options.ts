@@ -1,6 +1,7 @@
 export const defaultBookingAvailability = {
-  workdayStart: "10:00",
-  workdayEnd: "19:00",
+  firstBookingStart: "10:00",
+  lastBookingStart: "19:00",
+  slotStepMinutes: 30,
   workingDays: [0, 1, 2, 3, 4, 5, 6],
   breakMinutes: 30
 } as const;

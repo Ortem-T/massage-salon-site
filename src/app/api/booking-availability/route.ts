@@ -146,9 +146,9 @@ export async function GET(request: NextRequest) {
         date,
         bookings,
         scheduleBlocks,
-        workingHours: {
-          start: defaultBookingAvailability.workdayStart,
-          end: defaultBookingAvailability.workdayEnd
+        bookingWindow: {
+          firstStart: defaultBookingAvailability.firstBookingStart,
+          lastStart: defaultBookingAvailability.lastBookingStart
         },
         breakMinutes: defaultBookingAvailability.breakMinutes
       });
@@ -165,9 +165,9 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     days,
-    workingHours: {
-      start: defaultBookingAvailability.workdayStart,
-      end: defaultBookingAvailability.workdayEnd
+    bookingWindow: {
+      firstStart: defaultBookingAvailability.firstBookingStart,
+      lastStart: defaultBookingAvailability.lastBookingStart
     },
     breakMinutes: defaultBookingAvailability.breakMinutes
   });

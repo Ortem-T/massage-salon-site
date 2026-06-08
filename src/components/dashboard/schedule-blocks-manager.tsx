@@ -53,8 +53,9 @@ const dateLocales: Record<Locale, string> = {
 };
 
 function getTimeOptions() {
-  const start = timeToMinutes(defaultBookingAvailability.workdayStart) ?? 600;
-  const end = timeToMinutes(defaultBookingAvailability.workdayEnd) ?? 1140;
+  const start = timeToMinutes(defaultBookingAvailability.firstBookingStart) ?? 600;
+  const lastStart = timeToMinutes(defaultBookingAvailability.lastBookingStart) ?? 1140;
+  const end = lastStart + defaultBookingAvailability.slotStepMinutes;
 
   return Array.from({ length: Math.floor((end - start) / 30) + 1 }, (_, index) => minutesToTime(start + index * 30));
 }
@@ -195,16 +196,18 @@ export function ScheduleBlocksManager({
     if (form.blockType === "time_range") {
       const start = timeToMinutes(form.startTime);
       const end = timeToMinutes(form.endTime);
-      const workdayStart = timeToMinutes(defaultBookingAvailability.workdayStart);
-      const workdayEnd = timeToMinutes(defaultBookingAvailability.workdayEnd);
+      const firstBookingStart = timeToMinutes(defaultBookingAvailability.firstBookingStart);
+      const latestBlockEnd = timeToMinutes(defaultBookingAvailability.lastBookingStart) === null
+        ? null
+        : (timeToMinutes(defaultBookingAvailability.lastBookingStart) ?? 0) + defaultBookingAvailability.slotStepMinutes;
 
       if (
         start === null ||
         end === null ||
-        workdayStart === null ||
-        workdayEnd === null ||
-        start < workdayStart ||
-        end > workdayEnd ||
+        firstBookingStart === null ||
+        latestBlockEnd === null ||
+        start < firstBookingStart ||
+        end > latestBlockEnd ||
         end <= start
       ) {
         nextErrors.endTime = schedule.errors.endAfterStart;

@@ -280,9 +280,9 @@ async function isManualBookingSlotAvailable(input: {
     preferredTime: input.preferredTime,
     bookings: ((availabilityRows ?? []) as PublicAvailabilityRow[]).map(toAvailabilityBooking),
     scheduleBlocks: ((blockRows ?? []) as PublicScheduleBlockRow[]).map(toAvailabilityScheduleBlock),
-    workingHours: {
-      start: defaultBookingAvailability.workdayStart,
-      end: defaultBookingAvailability.workdayEnd
+    bookingWindow: {
+      firstStart: defaultBookingAvailability.firstBookingStart,
+      lastStart: defaultBookingAvailability.lastBookingStart
     },
     breakMinutes: defaultBookingAvailability.breakMinutes
   });

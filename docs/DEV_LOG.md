@@ -1,6 +1,6 @@
 # Development Log
 
-Last updated: 2026-05-27
+Last updated: 2026-06-08
 
 This log is shared context for human and AI-assisted development. Update it after every major development stage so future Codex, `web-coder`, and `grill-me` sessions can continue without rediscovering project history.
 
@@ -81,6 +81,7 @@ The booking form MVP is integrated into the homepage and now submits through a N
 - Added an admin-managed homepage booking-section promotion card: new promotions schema/RLS migration, admin-only dashboard management, localized public promo fallback logic, booking promo snapshots, and Telegram promo context for public bookings.
 - Added first-stage public booking security hardening: public form submissions now target `POST /api/bookings/public`, the server validates payload/date/time/service/therapist eligibility more strictly, applies Origin/Referer checks, in-memory IP and phone rate limits, a hidden honeypot field, before-insert availability re-checks, and safe error codes before sending Telegram only after successful inserts. Public availability responses now expose only availability and slots.
 - Created `docs/SECURITY.md` with the current security model, public booking protections, rate-limit limitations, Origin-check limitations, public data exposure notes, and the recommended stage 2 hardening path.
+- Added a Supabase maintenance patch for booking updates: `private.enforce_therapist_booking_update()` now allows trusted DB roles (`postgres`, `supabase_admin`, `service_role`) before dashboard JWT role checks, while keeping admin/therapist restrictions intact. Booking availability now treats `19:00` as the latest allowed start time instead of the service end deadline, including public booking, manual dashboard booking, before-insert re-checks, and schedule block overlap handling.
 
 ## Current Focus
 
@@ -105,7 +106,7 @@ The current focus is production launch polish after the Vercel deployment. The r
 - Apply the Supabase booking migration in the hosted project and manually submit a test booking.
 - Apply the dashboard MVP schema migration in the hosted Supabase project and verify RLS with one admin user and one therapist user.
 - Apply the dashboard manual booking migration in the hosted Supabase project and verify admin/therapist insert policies.
-- Add therapist-specific working hours later if needed; MVP public availability uses the centralized default 10:00-19:00 schedule, all 7 days.
+- Add therapist-specific working hours later if needed; MVP public availability uses the centralized default 10:00-19:00 booking start window, all 7 days.
 - Add manual QA checklist for launch.
 - Verify Telegram booking notifications in the team chat after deployment env vars are configured.
 - Verify `https://raine.rs/sitemap.xml` and `https://raine.rs/robots.txt` after the next deployment.
@@ -122,6 +123,7 @@ The current focus is production launch polish after the Vercel deployment. The r
 - Apply `20260518131000_update_taping_translation.sql` after the device lymphatic drainage migration to shorten the Taping service name without changing slug, duration, price, bookability, or therapist restriction.
 - Apply `20260525120000_update_facial_microcurrents_serbian_translation.sql` after the service catalog migrations to correct Serbian microcurrent wording.
 - Apply `20260527120000_promotions.sql` to add promotion tables, promotion booking snapshot columns, RLS policies, and the initial booking-section promo content.
+- Apply `20260608120000_trusted_booking_update_roles_and_latest_start.sql` to allow trusted Supabase maintenance roles through the booking update trigger and to support schedule blocks that can cover the 19:00 start slot.
 - Test admin status changes, therapist assignment, therapist status changes, and internal notes updates against hosted Supabase RLS.
 - Test manual booking creation for admin assigned, admin unassigned, therapist own, and therapist direct-request attempts against hosted Supabase RLS.
 
@@ -167,6 +169,8 @@ The current focus is production launch polish after the Vercel deployment. The r
 - Confirm admin can create full-day and time-range schedule blocks for any therapist.
 - Confirm therapist users can create full-day and time-range schedule blocks only for their own therapist profile.
 - Confirm blocked days/times disappear from public booking and manual dashboard booking time options.
+- Confirm 19:00 appears as an available public and dashboard manual booking start time when there are no conflicts.
+- Confirm 19:00 disappears when blocked by a pending/confirmed booking or schedule block.
 - Confirm internal schedule block reasons are visible in dashboard only and not exposed in public booking UI/API responses.
 - Confirm `/sr`, `/ru`, and `/en` contact sections show the real address, Novosadski sajam landmark, daily 10:00-19:00 hours, and localized contact copy.
 - Confirm footer contact links show WhatsApp, Telegram, and Instagram only.
@@ -246,6 +250,7 @@ The current focus is production launch polish after the Vercel deployment. The r
 - Use server-only `TELEGRAM_BOT_TOKEN` and full `TELEGRAM_CHAT_ID` values for team notifications; do not expose the bot token with `NEXT_PUBLIC_` or store it in Supabase.
 - Keep Telegram notification failures non-blocking for booking creation, status updates, and therapist assignment changes.
 - Keep public booking protection layered: endpoint validation, basic Origin/Referer checks, honeypot, rate limits, RLS, and availability re-checks all help, but none replaces durable rate limiting or database-level conflict prevention.
+- Treat `defaultBookingAvailability.lastBookingStart` as the last allowed start time, not as the required end-of-service time.
 - Keep the custom branded booking calendar, but support roving keyboard focus instead of replacing it with a new component dependency.
 - Keep UI primitives local and lightweight rather than pulling in a full component dependency for every shadcn/ui part.
 - Avoid full CRM workflows until the booking/dashboard foundation is stable.

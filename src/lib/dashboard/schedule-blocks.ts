@@ -151,18 +151,20 @@ async function getDashboardTherapists(role: DashboardUser["role"], userId: strin
 }
 
 function validateTimeRange(startTime: string | null, endTime: string | null) {
-  const workdayStart = timeToMinutes(defaultBookingAvailability.workdayStart);
-  const workdayEnd = timeToMinutes(defaultBookingAvailability.workdayEnd);
+  const firstBookingStart = timeToMinutes(defaultBookingAvailability.firstBookingStart);
+  const latestBlockEnd = timeToMinutes(defaultBookingAvailability.lastBookingStart) === null
+    ? null
+    : (timeToMinutes(defaultBookingAvailability.lastBookingStart) ?? 0) + defaultBookingAvailability.slotStepMinutes;
   const start = startTime ? timeToMinutes(startTime) : null;
   const end = endTime ? timeToMinutes(endTime) : null;
 
   return (
-    workdayStart !== null &&
-    workdayEnd !== null &&
+    firstBookingStart !== null &&
+    latestBlockEnd !== null &&
     start !== null &&
     end !== null &&
-    start >= workdayStart &&
-    end <= workdayEnd &&
+    start >= firstBookingStart &&
+    end <= latestBlockEnd &&
     end > start
   );
 }
