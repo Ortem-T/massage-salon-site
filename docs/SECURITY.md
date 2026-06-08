@@ -1,6 +1,6 @@
 # Security Notes
 
-Last updated: 2026-05-25
+Last updated: 2026-06-08
 
 ## Current Security Model
 
@@ -56,10 +56,29 @@ Public website bookings are limited to:
 
 - Minimum date: today in the salon timezone, `Europe/Belgrade`.
 - Maximum date: today + 60 days.
-- Working hours: 10:00-19:00.
+- First booking start: 10:00.
+- Last booking start: 19:00.
 - Working days: 7 days per week.
 
-The selected slot must fit the rounded service duration plus the existing 30-minute break. A 45-minute service still rounds to 60 minutes for scheduling. Pending and confirmed bookings block availability. Cancelled and completed bookings do not block availability. Schedule blocks continue to block availability through the safe public schedule-block view.
+The selected start time does not need the full service duration and break to fit before 19:00. A booking may start at 19:00 and end after 19:00. Conflict checks still use the rounded service duration plus the existing 30-minute break. A 45-minute service still rounds to 60 minutes for scheduling. Pending and confirmed bookings block availability. Cancelled and completed bookings do not block availability. Schedule blocks continue to block availability through the safe public schedule-block view.
+
+## Booking Update Trigger
+
+`private.enforce_therapist_booking_update()` protects dashboard booking updates after RLS has selected the row:
+
+- Admin dashboard users can update bookings.
+- Therapist dashboard users can update only status and internal notes.
+- Therapist dashboard users cannot move a booking back to pending.
+- Therapist dashboard users cannot modify client data, service, therapist assignment, source, promotion snapshot fields, date, or time.
+- Unknown dashboard roles are rejected.
+
+The trigger includes an early trusted database role bypass for direct maintenance through Supabase Dashboard / SQL Editor / service-role operations:
+
+- `postgres`
+- `supabase_admin`
+- `service_role`
+
+This bypass exists because direct database maintenance does not always carry the dashboard `app_metadata.role` JWT claim. It does not grant any frontend bypass, does not expose the service-role key, and does not change anon/public update access.
 
 ## Rate Limiting
 
@@ -125,4 +144,3 @@ The public availability API now returns only per-day availability and available 
 5. Add CAPTCHA/Turnstile if spam appears.
 6. Add security headers.
 7. Audit dashboard RLS for admin and therapist workflows.
-

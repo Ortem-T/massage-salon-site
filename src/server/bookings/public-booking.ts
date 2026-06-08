@@ -97,17 +97,17 @@ function addDays(dateValue: string, days: number) {
   return date.toISOString().split("T")[0];
 }
 
-function isTimeInsideWorkingHours(time: string) {
+function isTimeInsideBookingStartWindow(time: string) {
   const selectedMinutes = timeToMinutes(time);
-  const workdayStart = timeToMinutes(defaultBookingAvailability.workdayStart);
-  const workdayEnd = timeToMinutes(defaultBookingAvailability.workdayEnd);
+  const firstBookingStart = timeToMinutes(defaultBookingAvailability.firstBookingStart);
+  const lastBookingStart = timeToMinutes(defaultBookingAvailability.lastBookingStart);
 
   return (
     selectedMinutes !== null &&
-    workdayStart !== null &&
-    workdayEnd !== null &&
-    selectedMinutes >= workdayStart &&
-    selectedMinutes < workdayEnd
+    firstBookingStart !== null &&
+    lastBookingStart !== null &&
+    selectedMinutes >= firstBookingStart &&
+    selectedMinutes <= lastBookingStart
   );
 }
 
@@ -164,7 +164,7 @@ export async function handlePublicBookingPost(request: Request) {
     return jsonError("invalid_booking_date", "Invalid booking date.", 400);
   }
 
-  if (!isTimeInsideWorkingHours(payload.data.preferred_time)) {
+  if (!isTimeInsideBookingStartWindow(payload.data.preferred_time)) {
     return jsonError("invalid_booking_time", "Invalid booking time.", 400);
   }
 
@@ -237,9 +237,9 @@ export async function handlePublicBookingPost(request: Request) {
     preferredTime: payload.data.preferred_time,
     bookings: ((availabilityRows ?? []) as PublicAvailabilityRow[]).map(toAvailabilityBooking),
     scheduleBlocks: ((blockRows ?? []) as PublicScheduleBlockRow[]).map(toAvailabilityScheduleBlock),
-    workingHours: {
-      start: defaultBookingAvailability.workdayStart,
-      end: defaultBookingAvailability.workdayEnd
+    bookingWindow: {
+      firstStart: defaultBookingAvailability.firstBookingStart,
+      lastStart: defaultBookingAvailability.lastBookingStart
     },
     breakMinutes: defaultBookingAvailability.breakMinutes
   });
