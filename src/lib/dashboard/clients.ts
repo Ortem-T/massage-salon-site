@@ -62,11 +62,18 @@ type ClientBookingRow = {
   status: BookingStatus;
   source: string;
   source_channel: ManualBookingSourceChannel | null;
+  client_phone: string;
+  client_contact_channel: ClientContactChannel | null;
+  client_contact_value: string | null;
   internal_notes: string | null;
   client_id: string | null;
 };
 
 const clientColumnsWithTimestamps = `${clientContactColumns}, created_at, updated_at`;
+const bookingColumnsWithContacts =
+  "id, preferred_date, preferred_time, service, specialist, status, source, source_channel, client_phone, client_contact_channel, client_contact_value, internal_notes, client_id";
+const legacyBookingColumns =
+  "id, preferred_date, preferred_time, service, specialist, status, source, source_channel, client_phone, internal_notes, client_id";
 
 function assertAdmin(user: DashboardUser) {
   if (user.role !== "admin") {
@@ -112,6 +119,63 @@ function toDashboardClientBooking(row: ClientBookingRow): DashboardClientBooking
     sourceChannel: row.source_channel,
     internalNotes: row.internal_notes
   };
+}
+
+function normalizeMatchValue(value: string | null | undefined) {
+  return value?.trim().toLowerCase() ?? "";
+}
+
+function addMatchValue(values: Set<string>, value: string | null | undefined) {
+  const normalized = normalizeMatchValue(value);
+
+  if (!normalized) {
+    return;
+  }
+
+  values.add(normalized);
+
+  if (normalized.startsWith("@")) {
+    values.add(normalized.slice(1));
+  } else {
+    values.add(`@${normalized}`);
+  }
+}
+
+function getClientMatchValues(client: ClientRow) {
+  const values = new Set<string>();
+
+  addMatchValue(values, client.phone);
+  addMatchValue(values, client.instagram_username);
+  addMatchValue(values, client.telegram_username);
+  addMatchValue(values, client.whatsapp_phone);
+  addMatchValue(values, client.viber_phone);
+  addMatchValue(values, client.primary_contact_value);
+
+  return values;
+}
+
+function bookingMatchesClient(client: ClientRow, booking: ClientBookingRow) {
+  if (booking.client_id) {
+    return booking.client_id === client.id;
+  }
+
+  const clientValues = getClientMatchValues(client);
+
+  if (clientValues.size === 0) {
+    return false;
+  }
+
+  const bookingValues = new Set<string>();
+  addMatchValue(bookingValues, booking.client_phone);
+  addMatchValue(bookingValues, booking.client_contact_value);
+
+  for (const value of bookingValues) {
+    if (clientValues.has(value)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function validateClientInput(input: SaveClientInput) {
@@ -169,24 +233,35 @@ export async function getClientsForDashboard(user: DashboardUser) {
 
   const { data: bookings, error: bookingsError } = await supabase
     .from("bookings")
-    .select("id, preferred_date, preferred_time, service, specialist, status, source, source_channel, internal_notes, client_id")
-    .in("client_id", clientIds)
+    .select(bookingColumnsWithContacts)
     .order("preferred_date", { ascending: false })
     .order("preferred_time", { ascending: false })
     .limit(1000);
 
-  const bookingRows = bookingsError ? [] : ((bookings ?? []) as ClientBookingRow[]);
+  const { data: legacyBookings, error: legacyBookingsError } = bookingsError
+    ? await supabase
+        .from("bookings")
+        .select(legacyBookingColumns)
+        .order("preferred_date", { ascending: false })
+        .order("preferred_time", { ascending: false })
+        .limit(1000)
+    : { data: null, error: null };
+  const bookingRows = bookingsError
+    ? legacyBookingsError
+      ? []
+      : ((legacyBookings ?? []) as ClientBookingRow[])
+    : ((bookings ?? []) as ClientBookingRow[]);
 
   return {
     clients: clientRows.map((client) =>
       toDashboardClient(
         client,
         bookingRows
-          .filter((booking) => booking.client_id === client.id)
+          .filter((booking) => bookingMatchesClient(client, booking))
           .map(toDashboardClientBooking)
       )
     ),
-    error: Boolean(bookingsError)
+    error: Boolean(bookingsError && legacyBookingsError)
   };
 }
 
