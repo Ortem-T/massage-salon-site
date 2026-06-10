@@ -316,6 +316,94 @@ const sr = {
         error: "Akciju nije moguće sačuvati."
       }
     },
+    clients: {
+      eyebrow: "Klijenti",
+      title: "CRM kartice klijenata",
+      subtitle: "Praktičan pregled kontakata, beleški i istorije termina za administraciju salona.",
+      search: "Pretraži klijente",
+      addClient: "Dodaj klijenta",
+      editClient: "Uredi klijenta",
+      createTitle: "Novi klijent",
+      detailsTitle: "Detalji klijenta",
+      bookingHistory: "Istorija termina",
+      lastVisit: "Poslednja poseta",
+      latestService: "Poslednja usluga",
+      noClientsYet: "Još nema klijenata.",
+      noSearchResults: "Nema klijenata za izabrane filtere.",
+      noBookingsYet: "Još nema termina.",
+      selectClient: "Izaberite klijenta ili dodajte novog.",
+      noContact: "Kontakt nije unet",
+      notSet: "Nije uneto",
+      forbidden: "Samo administratori mogu da upravljaju klijentima.",
+      save: "Sačuvaj",
+      saving: "Čuvamo...",
+      cancel: "Otkaži",
+      snapshotWarning: "Izmena kontakta ažurira karticu klijenta za buduće termine. Stari termini zadržavaju svoje istorijske kontakt snimke.",
+      channels: {
+        instagram: "Instagram",
+        whatsapp: "WhatsApp",
+        telegram: "Telegram",
+        viber: "Viber",
+        phone: "Telefon",
+        walk_in: "Lično",
+        other: "Drugo"
+      },
+      filters: {
+        contactChannel: "Kontakt kanal",
+        locale: "Jezik",
+        bookings: "Termini",
+        allChannels: "Svi kanali",
+        allLocales: "Svi jezici",
+        allBookings: "Svi klijenti",
+        withBookings: "Sa terminima",
+        withoutBookings: "Bez termina"
+      },
+      fields: {
+        name: "Ime",
+        primaryContactChannel: "Glavni kontakt kanal",
+        primaryContactValue: "Glavni kontakt",
+        phone: "Telefon",
+        instagram: "Instagram",
+        telegram: "Telegram",
+        whatsapp: "WhatsApp",
+        viber: "Viber",
+        locale: "Jezik",
+        notes: "Beleške",
+        createdAt: "Kreirano",
+        updatedAt: "Ažurirano",
+        therapist: "Terapeut",
+        source: "Izvor"
+      },
+      placeholders: {
+        name: "Ime klijenta",
+        phone: "+381 ...",
+        instagram: "@username",
+        telegram: "@username",
+        locale: "Bez jezika",
+        notes: "Privatne beleške za tim...",
+        contactValue: {
+          instagram: "@username",
+          whatsapp: "+381 ...",
+          telegram: "@username",
+          viber: "+381 ...",
+          phone: "+381 ...",
+          walk_in: "Kontakt nije potreban",
+          other: "Detalji kontakta"
+        }
+      },
+      metrics: {
+        bookings: "termina"
+      },
+      messages: {
+        created: "Klijent je kreiran.",
+        saved: "Klijent je sačuvan.",
+        error: "Klijenta nije moguće sačuvati."
+      },
+      errors: {
+        name: "Unesite ime klijenta.",
+        contactValue: "Unesite kontakt za izabrani kanal."
+      }
+    },
     calendar: {
       eyebrow: "Kalendar termina",
       title: "Termini po ritmu, ne po tabeli",
@@ -342,8 +430,12 @@ const sr = {
           time: "Vreme",
           duration: "Trajanje, minuti",
           locale: "Jezik klijenta",
+          clientSearch: "Pronađi klijenta",
           clientName: "Ime klijenta",
           clientPhone: "Telefon klijenta",
+          clientPhoneOptional: "Telefon, ako postoji",
+          clientContactValue: "Kontakt",
+          clientNotes: "Beleške o klijentu",
           therapist: "Terapeut",
           status: "Status",
           clientComment: "Komentar klijenta",
@@ -355,8 +447,10 @@ const sr = {
           therapistForService: "Prvo izaberite uslugu",
           noTherapistsForService: "Nema terapeuta za ovu uslugu",
           duration: "Opcionalno",
+          clientSearch: "Ime, telefon, Instagram, Telegram...",
           clientName: "Ime klijenta",
           clientPhone: "+381 ...",
+          clientNotes: "Preferencije, napomene, privatne CRM beleške...",
           clientComment: "Detalji zahteva, preferencije, kontekst...",
           internalNotes: "Privatne beleške tima..."
         },
@@ -369,6 +463,24 @@ const sr = {
           walk_in: "Lično",
           other: "Drugo"
         },
+        contactPlaceholders: {
+          instagram: "@username",
+          whatsapp: "+381 ...",
+          telegram: "@username",
+          viber: "+381 ...",
+          phone: "+381 ...",
+          walk_in: "Kontakt nije potreban",
+          other: "Detalji kontakta"
+        },
+        clientSection: {
+          title: "Klijent",
+          subtitle: "Izaberite klijenta iz baze ili napravite novog tokom unosa termina.",
+          existing: "Postojeći",
+          new: "Novi",
+          empty: "Klijenti nisu pronađeni. Prebacite na novog klijenta da napravite karticu.",
+          walkIn: "Za walk-in termin kontakt nije obavezan."
+        },
+        noPrimaryContact: "Kontakt nije unet",
         ownTherapistFallback: "Vaš profil terapeuta još nije povezan.",
         servicesAvailableToTherapist: "Prikazane su samo usluge dostupne ovom terapeutu.",
         noServicesAvailable: "Nema dostupnih usluga za ručni unos.",
@@ -388,6 +500,8 @@ const sr = {
           duration: "Trajanje mora biti veće od nule.",
           clientName: "Unesite ime klijenta.",
           clientPhone: "Unesite telefon klijenta.",
+          clientRequired: "Izaberite klijenta ili prebacite na novog klijenta.",
+          clientContactValue: "Unesite kontakt za izabrani kanal.",
           therapist: "Za kreiranje termina potreban je vaš profil terapeuta.",
           noTherapistsForService: "Nema dostupnih terapeuta za ovu uslugu.",
           serviceTherapistUnavailable: "Ovaj terapeut ne radi izabranu uslugu.",

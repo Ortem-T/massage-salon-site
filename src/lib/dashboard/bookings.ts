@@ -6,6 +6,19 @@ import {
 } from "@/lib/booking/booking-availability";
 import { defaultBookingAvailability } from "@/lib/booking/booking-options";
 import { bookingStatuses, type BookingStatus } from "@/lib/booking/booking-schema";
+import {
+  contactValueRequired,
+  normalizeClientContact,
+  type BookingClient,
+  type ClientContactChannel
+} from "@/lib/clients/contact";
+import {
+  clientContactColumns,
+  findOrCreateClientForBooking,
+  getClientPrimaryContact,
+  legacyClientColumns,
+  toBookingClient
+} from "@/lib/clients/server";
 import { type DashboardUser } from "@/lib/dashboard/auth";
 import {
   manualBookingCreateStatuses,
@@ -30,6 +43,8 @@ export type DashboardBooking = {
   preferredTime: string;
   clientName: string;
   clientPhone: string;
+  clientContactChannel: ClientContactChannel | null;
+  clientContactValue: string | null;
   clientComment: string | null;
   locale: Locale;
   status: BookingStatus;
@@ -51,6 +66,7 @@ export type DashboardTherapist = {
 
 export type DashboardBookingsData = {
   bookings: DashboardBooking[];
+  clients: BookingClient[];
   therapists: DashboardTherapist[];
   error: boolean;
 };
@@ -68,7 +84,10 @@ export type CreateManualBookingInput = {
   preferredTime: string;
   durationMinutes?: number | null;
   clientName: string;
-  clientPhone: string;
+  clientPhone?: string | null;
+  clientId?: string | null;
+  clientContactValue?: string | null;
+  clientNotes?: string | null;
   clientComment?: string | null;
   internalNotes?: string | null;
   locale: Locale;
@@ -119,6 +138,8 @@ type DashboardBookingRow = {
   preferred_time: string;
   client_name: string;
   client_phone: string;
+  client_contact_channel?: ClientContactChannel | null;
+  client_contact_value?: string | null;
   client_comment: string | null;
   locale: Locale;
   status: BookingStatus;
@@ -141,6 +162,8 @@ function toDashboardBooking(row: DashboardBookingRow): DashboardBooking {
     preferredTime: row.preferred_time,
     clientName: row.client_name,
     clientPhone: row.client_phone,
+    clientContactChannel: row.client_contact_channel ?? null,
+    clientContactValue: row.client_contact_value ?? null,
     clientComment: row.client_comment,
     locale: row.locale,
     status: row.status,
@@ -194,7 +217,7 @@ type PublicScheduleBlockRow = {
 };
 
 const fullBookingColumns =
-  "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source, source_channel, duration_minutes, client_id, therapist_id, internal_notes, updated_at";
+  "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_contact_channel, client_contact_value, client_comment, locale, status, source, source_channel, duration_minutes, client_id, therapist_id, internal_notes, updated_at";
 const dashboardBookingColumns =
   "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source, client_id, therapist_id, internal_notes, updated_at";
 const legacyBookingColumns =
@@ -300,16 +323,45 @@ async function getDashboardTherapists(role: DashboardUser["role"], userId: strin
   };
 }
 
+async function getDashboardClients() {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("clients")
+    .select(clientContactColumns)
+    .order("updated_at", { ascending: false })
+    .limit(300);
+
+  if (!error) {
+    return {
+      clients: (data ?? []).map((client) => toBookingClient(client as Parameters<typeof toBookingClient>[0])),
+      error: false
+    };
+  }
+
+  const { data: legacyData, error: legacyError } = await supabase
+    .from("clients")
+    .select(legacyClientColumns)
+    .order("updated_at", { ascending: false })
+    .limit(300);
+
+  return {
+    clients: legacyError ? [] : (legacyData ?? []).map((client) => toBookingClient(client as Parameters<typeof toBookingClient>[0])),
+    error: Boolean(legacyError)
+  };
+}
+
 export async function getBookingsForDashboard(user: DashboardUser): Promise<DashboardBookingsData> {
   const supabase = await createSupabaseServerClient();
   const therapistIds = user.role === "therapist" ? await getTherapistIdsForUser(user.id) : [];
   const therapistResult = await getDashboardTherapists(user.role, user.id);
+  const clientResult = await getDashboardClients();
 
   if (user.role === "therapist" && therapistIds.length === 0) {
     return {
       bookings: [],
+      clients: clientResult.clients,
       therapists: therapistResult.therapists,
-      error: therapistResult.error
+      error: therapistResult.error || clientResult.error
     };
   }
 
@@ -326,8 +378,9 @@ export async function getBookingsForDashboard(user: DashboardUser): Promise<Dash
     if (!bookingsError) {
       return {
         bookings: (bookings ?? []).map(toDashboardBooking),
+        clients: clientResult.clients,
         therapists: therapistResult.therapists,
-        error: therapistResult.error
+        error: therapistResult.error || clientResult.error
       };
     }
 
@@ -343,14 +396,16 @@ export async function getBookingsForDashboard(user: DashboardUser): Promise<Dash
     if (!dashboardBookingsError) {
       return {
         bookings: (dashboardBookings ?? []).map(toDashboardBooking),
+        clients: clientResult.clients,
         therapists: therapistResult.therapists,
-        error: therapistResult.error
+        error: therapistResult.error || clientResult.error
       };
     }
 
     if (user.role === "therapist") {
       return {
         bookings: [],
+        clients: clientResult.clients,
         therapists: therapistResult.therapists,
         error: true
       };
@@ -365,12 +420,14 @@ export async function getBookingsForDashboard(user: DashboardUser): Promise<Dash
 
     return {
       bookings: legacyBookingsError ? [] : (legacyBookings ?? []).map(toDashboardBooking),
+      clients: clientResult.clients,
       therapists: [],
-      error: Boolean(legacyBookingsError || therapistResult.error)
+      error: Boolean(legacyBookingsError || therapistResult.error || clientResult.error)
     };
   } catch {
     return {
       bookings: [],
+      clients: [],
       therapists: [],
       error: true
     };
@@ -553,6 +610,8 @@ async function toTelegramBookingDetails(booking: DashboardBooking, therapistName
     durationMinutes: booking.durationMinutes,
     clientName: booking.clientName,
     clientPhone: booking.clientPhone,
+    clientContactChannel: booking.clientContactChannel,
+    clientContactValue: booking.clientContactValue,
     clientLocale: booking.locale,
     source: booking.source,
     sourceChannel: booking.sourceChannel,
@@ -576,19 +635,23 @@ function validateManualBookingInput(input: CreateManualBookingInput) {
   const preferredDate = normalizeRequiredText(input.preferredDate);
   const preferredTime = normalizeRequiredText(input.preferredTime);
   const clientName = normalizeRequiredText(input.clientName);
-  const clientPhone = normalizeRequiredText(input.clientPhone);
+  const clientContactValue = normalizeRequiredText(input.clientContactValue);
+  const clientPhone = normalizeOptionalText(input.clientPhone);
 
   if (
     !service ||
     !preferredDate ||
     !preferredTime ||
     clientName.length < 2 ||
-    clientPhone.length < 6 ||
     !isLocale(input.locale) ||
     !isManualBookingSourceChannel(input.sourceChannel) ||
     !isManualCreateStatus(input.status)
   ) {
     throw new Error("Invalid manual booking.");
+  }
+
+  if (contactValueRequired(input.sourceChannel) && clientContactValue.length < 2) {
+    throw new Error("Invalid manual booking contact.");
   }
 
   if (input.durationMinutes !== undefined && input.durationMinutes !== null && input.durationMinutes <= 0) {
@@ -600,8 +663,24 @@ function validateManualBookingInput(input: CreateManualBookingInput) {
     preferredDate,
     preferredTime,
     clientName,
+    clientContactValue: clientContactValue || null,
     clientPhone
   };
+}
+
+async function getAllowedClientById(clientId: string) {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("clients")
+    .select(clientContactColumns)
+    .eq("id", clientId)
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return toBookingClient(data as Parameters<typeof toBookingClient>[0]);
 }
 
 export async function createManualBooking(user: DashboardUser, input: CreateManualBookingInput) {
@@ -661,6 +740,29 @@ export async function createManualBooking(user: DashboardUser, input: CreateManu
     }
   }
 
+  const explicitContact = normalizeClientContact({
+    channel: input.sourceChannel,
+    value: normalized.clientContactValue,
+    phone: normalized.clientPhone
+  });
+  const selectedClient = input.clientId ? await getAllowedClientById(input.clientId) : null;
+  if (input.clientId && !selectedClient) {
+    throw new DashboardForbiddenError();
+  }
+
+  const bookingClient = selectedClient ?? (await findOrCreateClientForBooking({
+    name: normalized.clientName,
+    contactChannel: input.sourceChannel,
+    contactValue: normalized.clientContactValue,
+    phone: normalized.clientPhone,
+    locale: input.locale,
+    notes: input.clientNotes
+  }));
+  const clientPrimaryContact = getClientPrimaryContact(bookingClient);
+  const bookingContactChannel = input.sourceChannel;
+  const bookingContactValue = explicitContact.value ?? clientPrimaryContact.value ?? null;
+  const legacyClientPhone = explicitContact.legacyPhoneSnapshot || bookingClient.phone || "";
+
   const { data, error } = await supabase
     .from("bookings")
     .insert({
@@ -669,11 +771,14 @@ export async function createManualBooking(user: DashboardUser, input: CreateManu
       preferred_date: normalized.preferredDate,
       preferred_time: normalized.preferredTime,
       duration_minutes: input.durationMinutes ?? service.duration_minutes,
-      client_name: normalized.clientName,
-      client_phone: normalized.clientPhone,
+      client_name: selectedClient ? bookingClient.name : normalized.clientName,
+      client_phone: legacyClientPhone,
+      client_contact_channel: bookingContactChannel,
+      client_contact_value: bookingContactValue,
       client_comment: normalizeOptionalText(input.clientComment),
       internal_notes: normalizeInternalNotes(input.internalNotes),
       locale: input.locale,
+      client_id: bookingClient.id,
       therapist_id: therapistId,
       status: input.status,
       source: "dashboard",
@@ -690,8 +795,10 @@ export async function createManualBooking(user: DashboardUser, input: CreateManu
       preferredDate: normalized.preferredDate,
       preferredTime: normalized.preferredTime,
       durationMinutes: input.durationMinutes ?? service.duration_minutes,
-      clientName: normalized.clientName,
-      clientPhone: normalized.clientPhone,
+      clientName: selectedClient ? bookingClient.name : normalized.clientName,
+      clientPhone: legacyClientPhone,
+      clientContactChannel: bookingContactChannel,
+      clientContactValue: bookingContactValue,
       clientLocale: input.locale,
       source: "dashboard",
       sourceChannel: input.sourceChannel,

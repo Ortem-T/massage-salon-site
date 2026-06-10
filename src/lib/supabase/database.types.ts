@@ -1,5 +1,6 @@
 import { type Locale } from "@/i18n/config";
 import { type BookingStatus } from "@/lib/booking/booking-schema";
+import { type ClientContactChannel } from "@/lib/clients/contact";
 import { type ManualBookingSourceChannel } from "@/lib/dashboard/constants";
 
 export type ScheduleBlockType = "full_day" | "time_range";
@@ -18,6 +19,8 @@ export type Database = {
           preferred_time: string;
           client_name: string;
           client_phone: string;
+          client_contact_channel: ClientContactChannel | null;
+          client_contact_value: string | null;
           client_comment: string | null;
           locale: Locale;
           status: BookingStatus;
@@ -41,6 +44,8 @@ export type Database = {
           preferred_time: string;
           client_name: string;
           client_phone: string;
+          client_contact_channel?: ClientContactChannel | null;
+          client_contact_value?: string | null;
           client_comment?: string | null;
           locale: Locale;
           status?: BookingStatus;
@@ -62,8 +67,14 @@ export type Database = {
         Row: {
           id: string;
           name: string;
-          phone: string;
-          locale: Locale;
+          phone: string | null;
+          instagram_username: string | null;
+          telegram_username: string | null;
+          whatsapp_phone: string | null;
+          viber_phone: string | null;
+          primary_contact_channel: ClientContactChannel | null;
+          primary_contact_value: string | null;
+          locale: Locale | null;
           notes: string | null;
           created_at: string;
           updated_at: string;
@@ -71,8 +82,14 @@ export type Database = {
         Insert: {
           id?: string;
           name: string;
-          phone: string;
-          locale: Locale;
+          phone?: string | null;
+          instagram_username?: string | null;
+          telegram_username?: string | null;
+          whatsapp_phone?: string | null;
+          viber_phone?: string | null;
+          primary_contact_channel?: ClientContactChannel | null;
+          primary_contact_value?: string | null;
+          locale?: Locale | null;
           notes?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -303,7 +320,16 @@ export type Database = {
         Relationships: [];
       };
     };
-    Functions: Record<string, never>;
+    Functions: {
+      find_or_create_public_booking_client: {
+        Args: {
+          client_name: string;
+          client_phone: string;
+          client_locale: Locale;
+        };
+        Returns: string;
+      };
+    };
     Enums: {
       booking_status: BookingStatus;
     };

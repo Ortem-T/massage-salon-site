@@ -35,6 +35,7 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
   return (
     <BookingsCalendar
       bookings={data.bookings}
+      clients={data.clients}
       dataError={data.error}
       dictionary={dictionary}
       initialDate={initialDate}

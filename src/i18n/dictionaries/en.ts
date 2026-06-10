@@ -309,6 +309,94 @@ const en = {
         error: "Could not save promotion."
       }
     },
+    clients: {
+      eyebrow: "Clients",
+      title: "Client CRM records",
+      subtitle: "A practical admin view for contacts, private notes, and appointment history.",
+      search: "Search clients",
+      addClient: "Add client",
+      editClient: "Edit client",
+      createTitle: "New client",
+      detailsTitle: "Client details",
+      bookingHistory: "Booking history",
+      lastVisit: "Last visit",
+      latestService: "Latest service",
+      noClientsYet: "No clients yet.",
+      noSearchResults: "No clients match the selected filters.",
+      noBookingsYet: "No bookings yet.",
+      selectClient: "Select a client or add a new one.",
+      noContact: "No contact saved",
+      notSet: "Not set",
+      forbidden: "Only admins can manage clients.",
+      save: "Save",
+      saving: "Saving...",
+      cancel: "Cancel",
+      snapshotWarning: "Changing contact details updates the client record for future bookings. Existing bookings keep their historical contact snapshots.",
+      channels: {
+        instagram: "Instagram",
+        whatsapp: "WhatsApp",
+        telegram: "Telegram",
+        viber: "Viber",
+        phone: "Phone",
+        walk_in: "Walk-in",
+        other: "Other"
+      },
+      filters: {
+        contactChannel: "Contact channel",
+        locale: "Language",
+        bookings: "Bookings",
+        allChannels: "All channels",
+        allLocales: "All languages",
+        allBookings: "All clients",
+        withBookings: "Has bookings",
+        withoutBookings: "No bookings"
+      },
+      fields: {
+        name: "Name",
+        primaryContactChannel: "Main contact channel",
+        primaryContactValue: "Main contact",
+        phone: "Phone",
+        instagram: "Instagram",
+        telegram: "Telegram",
+        whatsapp: "WhatsApp",
+        viber: "Viber",
+        locale: "Language",
+        notes: "Notes",
+        createdAt: "Created",
+        updatedAt: "Updated",
+        therapist: "Therapist",
+        source: "Source"
+      },
+      placeholders: {
+        name: "Client name",
+        phone: "+381 ...",
+        instagram: "@username",
+        telegram: "@username",
+        locale: "No language",
+        notes: "Private staff notes...",
+        contactValue: {
+          instagram: "@username",
+          whatsapp: "+381 ...",
+          telegram: "@username",
+          viber: "+381 ...",
+          phone: "+381 ...",
+          walk_in: "No contact required",
+          other: "Contact details"
+        }
+      },
+      metrics: {
+        bookings: "bookings"
+      },
+      messages: {
+        created: "Client created.",
+        saved: "Client saved.",
+        error: "Could not save client."
+      },
+      errors: {
+        name: "Enter the client name.",
+        contactValue: "Enter contact details for the selected channel."
+      }
+    },
     calendar: {
       eyebrow: "Booking calendar",
       title: "Appointments by rhythm, not rows",
@@ -335,8 +423,12 @@ const en = {
           time: "Time",
           duration: "Duration, minutes",
           locale: "Client language",
+          clientSearch: "Find client",
           clientName: "Client name",
           clientPhone: "Client phone",
+          clientPhoneOptional: "Phone, if available",
+          clientContactValue: "Contact",
+          clientNotes: "Client notes",
           therapist: "Therapist",
           status: "Status",
           clientComment: "Client comment",
@@ -348,8 +440,10 @@ const en = {
           therapistForService: "Choose a service first",
           noTherapistsForService: "No therapists for this service",
           duration: "Optional",
+          clientSearch: "Name, phone, Instagram, Telegram...",
           clientName: "Client name",
           clientPhone: "+381 ...",
+          clientNotes: "Preferences, sensitivities, private CRM notes...",
           clientComment: "Request details, preferences, context...",
           internalNotes: "Private staff notes..."
         },
@@ -362,6 +456,24 @@ const en = {
           walk_in: "Walk-in",
           other: "Other"
         },
+        contactPlaceholders: {
+          instagram: "@username",
+          whatsapp: "+381 ...",
+          telegram: "@username",
+          viber: "+381 ...",
+          phone: "+381 ...",
+          walk_in: "No contact required",
+          other: "Contact details"
+        },
+        clientSection: {
+          title: "Client",
+          subtitle: "Select a client from the database or create a new client while booking.",
+          existing: "Existing",
+          new: "New",
+          empty: "No clients found. Switch to new client to create a profile.",
+          walkIn: "Walk-in bookings do not require contact details."
+        },
+        noPrimaryContact: "No contact saved",
         ownTherapistFallback: "Your therapist profile is not connected yet.",
         servicesAvailableToTherapist: "Only services available to this therapist are shown.",
         noServicesAvailable: "No services are available for manual booking.",
@@ -381,6 +493,8 @@ const en = {
           duration: "Duration must be greater than zero.",
           clientName: "Enter the client name.",
           clientPhone: "Enter the client phone.",
+          clientRequired: "Select a client or switch to new client.",
+          clientContactValue: "Enter contact details for the selected channel.",
           therapist: "Your therapist profile is required to create bookings.",
           noTherapistsForService: "No therapists are available for this service.",
           serviceTherapistUnavailable: "This therapist does not provide the selected service.",

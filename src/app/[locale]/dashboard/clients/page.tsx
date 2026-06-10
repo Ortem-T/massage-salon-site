@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
 
-import { DashboardPlaceholder } from "@/components/dashboard/dashboard-placeholder";
+import { ClientsManager } from "@/components/dashboard/clients-manager";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { requireDashboardRole } from "@/lib/dashboard/auth";
+import { getClientsForDashboard } from "@/lib/dashboard/clients";
+import { getDashboardServiceCatalogData } from "@/lib/services/dashboard-catalog";
 
 type DashboardClientsPageProps = {
   params: Promise<{ locale: string }>;
@@ -17,10 +19,20 @@ export default async function DashboardClientsPage({ params }: DashboardClientsP
   }
 
   const locale: Locale = rawLocale;
-  await requireDashboardRole(locale, ["admin"]);
+  const user = await requireDashboardRole(locale, ["admin"]);
+  const [dictionary, data, serviceCatalogData] = await Promise.all([
+    getDictionary(locale),
+    getClientsForDashboard(user),
+    getDashboardServiceCatalogData(locale, { activeOnly: false, bookableOnlineOnly: false })
+  ]);
 
-  const dictionary = await getDictionary(locale);
-  const page = dictionary.dashboard.pages.clients;
-
-  return <DashboardPlaceholder eyebrow={page.eyebrow} title={page.title} body={page.body} />;
+  return (
+    <ClientsManager
+      clients={data.clients}
+      dataError={data.error}
+      dictionary={dictionary}
+      locale={locale}
+      serviceCatalog={serviceCatalogData.services}
+    />
+  );
 }
