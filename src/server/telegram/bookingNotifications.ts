@@ -14,6 +14,8 @@ export type TelegramBookingDetails = {
   durationMinutes?: number | null;
   clientName: string;
   clientPhone: string;
+  clientContactChannel?: ManualBookingSourceChannel | null;
+  clientContactValue?: string | null;
   clientLocale: Locale;
   source: TelegramBookingSource;
   sourceChannel?: ManualBookingSourceChannel | null;
@@ -97,6 +99,18 @@ function formatSourceChannel(channel: ManualBookingSourceChannel | null | undefi
   return channel ? channelLabels[channel] : null;
 }
 
+function formatClientContact(booking: TelegramBookingDetails) {
+  if (booking.clientContactChannel) {
+    if (booking.clientContactChannel === "walk_in") {
+      return "Пришёл лично: контакт не указан";
+    }
+
+    return `${channelLabels[booking.clientContactChannel]}: ${formatValue(booking.clientContactValue)}`;
+  }
+
+  return formatValue(booking.clientPhone);
+}
+
 function formatTherapist(name: string | null | undefined) {
   return formatValue(name, "Не назначен");
 }
@@ -148,7 +162,7 @@ export async function notifyTelegramNewBooking(booking: TelegramBookingDetails) 
       line("Время", formatTime(booking.preferredTime)),
       optionalLine("Длительность", formatDuration(booking.durationMinutes)),
       line("Клиент", booking.clientName),
-      line("Телефон", booking.clientPhone),
+      line("Контакт", formatClientContact(booking)),
       line("Язык клиента", localeLabels[booking.clientLocale]),
       line("Источник", formatSource(booking.source)),
       channel ? line("Канал", channel) : null,

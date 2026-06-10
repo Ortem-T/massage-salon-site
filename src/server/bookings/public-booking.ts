@@ -248,6 +248,16 @@ export async function handlePublicBookingPost(request: Request) {
     return jsonError("slot_unavailable", "Selected time is no longer available.", 409);
   }
 
+  const { data: clientId, error: clientError } = await supabase.rpc("find_or_create_public_booking_client", {
+    client_name: payload.data.client_name,
+    client_phone: payload.data.client_phone,
+    client_locale: payload.data.locale
+  });
+
+  if (clientError || !clientId) {
+    return jsonError("client_link_failed", "Booking client could not be prepared.", 500);
+  }
+
   const { error } = await supabase
     .from("bookings")
     .insert({
@@ -257,8 +267,11 @@ export async function handlePublicBookingPost(request: Request) {
       preferred_time: payload.data.preferred_time,
       client_name: payload.data.client_name,
       client_phone: payload.data.client_phone,
+      client_contact_channel: "phone",
+      client_contact_value: payload.data.client_phone,
       client_comment: payload.data.client_comment,
       locale: payload.data.locale,
+      client_id: clientId,
       therapist_id: therapist.id,
       duration_minutes: service.duration_minutes,
       ...(activePromotion
