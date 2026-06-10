@@ -26,6 +26,7 @@ import {
   setPromotionActive,
   type SavePromotionInput
 } from "@/lib/dashboard/promotions";
+import { saveClient, type SaveClientInput } from "@/lib/dashboard/clients";
 import { type BookingStatus } from "@/lib/booking/booking-schema";
 
 export type DashboardActionResult = {
@@ -64,6 +65,7 @@ function toActionResult(error: unknown): DashboardActionResult {
 function revalidateDashboard(locale: Locale) {
   revalidatePath(`/${locale}/dashboard`);
   revalidatePath(`/${locale}/dashboard/bookings`);
+  revalidatePath(`/${locale}/dashboard/clients`);
   revalidatePath(`/${locale}/dashboard/schedule`);
   revalidatePath(`/${locale}/dashboard/promotions`);
   locales.forEach((siteLocale) => {
@@ -190,6 +192,20 @@ export async function setPromotionActiveAction(
   try {
     const user = await requireDashboardUser(locale);
     await setPromotionActive(user, input.id, input.active);
+    revalidateDashboard(locale);
+    return { ok: true };
+  } catch (error) {
+    return toActionResult(error);
+  }
+}
+
+export async function saveClientAction(
+  locale: Locale,
+  input: SaveClientInput
+): Promise<DashboardActionResult> {
+  try {
+    const user = await requireDashboardUser(locale);
+    await saveClient(user, input);
     revalidateDashboard(locale);
     return { ok: true };
   } catch (error) {

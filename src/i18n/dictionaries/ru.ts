@@ -309,6 +309,94 @@ const ru = {
         error: "Не удалось сохранить акцию."
       }
     },
+    clients: {
+      eyebrow: "Клиенты",
+      title: "CRM-карточки клиентов",
+      subtitle: "Практичный список контактов, заметок и истории записей для администратора салона.",
+      search: "Поиск клиентов",
+      addClient: "Добавить клиента",
+      editClient: "Редактировать",
+      createTitle: "Новый клиент",
+      detailsTitle: "Детали клиента",
+      bookingHistory: "История записей",
+      lastVisit: "Последний визит",
+      latestService: "Последняя услуга",
+      noClientsYet: "Клиентов пока нет.",
+      noSearchResults: "Клиенты по выбранным фильтрам не найдены.",
+      noBookingsYet: "Записей пока нет.",
+      selectClient: "Выберите клиента или добавьте нового.",
+      noContact: "Контакт не указан",
+      notSet: "Не указано",
+      forbidden: "Только администраторы могут управлять клиентами.",
+      save: "Сохранить",
+      saving: "Сохраняем...",
+      cancel: "Отмена",
+      snapshotWarning: "Изменение контакта обновляет карточку клиента для будущих записей. Старые записи сохраняют свои исторические контактные данные.",
+      channels: {
+        instagram: "Instagram",
+        whatsapp: "WhatsApp",
+        telegram: "Telegram",
+        viber: "Viber",
+        phone: "Телефон",
+        walk_in: "Лично",
+        other: "Другое"
+      },
+      filters: {
+        contactChannel: "Канал связи",
+        locale: "Язык",
+        bookings: "Записи",
+        allChannels: "Все каналы",
+        allLocales: "Все языки",
+        allBookings: "Все клиенты",
+        withBookings: "С записями",
+        withoutBookings: "Без записей"
+      },
+      fields: {
+        name: "Имя",
+        primaryContactChannel: "Основной канал связи",
+        primaryContactValue: "Основной контакт",
+        phone: "Телефон",
+        instagram: "Instagram",
+        telegram: "Telegram",
+        whatsapp: "WhatsApp",
+        viber: "Viber",
+        locale: "Язык",
+        notes: "Заметки",
+        createdAt: "Создано",
+        updatedAt: "Обновлено",
+        therapist: "Массажист",
+        source: "Источник"
+      },
+      placeholders: {
+        name: "Имя клиента",
+        phone: "+381 ...",
+        instagram: "@username",
+        telegram: "@username",
+        locale: "Без языка",
+        notes: "Приватные заметки для команды...",
+        contactValue: {
+          instagram: "@username",
+          whatsapp: "+381 ...",
+          telegram: "@username",
+          viber: "+381 ...",
+          phone: "+381 ...",
+          walk_in: "Контакт не нужен",
+          other: "Контактные детали"
+        }
+      },
+      metrics: {
+        bookings: "зап."
+      },
+      messages: {
+        created: "Клиент создан.",
+        saved: "Клиент сохранен.",
+        error: "Не удалось сохранить клиента."
+      },
+      errors: {
+        name: "Введите имя клиента.",
+        contactValue: "Укажите контакт для выбранного канала."
+      }
+    },
     calendar: {
       eyebrow: "Календарь записей",
       title: "Записи по ритму, а не по таблице",
