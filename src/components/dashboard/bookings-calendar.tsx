@@ -1326,20 +1326,22 @@ export function BookingsCalendar({
                       {calendar.create.clientSection.subtitle}
                     </p>
                   </div>
-                  <div className="grid grid-cols-2 gap-1 rounded-full border border-border/70 bg-card/80 p-1">
+                  <div className="grid w-full grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-1 rounded-full border border-border/70 bg-card/80 p-1 sm:w-auto sm:min-w-[19rem]">
                     {(["existing", "new"] as const).map((mode) => (
                       <button
                         key={mode}
                         type="button"
                         onClick={() => updateManualClientMode(mode)}
                         className={cn(
-                          "focus-ring rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition",
+                          "focus-ring min-w-0 rounded-full px-3 py-2 text-center text-[0.68rem] font-semibold uppercase leading-4 tracking-[0.08em] transition sm:px-4 sm:text-xs sm:tracking-[0.12em]",
                           manualBookingForm.clientMode === mode
                             ? "bg-primary text-primary-foreground shadow-sm"
                             : "text-muted-foreground hover:bg-secondary/70 hover:text-primary"
                         )}
                       >
-                        {mode === "existing" ? calendar.create.clientSection.existing : calendar.create.clientSection.new}
+                        <span className="block min-w-0 truncate">
+                          {mode === "existing" ? calendar.create.clientSection.existing : calendar.create.clientSection.new}
+                        </span>
                       </button>
                     ))}
                   </div>
