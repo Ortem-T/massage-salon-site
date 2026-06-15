@@ -50,6 +50,65 @@ const en = {
     durationUnit: "min",
     empty: "The service catalog is temporarily unavailable. Please contact us directly to book."
   },
+  specialists: {
+    eyebrow: "Our team",
+    title: "Our specialists",
+    description:
+      "At Raine, treatments are performed by trained specialists with extensive experience. Each session is carried out with care and attention — according to your needs, how you feel and the treatment you choose.",
+    cards: [
+      {
+        name: "Sergey",
+        role: "Body massage, sports massage, lymphatic drainage, taping",
+        description:
+          "Works with muscle tension, recovery after physical load and an overall feeling of lightness in the body.",
+        image: {
+          src: "/images/specialists/sergey-massage-therapy.webp",
+          alt: "Sergey performing a back massage at Raine salon"
+        }
+      },
+      {
+        name: "Ekaterina",
+        role: "Face massage, facial microcurrent therapy, women’s sports massage and relax massage",
+        description:
+          "Works carefully with the face and body, combining precise technique, a calm pace and a caring approach.",
+        image: {
+          src: "/images/specialists/ekaterina-face-treatment.webp",
+          alt: "Ekaterina performing a facial treatment at Raine salon"
+        }
+      }
+    ],
+    atmosphere: {
+      eyebrow: "Atmosphere",
+      title: "Raine atmosphere",
+      description: "A calm space, soft light and details that help you settle into rest.",
+      images: [
+        {
+          src: "/images/atmosphere/raine-face-treatment-01.webp",
+          alt: "Facial treatment in the calm atmosphere of Raine salon"
+        },
+        {
+          src: "/images/atmosphere/raine-treatment-room-01.webp",
+          alt: "Raine massage room with soft light and a calm atmosphere"
+        },
+        {
+          src: "/images/atmosphere/raine-face-treatment-02.webp",
+          alt: "Facial microcurrent treatment at Raine salon"
+        },
+        {
+          src: "/images/atmosphere/raine-treatment-room-02.webp",
+          alt: "Warm treatment room details at Raine massage salon"
+        },
+        {
+          src: "/images/atmosphere/raine-back-massage-01.webp",
+          alt: "Back massage at Raine salon"
+        },
+        {
+          src: "/images/atmosphere/raine-treatment-room-03.webp",
+          alt: "Quiet Raine salon space prepared for a treatment"
+        }
+      ]
+    }
+  },
   booking: {
     eyebrow: "Book a session",
     title: "Book a time that works for you",

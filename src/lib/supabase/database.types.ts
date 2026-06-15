@@ -329,6 +329,22 @@ export type Database = {
         };
         Returns: string;
       };
+      list_dashboard_booking_clients: {
+        Args: Record<string, never>;
+        Returns: {
+          id: string;
+          name: string;
+          phone: string | null;
+          instagram_username: string | null;
+          telegram_username: string | null;
+          whatsapp_phone: string | null;
+          viber_phone: string | null;
+          primary_contact_channel: ClientContactChannel | null;
+          primary_contact_value: string | null;
+          locale: Locale | null;
+          notes: string | null;
+        }[];
+      };
     };
     Enums: {
       booking_status: BookingStatus;

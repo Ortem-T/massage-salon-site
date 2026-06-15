@@ -50,6 +50,65 @@ const ru = {
     durationUnit: "мин",
     empty: "Каталог услуг сейчас недоступен. Свяжитесь с нами напрямую для записи."
   },
+  specialists: {
+    eyebrow: "Команда Raine",
+    title: "Наши специалисты",
+    description:
+      "В Raine работают специалисты с профильной подготовкой и большим опытом. Каждый сеанс проводится внимательно и аккуратно — с учетом вашего запроса, самочувствия и выбранной процедуры.",
+    cards: [
+      {
+        name: "Сергей",
+        role: "Массаж тела, спортивный массаж, лимфодренаж, тейпирование",
+        description:
+          "Работает с мышечным напряжением, восстановлением после нагрузки и общим ощущением легкости в теле.",
+        image: {
+          src: "/images/specialists/sergey-massage-therapy.webp",
+          alt: "Сергей выполняет массаж спины в салоне Raine"
+        }
+      },
+      {
+        name: "Екатерина",
+        role: "Массаж лица, микротоки лица, женский спортивный массаж и релакс-массаж",
+        description:
+          "Внимательно работает с лицом и телом, сочетая аккуратную технику, спокойный темп и заботливый подход.",
+        image: {
+          src: "/images/specialists/ekaterina-face-treatment.webp",
+          alt: "Екатерина выполняет процедуру для лица в салоне Raine"
+        }
+      }
+    ],
+    atmosphere: {
+      eyebrow: "Атмосфера",
+      title: "Атмосфера Raine",
+      description: "Спокойное пространство, мягкий свет и детали, которые помогают настроиться на отдых.",
+      images: [
+        {
+          src: "/images/atmosphere/raine-face-treatment-01.webp",
+          alt: "Процедура для лица в спокойной атмосфере салона Raine"
+        },
+        {
+          src: "/images/atmosphere/raine-treatment-room-01.webp",
+          alt: "Массажный кабинет Raine с мягким светом и спокойной атмосферой"
+        },
+        {
+          src: "/images/atmosphere/raine-face-treatment-02.webp",
+          alt: "Микротоковая процедура для лица в салоне Raine"
+        },
+        {
+          src: "/images/atmosphere/raine-treatment-room-02.webp",
+          alt: "Теплые детали кабинета в массажном салоне Raine"
+        },
+        {
+          src: "/images/atmosphere/raine-back-massage-01.webp",
+          alt: "Массаж спины в салоне Raine"
+        },
+        {
+          src: "/images/atmosphere/raine-treatment-room-03.webp",
+          alt: "Спокойное пространство Raine, подготовленное к процедуре"
+        }
+      ]
+    }
+  },
   booking: {
     eyebrow: "Запись на сеанс",
     title: "Запишитесь в удобное время",

@@ -56,6 +56,65 @@ const sr = {
     durationUnit: "min",
     empty: "Katalog usluga trenutno nije dostupan. Kontaktirajte nas direktno za termine."
   },
+  specialists: {
+    eyebrow: "Raine tim",
+    title: "Naši stručnjaci",
+    description:
+      "U Raine salonu rade stručnjaci sa odgovarajućom obukom i velikim iskustvom. Svaki tretman se izvodi pažljivo i profesionalno — u skladu sa vašim potrebama, osećajem i izabranom procedurom.",
+    cards: [
+      {
+        name: "Sergej",
+        role: "Masaža tela, sportska masaža, limfna drenaža, tejping",
+        description:
+          "Radi sa mišićnom napetošću, oporavkom nakon opterećenja i opštim osećajem lakoće u telu.",
+        image: {
+          src: "/images/specialists/sergey-massage-therapy.webp",
+          alt: "Sergej izvodi masažu leđa u salonu Raine"
+        }
+      },
+      {
+        name: "Ekaterina",
+        role: "Masaža lica, mikrostrujna terapija lica, ženska sportska masaža i relax masaža",
+        description:
+          "Pažljivo radi sa licem i telom, kombinujući preciznu tehniku, miran tempo i brižan pristup.",
+        image: {
+          src: "/images/specialists/ekaterina-face-treatment.webp",
+          alt: "Ekaterina izvodi tretman lica u salonu Raine"
+        }
+      }
+    ],
+    atmosphere: {
+      eyebrow: "Atmosfera",
+      title: "Atmosfera Raine",
+      description: "Mirno okruženje, meko svetlo i detalji koji pomažu da se opustite.",
+      images: [
+        {
+          src: "/images/atmosphere/raine-face-treatment-01.webp",
+          alt: "Tretman lica u mirnoj atmosferi salona Raine"
+        },
+        {
+          src: "/images/atmosphere/raine-treatment-room-01.webp",
+          alt: "Masažna soba Raine sa mekim svetlom i mirnom atmosferom"
+        },
+        {
+          src: "/images/atmosphere/raine-face-treatment-02.webp",
+          alt: "Mikrostrujni tretman lica u salonu Raine"
+        },
+        {
+          src: "/images/atmosphere/raine-treatment-room-02.webp",
+          alt: "Topli detalji sobe za tretmane u Raine salonu"
+        },
+        {
+          src: "/images/atmosphere/raine-back-massage-01.webp",
+          alt: "Masaža leđa u salonu Raine"
+        },
+        {
+          src: "/images/atmosphere/raine-treatment-room-03.webp",
+          alt: "Mirni prostor Raine salona pripremljen za tretman"
+        }
+      ]
+    }
+  },
   booking: {
     eyebrow: "Zakazivanje termina",
     title: "Zakažite termin koji vam odgovara",

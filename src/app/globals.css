@@ -72,6 +72,16 @@ body {
   background: rgb(178 132 71 / 0.24);
 }
 
+@keyframes raine-atmosphere-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 @layer components {
   .container-shell {
     width: min(100% - 1.5rem, 1180px);
@@ -98,5 +108,21 @@ body {
 
   .focus-ring:focus-visible {
     box-shadow: 0 0 0 3px rgb(178 132 71 / 0.32);
+  }
+
+  .raine-atmosphere-track {
+    animation: raine-atmosphere-scroll 76s linear infinite;
+  }
+
+  .raine-atmosphere-carousel:hover .raine-atmosphere-track,
+  .raine-atmosphere-carousel:focus .raine-atmosphere-track,
+  .raine-atmosphere-carousel:focus-within .raine-atmosphere-track {
+    animation-play-state: paused;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .raine-atmosphere-track {
+      animation: none;
+    }
   }
 }

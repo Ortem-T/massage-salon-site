@@ -323,8 +323,20 @@ async function getDashboardTherapists(role: DashboardUser["role"], userId: strin
   };
 }
 
-async function getDashboardClients() {
+async function getDashboardClients(role: DashboardUser["role"]) {
   const supabase = await createSupabaseServerClient();
+
+  if (role === "therapist") {
+    const { data, error } = await supabase.rpc("list_dashboard_booking_clients", {});
+
+    if (!error) {
+      return {
+        clients: (data ?? []).map((client) => toBookingClient(client as Parameters<typeof toBookingClient>[0])),
+        error: false
+      };
+    }
+  }
+
   const { data, error } = await supabase
     .from("clients")
     .select(clientContactColumns)
@@ -354,7 +366,7 @@ export async function getBookingsForDashboard(user: DashboardUser): Promise<Dash
   const supabase = await createSupabaseServerClient();
   const therapistIds = user.role === "therapist" ? await getTherapistIdsForUser(user.id) : [];
   const therapistResult = await getDashboardTherapists(user.role, user.id);
-  const clientResult = await getDashboardClients();
+  const clientResult = await getDashboardClients(user.role);
 
   if (user.role === "therapist" && therapistIds.length === 0) {
     return {
@@ -668,8 +680,19 @@ function validateManualBookingInput(input: CreateManualBookingInput) {
   };
 }
 
-async function getAllowedClientById(clientId: string) {
+async function getAllowedClientById(user: DashboardUser, clientId: string) {
   const supabase = await createSupabaseServerClient();
+
+  if (user.role === "therapist") {
+    const { data, error } = await supabase.rpc("list_dashboard_booking_clients", {});
+
+    if (!error) {
+      const client = (data ?? []).find((item) => item.id === clientId);
+
+      return client ? toBookingClient(client as Parameters<typeof toBookingClient>[0]) : null;
+    }
+  }
+
   const { data, error } = await supabase
     .from("clients")
     .select(clientContactColumns)
@@ -745,7 +768,7 @@ export async function createManualBooking(user: DashboardUser, input: CreateManu
     value: normalized.clientContactValue,
     phone: normalized.clientPhone
   });
-  const selectedClient = input.clientId ? await getAllowedClientById(input.clientId) : null;
+  const selectedClient = input.clientId ? await getAllowedClientById(user, input.clientId) : null;
   if (input.clientId && !selectedClient) {
     throw new DashboardForbiddenError();
   }
