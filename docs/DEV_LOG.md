@@ -1,6 +1,6 @@
 # Development Log
 
-Last updated: 2026-06-10
+Last updated: 2026-06-15
 
 This log is shared context for human and AI-assisted development. Update it after every major development stage so future Codex, `web-coder`, and `grill-me` sessions can continue without rediscovering project history.
 
@@ -88,6 +88,7 @@ The admin-only Clients CRM page is now implemented at `/[locale]/dashboard/clien
 - Added a Supabase maintenance patch for booking updates: `private.enforce_therapist_booking_update()` now allows trusted DB roles (`postgres`, `supabase_admin`, `service_role`) before dashboard JWT role checks, while keeping admin/therapist restrictions intact. Booking availability now treats `19:00` as the latest allowed start time instead of the service end deadline, including public booking, manual dashboard booking, before-insert re-checks, and schedule block overlap handling.
 - Added CRM-ready client contact normalization for manual dashboard bookings: nullable channel-specific client contacts, booking contact snapshots, existing-client selection, new-client creation during booking, therapist-limited client visibility through RLS, public booking client linking by phone through a security-definer RPC, and Telegram contact labels for Instagram/Telegram/WhatsApp/Viber/phone/walk-in.
 - Implemented the admin-only Clients CRM dashboard page with responsive client cards, search by name/contact fields, contact-channel/language/booking filters, client create/edit forms with username normalization support, notes, and linked booking history. Public booking and manual booking UI were not changed.
+- Added a new homepage specialists and atmosphere section after Services & Prices and before the existing trust/booking flow, with localized Serbian, Russian, and English copy, square `next/image` specialist portraits, and a lightweight mobile scroll-snap atmosphere carousel using local `public/images` assets only. Public booking UI and submission logic were not changed.
 
 ## Current Focus
 
@@ -161,7 +162,11 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Confirm homepage has no horizontal scroll at 360px, 375px, 390px, 430px, and 768px.
 - Confirm hero and navbar "book" CTAs scroll to the booking form, while messenger CTAs still open WhatsApp.
 - Confirm the quiet CTA after services scrolls to the booking form in `/sr`, `/ru`, and `/en`.
-- Confirm homepage section order is Hero, Services, Benefits, Booking, About, CTA, Contact while testimonials are hidden.
+- Confirm homepage section order is Hero, Services, Specialists/Atmosphere, Benefits, Booking, About, CTA, Contact while testimonials are hidden.
+- Confirm the Specialists/Atmosphere section appears on `/sr`, `/ru`, and `/en`.
+- Confirm specialist cards stack cleanly on mobile and use a two-column layout on desktop.
+- Confirm the atmosphere carousel scrolls horizontally on mobile and presents as a stable image grid on desktop.
+- Confirm specialist and atmosphere images load without layout shift and use localized alt text.
 - Complete the form with keyboard only.
 - Trigger each validation error and confirm layout does not jump awkwardly.
 - Open and use the custom date picker with mouse and keyboard, including Tab, Arrow keys, Home/End, PageUp/PageDown, Enter/Space, and Escape.

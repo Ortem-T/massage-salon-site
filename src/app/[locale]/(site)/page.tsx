@@ -4,6 +4,7 @@ import { BookingSection } from "@/components/sections/booking-section";
 import { ContactSection } from "@/components/sections/contact-section";
 import { HeroSection } from "@/components/sections/hero-section";
 import { ServicesSection } from "@/components/sections/services-section";
+import { SpecialistsSection } from "@/components/sections/specialists-section";
 import { TestimonialsSection } from "@/components/sections/testimonials-section";
 import { homepageFeatures } from "@/config/homepage";
 import { isLocale, locales, type Locale } from "@/i18n/config";
@@ -36,6 +37,7 @@ export default async function HomePage({ params }: HomePageProps) {
     <main>
       <HeroSection locale={locale} dictionary={dictionary} />
       <ServicesSection locale={locale} dictionary={dictionary} serviceCatalog={serviceCatalog} />
+      <SpecialistsSection dictionary={dictionary} />
       <BenefitsSection dictionary={dictionary} />
       <BookingSection
         locale={locale}
