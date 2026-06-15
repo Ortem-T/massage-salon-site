@@ -93,20 +93,20 @@ const sr = {
           alt: "Tretman lica u mirnoj atmosferi salona Raine"
         },
         {
-          src: "/images/atmosphere/raine-face-treatment-02.webp",
-          alt: "Mikrostrujni tretman lica u salonu Raine"
-        },
-        {
-          src: "/images/atmosphere/raine-back-massage-01.webp",
-          alt: "Masaža leđa u salonu Raine"
-        },
-        {
           src: "/images/atmosphere/raine-treatment-room-01.webp",
           alt: "Masažna soba Raine sa mekim svetlom i mirnom atmosferom"
         },
         {
+          src: "/images/atmosphere/raine-face-treatment-02.webp",
+          alt: "Mikrostrujni tretman lica u salonu Raine"
+        },
+        {
           src: "/images/atmosphere/raine-treatment-room-02.webp",
           alt: "Topli detalji sobe za tretmane u Raine salonu"
+        },
+        {
+          src: "/images/atmosphere/raine-back-massage-01.webp",
+          alt: "Masaža leđa u salonu Raine"
         },
         {
           src: "/images/atmosphere/raine-treatment-room-03.webp",

@@ -87,20 +87,20 @@ const en = {
           alt: "Facial treatment in the calm atmosphere of Raine salon"
         },
         {
-          src: "/images/atmosphere/raine-face-treatment-02.webp",
-          alt: "Facial microcurrent treatment at Raine salon"
-        },
-        {
-          src: "/images/atmosphere/raine-back-massage-01.webp",
-          alt: "Back massage at Raine salon"
-        },
-        {
           src: "/images/atmosphere/raine-treatment-room-01.webp",
           alt: "Raine massage room with soft light and a calm atmosphere"
         },
         {
+          src: "/images/atmosphere/raine-face-treatment-02.webp",
+          alt: "Facial microcurrent treatment at Raine salon"
+        },
+        {
           src: "/images/atmosphere/raine-treatment-room-02.webp",
           alt: "Warm treatment room details at Raine massage salon"
+        },
+        {
+          src: "/images/atmosphere/raine-back-massage-01.webp",
+          alt: "Back massage at Raine salon"
         },
         {
           src: "/images/atmosphere/raine-treatment-room-03.webp",

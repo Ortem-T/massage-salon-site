@@ -87,20 +87,20 @@ const ru = {
           alt: "Процедура для лица в спокойной атмосфере салона Raine"
         },
         {
-          src: "/images/atmosphere/raine-face-treatment-02.webp",
-          alt: "Микротоковая процедура для лица в салоне Raine"
-        },
-        {
-          src: "/images/atmosphere/raine-back-massage-01.webp",
-          alt: "Массаж спины в салоне Raine"
-        },
-        {
           src: "/images/atmosphere/raine-treatment-room-01.webp",
           alt: "Массажный кабинет Raine с мягким светом и спокойной атмосферой"
         },
         {
+          src: "/images/atmosphere/raine-face-treatment-02.webp",
+          alt: "Микротоковая процедура для лица в салоне Raine"
+        },
+        {
           src: "/images/atmosphere/raine-treatment-room-02.webp",
           alt: "Теплые детали кабинета в массажном салоне Raine"
+        },
+        {
+          src: "/images/atmosphere/raine-back-massage-01.webp",
+          alt: "Массаж спины в салоне Raine"
         },
         {
           src: "/images/atmosphere/raine-treatment-room-03.webp",
