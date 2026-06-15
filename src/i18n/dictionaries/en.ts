@@ -97,6 +97,14 @@ const en = {
         {
           src: "/images/atmosphere/raine-treatment-room-01.webp",
           alt: "Raine massage room with soft light and a calm atmosphere"
+        },
+        {
+          src: "/images/atmosphere/raine-treatment-room-02.webp",
+          alt: "Warm treatment room details at Raine massage salon"
+        },
+        {
+          src: "/images/atmosphere/raine-treatment-room-03.webp",
+          alt: "Quiet Raine salon space prepared for a treatment"
         }
       ]
     }

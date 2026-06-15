@@ -89,6 +89,7 @@ The admin-only Clients CRM page is now implemented at `/[locale]/dashboard/clien
 - Added CRM-ready client contact normalization for manual dashboard bookings: nullable channel-specific client contacts, booking contact snapshots, existing-client selection, new-client creation during booking, therapist-limited client visibility through RLS, public booking client linking by phone through a security-definer RPC, and Telegram contact labels for Instagram/Telegram/WhatsApp/Viber/phone/walk-in.
 - Implemented the admin-only Clients CRM dashboard page with responsive client cards, search by name/contact fields, contact-channel/language/booking filters, client create/edit forms with username normalization support, notes, and linked booking history. Public booking and manual booking UI were not changed.
 - Added a new homepage specialists and atmosphere section after Services & Prices and before the existing trust/booking flow, with localized Serbian, Russian, and English copy, square `next/image` specialist portraits, and a lightweight mobile scroll-snap atmosphere carousel using local `public/images` assets only. Public booking UI and submission logic were not changed.
+- Polished the homepage specialists/atmosphere section: centered the localized section intro, made specialist cards equal-height on desktop, included all six uploaded atmosphere images, and replaced the static desktop gallery with a calm native-scroll looping carousel that pauses on hover/focus/touch and respects reduced-motion preferences.
 
 ## Current Focus
 
@@ -165,7 +166,7 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Confirm homepage section order is Hero, Services, Specialists/Atmosphere, Benefits, Booking, About, CTA, Contact while testimonials are hidden.
 - Confirm the Specialists/Atmosphere section appears on `/sr`, `/ru`, and `/en`.
 - Confirm specialist cards stack cleanly on mobile and use a two-column layout on desktop.
-- Confirm the atmosphere carousel scrolls horizontally on mobile and presents as a stable image grid on desktop.
+- Confirm the atmosphere carousel includes all six uploaded photos, scrolls horizontally on mobile, loops calmly on desktop, pauses on hover/focus/touch, and becomes a static scroll row when reduced motion is requested.
 - Confirm specialist and atmosphere images load without layout shift and use localized alt text.
 - Complete the form with keyboard only.
 - Trigger each validation error and confirm layout does not jump awkwardly.

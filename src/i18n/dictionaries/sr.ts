@@ -103,6 +103,14 @@ const sr = {
         {
           src: "/images/atmosphere/raine-treatment-room-01.webp",
           alt: "Masažna soba Raine sa mekim svetlom i mirnom atmosferom"
+        },
+        {
+          src: "/images/atmosphere/raine-treatment-room-02.webp",
+          alt: "Topli detalji sobe za tretmane u Raine salonu"
+        },
+        {
+          src: "/images/atmosphere/raine-treatment-room-03.webp",
+          alt: "Mirni prostor Raine salona pripremljen za tretman"
         }
       ]
     }

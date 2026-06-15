@@ -97,6 +97,14 @@ const ru = {
         {
           src: "/images/atmosphere/raine-treatment-room-01.webp",
           alt: "Массажный кабинет Raine с мягким светом и спокойной атмосферой"
+        },
+        {
+          src: "/images/atmosphere/raine-treatment-room-02.webp",
+          alt: "Теплые детали кабинета в массажном салоне Raine"
+        },
+        {
+          src: "/images/atmosphere/raine-treatment-room-03.webp",
+          alt: "Спокойное пространство Raine, подготовленное к процедуре"
         }
       ]
     }
