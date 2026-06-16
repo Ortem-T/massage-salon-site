@@ -1,6 +1,6 @@
 # Development Log
 
-Last updated: 2026-06-15
+Last updated: 2026-06-16
 
 This log is shared context for human and AI-assisted development. Update it after every major development stage so future Codex, `web-coder`, and `grill-me` sessions can continue without rediscovering project history.
 
@@ -93,6 +93,7 @@ The admin-only Clients CRM page is now implemented at `/[locale]/dashboard/clien
 - Added a staff-safe `list_dashboard_booking_clients()` RPC for the manual booking client picker so therapists can select existing clients without getting access to the full admin Clients CRM page.
 - Added a new homepage specialists and atmosphere section after Services & Prices and before the existing trust/booking flow, with localized Serbian, Russian, and English copy, square `next/image` specialist portraits, and a lightweight mobile scroll-snap atmosphere carousel using local `public/images` assets only. Public booking UI and submission logic were not changed.
 - Polished the homepage specialists/atmosphere section: centered the localized section intro, made specialist cards equal-height on desktop, included all six uploaded atmosphere images, and replaced the static desktop gallery with a calm native-scroll looping carousel that pauses on hover/focus/touch and respects reduced-motion preferences.
+- Fixed dashboard manual booking availability freshness and shared window usage: public booking and dashboard manual booking availability fetches now opt out of browser caching, `/api/booking-availability` is forced dynamic with `Cache-Control: no-store`, and public/manual/server validation all read the same `getDefaultBookingStartWindow()` helper for the 10:00-19:00 inclusive start window.
 
 ## Current Focus
 

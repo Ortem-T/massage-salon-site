@@ -7,7 +7,7 @@ import {
   type AvailabilityScheduleBlock
 } from "@/lib/booking/booking-availability";
 import { bookingRequestPayloadSchema } from "@/lib/booking/booking-request-payload";
-import { defaultBookingAvailability } from "@/lib/booking/booking-options";
+import { defaultBookingAvailability, getDefaultBookingStartWindow } from "@/lib/booking/booking-options";
 import { getActivePromotionForPlacement } from "@/lib/promotions/public";
 import { createSupabasePublicClient } from "@/lib/supabase/client";
 import { notifyTelegramNewBooking } from "@/server/telegram/bookingNotifications";
@@ -237,10 +237,7 @@ export async function handlePublicBookingPost(request: Request) {
     preferredTime: payload.data.preferred_time,
     bookings: ((availabilityRows ?? []) as PublicAvailabilityRow[]).map(toAvailabilityBooking),
     scheduleBlocks: ((blockRows ?? []) as PublicScheduleBlockRow[]).map(toAvailabilityScheduleBlock),
-    bookingWindow: {
-      firstStart: defaultBookingAvailability.firstBookingStart,
-      lastStart: defaultBookingAvailability.lastBookingStart
-    },
+    bookingWindow: getDefaultBookingStartWindow(),
     breakMinutes: defaultBookingAvailability.breakMinutes
   });
 

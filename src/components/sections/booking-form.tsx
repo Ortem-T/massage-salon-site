@@ -287,6 +287,7 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
     setAvailabilityError(false);
 
     fetch(`/api/booking-availability?${params.toString()}`, {
+      cache: "no-store",
       signal: controller.signal
     })
       .then(async (response) => {

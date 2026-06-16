@@ -1,4 +1,8 @@
-import { defaultBookingAvailability, type BookingWorkingDay } from "@/lib/booking/booking-options";
+import {
+  defaultBookingAvailability,
+  getDefaultBookingStartWindow,
+  type BookingWorkingDay
+} from "@/lib/booking/booking-options";
 
 export type AvailabilityBookingStatus = "pending" | "confirmed" | "cancelled" | "completed";
 
@@ -132,10 +136,7 @@ export function calculateBlockedIntervalsFromScheduleBlocks(
     bookingWindow?: BookingStartWindow;
   }
 ): BlockedInterval[] {
-  const bookingWindow = options.bookingWindow ?? {
-    firstStart: defaultBookingAvailability.firstBookingStart,
-    lastStart: defaultBookingAvailability.lastBookingStart
-  };
+  const bookingWindow = options.bookingWindow ?? getDefaultBookingStartWindow();
   const firstBookingStart = timeToMinutes(bookingWindow.firstStart);
   const lastBookingStart = timeToMinutes(bookingWindow.lastStart);
   const fullDayBlockEnd = lastBookingStart === null
@@ -210,10 +211,7 @@ export function calculateAvailableTimeSlots({
   therapistId,
   serviceDurationMinutes,
   date,
-  bookingWindow = {
-    firstStart: defaultBookingAvailability.firstBookingStart,
-    lastStart: defaultBookingAvailability.lastBookingStart
-  },
+  bookingWindow = getDefaultBookingStartWindow(),
   breakMinutes = defaultBookingAvailability.breakMinutes,
   bookings = [],
   scheduleBlocks = []

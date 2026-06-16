@@ -5,8 +5,10 @@ import {
   type AvailabilityBooking,
   type AvailabilityScheduleBlock
 } from "@/lib/booking/booking-availability";
-import { defaultBookingAvailability } from "@/lib/booking/booking-options";
+import { defaultBookingAvailability, getDefaultBookingStartWindow } from "@/lib/booking/booking-options";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+
+export const dynamic = "force-dynamic";
 
 type PublicAvailabilityRow = {
   booking_date: string;
@@ -146,10 +148,7 @@ export async function GET(request: NextRequest) {
         date,
         bookings,
         scheduleBlocks,
-        bookingWindow: {
-          firstStart: defaultBookingAvailability.firstBookingStart,
-          lastStart: defaultBookingAvailability.lastBookingStart
-        },
+        bookingWindow: getDefaultBookingStartWindow(),
         breakMinutes: defaultBookingAvailability.breakMinutes
       });
 
@@ -165,10 +164,11 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     days,
-    bookingWindow: {
-      firstStart: defaultBookingAvailability.firstBookingStart,
-      lastStart: defaultBookingAvailability.lastBookingStart
-    },
+    bookingWindow: getDefaultBookingStartWindow(),
     breakMinutes: defaultBookingAvailability.breakMinutes
+  }, {
+    headers: {
+      "Cache-Control": "no-store"
+    }
   });
 }

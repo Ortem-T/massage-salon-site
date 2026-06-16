@@ -478,6 +478,7 @@ export function BookingsCalendar({
     setIsManualAvailabilityLoading(true);
 
     fetch(`/api/booking-availability?${params.toString()}`, {
+      cache: "no-store",
       signal: controller.signal
     })
       .then(async (response) => {
