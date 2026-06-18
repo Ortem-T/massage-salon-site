@@ -1,6 +1,6 @@
 # Development Log
 
-Last updated: 2026-06-15
+Last updated: 2026-06-18
 
 This log is shared context for human and AI-assisted development. Update it after every major development stage so future Codex, `web-coder`, and `grill-me` sessions can continue without rediscovering project history.
 
@@ -93,6 +93,8 @@ The admin-only Clients CRM page is now implemented at `/[locale]/dashboard/clien
 - Added a staff-safe `list_dashboard_booking_clients()` RPC for the manual booking client picker so therapists can select existing clients without getting access to the full admin Clients CRM page.
 - Added a new homepage specialists and atmosphere section after Services & Prices and before the existing trust/booking flow, with localized Serbian, Russian, and English copy, square `next/image` specialist portraits, and a lightweight mobile scroll-snap atmosphere carousel using local `public/images` assets only. Public booking UI and submission logic were not changed.
 - Polished the homepage specialists/atmosphere section: centered the localized section intro, made specialist cards equal-height on desktop, included all six uploaded atmosphere images, and replaced the static desktop gallery with a calm native-scroll looping carousel that pauses on hover/focus/touch and respects reduced-motion preferences.
+- Fixed dashboard manual booking availability freshness and shared window usage: public booking and dashboard manual booking availability fetches now opt out of browser caching, `/api/booking-availability` is forced dynamic with `Cache-Control: no-store`, and public/manual/server validation all read the same `getDefaultBookingStartWindow()` helper for the 10:00-19:00 inclusive start window.
+- Added an idempotent Supabase migration to make both Sergey and Ekaterina eligible for `lymphatic-drainage-massage-60` and `lymphatic-drainage-massage-90` through `public.therapist_services`, without changing service content, prices, durations, or other therapist-service restrictions.
 
 ## Current Focus
 
@@ -135,6 +137,7 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Apply `20260525120000_update_facial_microcurrents_serbian_translation.sql` after the service catalog migrations to correct Serbian microcurrent wording.
 - Apply `20260527120000_promotions.sql` to add promotion tables, promotion booking snapshot columns, RLS policies, and the initial booking-section promo content.
 - Apply `20260608120000_trusted_booking_update_roles_and_latest_start.sql` to allow trusted Supabase maintenance roles through the booking update trigger and to support schedule blocks that can cover the 19:00 start slot.
+- Apply `20260618120000_lymphatic_drainage_therapist_eligibility.sql` to allow both Sergey and Ekaterina to provide the 60- and 90-minute lymphatic drainage massage services.
 - Test admin status changes, therapist assignment, therapist status changes, and internal notes updates against hosted Supabase RLS.
 - Test manual booking creation for admin assigned, admin unassigned, therapist own, and therapist direct-request attempts against hosted Supabase RLS.
 
@@ -147,7 +150,7 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Check `/sr`, `/ru`, and `/en` homepages show localized Face/Lice/Лицо and Body/Telo/Тело service groups with the real names, descriptions, durations, and RSD prices.
 - Confirm public booking service options use the same real service names as the homepage.
 - Confirm public booking specialist options show only active real therapists, localized per route, with no generic "any available specialist" option.
-- Confirm public booking filters specialists by selected service: all face services show only Ekaterina; lymphatic drainage 60/90, men’s sports, men’s full body sports, and taping show only Sergey; relax/aroma and anti-cellulite 60/90 show both; women’s sports and women’s full body sports show only Ekaterina.
+- Confirm public booking filters specialists by selected service: all face services show only Ekaterina; lymphatic drainage 60/90 show both Sergey and Ekaterina; men’s sports, men’s full body sports, and taping show only Sergey; relax/aroma and anti-cellulite 60/90 show both; women’s sports and women’s full body sports show only Ekaterina.
 - Confirm the Taping service appears as `Тейпирование`, `Tejping`, and `Taping`, with the one-application detail in the description.
 - Confirm device lymphatic drainage one-zone and 12-treatment course appear under Body and show both Sergey and Ekaterina in public booking and dashboard manual booking.
 - Confirm dashboard manual booking service options use the same real service names for admin and therapist users.

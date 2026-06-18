@@ -7,3 +7,10 @@ export const defaultBookingAvailability = {
 } as const;
 
 export type BookingWorkingDay = (typeof defaultBookingAvailability.workingDays)[number];
+
+export function getDefaultBookingStartWindow() {
+  return {
+    firstStart: defaultBookingAvailability.firstBookingStart,
+    lastStart: defaultBookingAvailability.lastBookingStart
+  };
+}

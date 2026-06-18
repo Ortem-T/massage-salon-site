@@ -4,7 +4,7 @@ import {
   type AvailabilityBooking,
   type AvailabilityScheduleBlock
 } from "@/lib/booking/booking-availability";
-import { defaultBookingAvailability } from "@/lib/booking/booking-options";
+import { defaultBookingAvailability, getDefaultBookingStartWindow } from "@/lib/booking/booking-options";
 import { bookingStatuses, type BookingStatus } from "@/lib/booking/booking-schema";
 import {
   contactValueRequired,
@@ -303,10 +303,7 @@ async function isManualBookingSlotAvailable(input: {
     preferredTime: input.preferredTime,
     bookings: ((availabilityRows ?? []) as PublicAvailabilityRow[]).map(toAvailabilityBooking),
     scheduleBlocks: ((blockRows ?? []) as PublicScheduleBlockRow[]).map(toAvailabilityScheduleBlock),
-    bookingWindow: {
-      firstStart: defaultBookingAvailability.firstBookingStart,
-      lastStart: defaultBookingAvailability.lastBookingStart
-    },
+    bookingWindow: getDefaultBookingStartWindow(),
     breakMinutes: defaultBookingAvailability.breakMinutes
   });
 }

@@ -478,6 +478,7 @@ export function BookingsCalendar({
     setIsManualAvailabilityLoading(true);
 
     fetch(`/api/booking-availability?${params.toString()}`, {
+      cache: "no-store",
       signal: controller.signal
     })
       .then(async (response) => {
@@ -1221,6 +1222,48 @@ export function BookingsCalendar({
                   <ManualFieldError message={manualBookingErrors.service} />
                 </div>
 
+                {role === "admin" ? (
+                  <div className="space-y-2">
+                    <label htmlFor="manual-therapist" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                      {calendar.create.fields.therapist}
+                    </label>
+                    <Select
+                      id="manual-therapist"
+                      value={manualBookingForm.therapistId}
+                      onChange={(event) => updateManualBookingField("therapistId", event.target.value)}
+                      aria-invalid={Boolean(manualBookingErrors.therapistId)}
+                      disabled={!manualBookingForm.service || manualAvailableTherapists.length === 0}
+                    >
+                      <option value="">
+                        {!manualBookingForm.service
+                          ? calendar.create.placeholders.therapistForService
+                          : manualAvailableTherapists.length === 0
+                            ? calendar.create.placeholders.noTherapistsForService
+                            : calendar.create.placeholders.therapist}
+                      </option>
+                      {manualAvailableTherapists.map((therapist) => (
+                        <option key={therapist.id} value={therapist.id}>
+                          {therapist.displayName}
+                        </option>
+                      ))}
+                    </Select>
+                    <ManualFieldError message={manualBookingErrors.therapistId} />
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-border/70 bg-background/50 p-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                      {calendar.create.fields.therapist}
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-primary">
+                      {therapistNames.get(manualBookingForm.therapistId) ?? calendar.create.ownTherapistFallback}
+                    </p>
+                    {manualServiceCatalog.length > 0 ? (
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">{calendar.create.servicesAvailableToTherapist}</p>
+                    ) : null}
+                    <ManualFieldError message={manualBookingErrors.therapistId} />
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <label htmlFor="manual-date" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                     {calendar.create.fields.date}
@@ -1254,6 +1297,8 @@ export function BookingsCalendar({
                     <option value="">
                       {isManualAvailabilityLoading
                         ? dictionary.booking.availability.loadingTimes
+                        : manualBookingForm.service && manualBookingForm.preferredDate && !manualBookingForm.therapistId
+                          ? calendar.create.placeholders.therapist
                         : manualCanLoadAvailability && manualAvailableTimeSlots.length === 0
                           ? dictionary.booking.availability.noAvailableTimes
                           : dictionary.booking.fields.time.placeholder}
@@ -1501,69 +1546,27 @@ export function BookingsCalendar({
                 </div>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                {role === "admin" ? (
-                  <>
-                    <div className="space-y-2">
-                      <label htmlFor="manual-therapist" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                        {calendar.create.fields.therapist}
-                      </label>
-                      <Select
-                        id="manual-therapist"
-                        value={manualBookingForm.therapistId}
-                        onChange={(event) => updateManualBookingField("therapistId", event.target.value)}
-                        aria-invalid={Boolean(manualBookingErrors.therapistId)}
-                        disabled={!manualBookingForm.service || manualAvailableTherapists.length === 0}
-                      >
-                        <option value="">
-                          {!manualBookingForm.service
-                            ? calendar.create.placeholders.therapistForService
-                            : manualAvailableTherapists.length === 0
-                              ? calendar.create.placeholders.noTherapistsForService
-                              : calendar.create.placeholders.therapist}
+              {role === "admin" ? (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <label htmlFor="manual-status" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                      {calendar.create.fields.status}
+                    </label>
+                    <Select
+                      id="manual-status"
+                      value={manualBookingForm.status}
+                      onChange={(event) => updateManualBookingField("status", event.target.value as CreateBookingStatus)}
+                    >
+                      {manualBookingCreateStatuses.map((status) => (
+                        <option key={status} value={status}>
+                          {dictionary.booking.statuses[status]}
                         </option>
-                        {manualAvailableTherapists.map((therapist) => (
-                          <option key={therapist.id} value={therapist.id}>
-                            {therapist.displayName}
-                          </option>
-                        ))}
-                      </Select>
-                      <ManualFieldError message={manualBookingErrors.therapistId} />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label htmlFor="manual-status" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                        {calendar.create.fields.status}
-                      </label>
-                      <Select
-                        id="manual-status"
-                        value={manualBookingForm.status}
-                        onChange={(event) => updateManualBookingField("status", event.target.value as CreateBookingStatus)}
-                      >
-                        {manualBookingCreateStatuses.map((status) => (
-                          <option key={status} value={status}>
-                            {dictionary.booking.statuses[status]}
-                          </option>
-                        ))}
-                      </Select>
-                      <ManualFieldError />
-                    </div>
-                  </>
-                ) : (
-                  <div className="rounded-2xl border border-border/70 bg-background/50 p-3 sm:col-span-2">
-                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                      {calendar.create.fields.therapist}
-                    </p>
-                    <p className="mt-1 text-sm font-semibold text-primary">
-                      {therapistNames.get(manualBookingForm.therapistId) ?? calendar.create.ownTherapistFallback}
-                    </p>
-                    {manualServiceCatalog.length > 0 ? (
-                      <p className="mt-1 text-xs leading-5 text-muted-foreground">{calendar.create.servicesAvailableToTherapist}</p>
-                    ) : null}
-                    <ManualFieldError message={manualBookingErrors.therapistId} />
+                      ))}
+                    </Select>
+                    <ManualFieldError />
                   </div>
-                )}
-              </div>
+                </div>
+              ) : null}
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
