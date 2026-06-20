@@ -1,5 +1,7 @@
 import "server-only";
 
+import { randomUUID } from "node:crypto";
+
 import { type Locale } from "@/i18n/config";
 import {
   normalizeClientContact,
@@ -135,6 +137,22 @@ export async function findExistingClientForBooking(input: FindOrCreateClientForB
 
 type ClientInsert = Database["public"]["Tables"]["clients"]["Insert"];
 
+function toBookingClientFromInsert(payload: ClientInsert & { id: string }): BookingClient {
+  return {
+    id: payload.id,
+    name: payload.name,
+    phone: payload.phone ?? null,
+    instagramUsername: payload.instagram_username ?? null,
+    telegramUsername: payload.telegram_username ?? null,
+    whatsappPhone: payload.whatsapp_phone ?? null,
+    viberPhone: payload.viber_phone ?? null,
+    primaryContactChannel: payload.primary_contact_channel ?? null,
+    primaryContactValue: payload.primary_contact_value ?? null,
+    locale: payload.locale ?? null,
+    notes: payload.notes ?? null
+  };
+}
+
 function getClientInsertPayload(input: FindOrCreateClientForBookingInput): ClientInsert {
   const contact = normalizeClientContact({
     channel: input.contactChannel,
@@ -170,17 +188,17 @@ export async function findOrCreateClientForBooking(input: FindOrCreateClientForB
   }
 
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from("clients")
-    .insert(getClientInsertPayload(input))
-    .select(clientContactColumns)
-    .maybeSingle();
+  const payload = {
+    id: randomUUID(),
+    ...getClientInsertPayload(input)
+  };
+  const { error } = await supabase.from("clients").insert(payload);
 
-  if (error || !data) {
+  if (error) {
     throw new Error(error?.message ?? "Client could not be created.");
   }
 
-  return toBookingClient(data as ClientRow);
+  return toBookingClientFromInsert(payload);
 }
 
 export function getClientPrimaryContact(client: BookingClient) {
