@@ -34,6 +34,9 @@ import {
   type TelegramBookingDetails
 } from "@/server/telegram/bookingNotifications";
 
+type ScheduleBlockType = "full_day" | "time_range";
+type ScheduleBlockScope = "therapist" | "salon";
+
 export type DashboardBooking = {
   id: string;
   createdAt: string;
@@ -64,9 +67,24 @@ export type DashboardTherapist = {
   active: boolean;
 };
 
+export type DashboardScheduleBlock = {
+  id: string;
+  therapistId: string | null;
+  createdBy: string | null;
+  blockType: ScheduleBlockType;
+  blockScope: ScheduleBlockScope;
+  date: string;
+  startTime: string | null;
+  endTime: string | null;
+  reason: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type DashboardBookingsData = {
   bookings: DashboardBooking[];
   clients: BookingClient[];
+  scheduleBlocks: DashboardScheduleBlock[];
   therapists: DashboardTherapist[];
   error: boolean;
 };
@@ -193,6 +211,20 @@ type DashboardTherapistRow = {
   active: boolean;
 };
 
+type DashboardScheduleBlockRow = {
+  id: string;
+  therapist_id: string | null;
+  created_by: string | null;
+  block_type: ScheduleBlockType;
+  block_scope: ScheduleBlockScope;
+  date: string;
+  start_time: string | null;
+  end_time: string | null;
+  reason: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 type ActiveServiceRow = {
   id: string;
   slug: string;
@@ -222,6 +254,8 @@ const dashboardBookingColumns =
   "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source, client_id, therapist_id, internal_notes, updated_at";
 const legacyBookingColumns =
   "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source";
+const dashboardScheduleBlockColumns =
+  "id, therapist_id, created_by, block_type, block_scope, date, start_time, end_time, reason, created_at, updated_at";
 
 async function getTherapistIdsForUser(userId: string) {
   const supabase = await createSupabaseServerClient();
@@ -268,6 +302,53 @@ function toAvailabilityScheduleBlock(row: PublicScheduleBlockRow): AvailabilityS
     blockScope: row.block_scope,
     startTime: row.start_time,
     endTime: row.end_time
+  };
+}
+
+function toDashboardScheduleBlock(row: DashboardScheduleBlockRow): DashboardScheduleBlock {
+  return {
+    id: row.id,
+    therapistId: row.therapist_id,
+    createdBy: row.created_by,
+    blockType: row.block_type,
+    blockScope: row.block_scope,
+    date: row.date,
+    startTime: row.start_time,
+    endTime: row.end_time,
+    reason: row.reason,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
+function getDashboardCalendarDataRange() {
+  const today = new Date();
+  const start = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 12));
+  const end = new Date(start);
+
+  start.setUTCDate(start.getUTCDate() - 45);
+  end.setUTCDate(end.getUTCDate() + 180);
+
+  return {
+    startDate: start.toISOString().slice(0, 10),
+    endDate: end.toISOString().slice(0, 10)
+  };
+}
+
+async function getScheduleBlocksForDashboardCalendar() {
+  const supabase = await createSupabaseServerClient();
+  const { startDate, endDate } = getDashboardCalendarDataRange();
+  const { data, error } = await supabase
+    .from("schedule_blocks")
+    .select(dashboardScheduleBlockColumns)
+    .gte("date", startDate)
+    .lte("date", endDate)
+    .order("date", { ascending: true })
+    .order("start_time", { ascending: true, nullsFirst: true });
+
+  return {
+    scheduleBlocks: error ? [] : ((data ?? []) as DashboardScheduleBlockRow[]).map(toDashboardScheduleBlock),
+    error: Boolean(error)
   };
 }
 
@@ -364,13 +445,15 @@ export async function getBookingsForDashboard(user: DashboardUser): Promise<Dash
   const therapistIds = user.role === "therapist" ? await getTherapistIdsForUser(user.id) : [];
   const therapistResult = await getDashboardTherapists(user.role, user.id);
   const clientResult = await getDashboardClients(user.role);
+  const scheduleBlockResult = await getScheduleBlocksForDashboardCalendar();
 
   if (user.role === "therapist" && therapistIds.length === 0) {
     return {
       bookings: [],
       clients: clientResult.clients,
+      scheduleBlocks: scheduleBlockResult.scheduleBlocks,
       therapists: therapistResult.therapists,
-      error: therapistResult.error || clientResult.error
+      error: therapistResult.error || clientResult.error || scheduleBlockResult.error
     };
   }
 
@@ -388,8 +471,9 @@ export async function getBookingsForDashboard(user: DashboardUser): Promise<Dash
       return {
         bookings: (bookings ?? []).map(toDashboardBooking),
         clients: clientResult.clients,
+        scheduleBlocks: scheduleBlockResult.scheduleBlocks,
         therapists: therapistResult.therapists,
-        error: therapistResult.error || clientResult.error
+        error: therapistResult.error || clientResult.error || scheduleBlockResult.error
       };
     }
 
@@ -406,8 +490,9 @@ export async function getBookingsForDashboard(user: DashboardUser): Promise<Dash
       return {
         bookings: (dashboardBookings ?? []).map(toDashboardBooking),
         clients: clientResult.clients,
+        scheduleBlocks: scheduleBlockResult.scheduleBlocks,
         therapists: therapistResult.therapists,
-        error: therapistResult.error || clientResult.error
+        error: therapistResult.error || clientResult.error || scheduleBlockResult.error
       };
     }
 
@@ -415,6 +500,7 @@ export async function getBookingsForDashboard(user: DashboardUser): Promise<Dash
       return {
         bookings: [],
         clients: clientResult.clients,
+        scheduleBlocks: scheduleBlockResult.scheduleBlocks,
         therapists: therapistResult.therapists,
         error: true
       };
@@ -430,13 +516,15 @@ export async function getBookingsForDashboard(user: DashboardUser): Promise<Dash
     return {
       bookings: legacyBookingsError ? [] : (legacyBookings ?? []).map(toDashboardBooking),
       clients: clientResult.clients,
+      scheduleBlocks: scheduleBlockResult.scheduleBlocks,
       therapists: [],
-      error: Boolean(legacyBookingsError || therapistResult.error || clientResult.error)
+      error: Boolean(legacyBookingsError || therapistResult.error || clientResult.error || scheduleBlockResult.error)
     };
   } catch {
     return {
       bookings: [],
       clients: [],
+      scheduleBlocks: [],
       therapists: [],
       error: true
     };

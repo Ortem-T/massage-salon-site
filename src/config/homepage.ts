@@ -1,3 +1,3 @@
 export const homepageFeatures = {
-  showTestimonials: false
+  showTestimonials: true
 } as const;

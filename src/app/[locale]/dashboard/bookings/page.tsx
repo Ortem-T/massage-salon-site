@@ -41,6 +41,7 @@ export default async function DashboardBookingsPage({ params, searchParams }: Da
       initialDate={initialDate}
       locale={locale}
       role={user.role}
+      scheduleBlocks={data.scheduleBlocks}
       serviceCatalog={serviceCatalogData.services}
       serviceCatalogError={serviceCatalogData.error}
       therapists={data.therapists}

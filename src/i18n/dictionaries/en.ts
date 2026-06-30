@@ -210,8 +210,11 @@ const en = {
   },
   testimonials: {
     eyebrow: "Reviews",
-    title: "Guests return for calm that lasts",
-    items: []
+    title: "Client reviews",
+    description: "Feedback from clients who have already visited Raine.",
+    sourceLabel: "Google review",
+    googleCta: "View reviews on Google",
+    ratingLabel: "5 out of 5"
   },
   about: {
     eyebrow: "ABOUT THE SALON",
@@ -469,6 +472,21 @@ const en = {
         confirmed: "Conf",
         cancelled: "Canc",
         completed: "Done"
+      },
+      scheduleBlocks: {
+        unavailable: "Unavailable",
+        unavailableAllDay: "Unavailable all day",
+        blockedTime: "Blocked time",
+        scheduleBlock: "Schedule block",
+        openInSchedule: "Open in Schedule",
+        fullDay: "Full day",
+        timeRange: "Time range",
+        blockReason: "Block reason",
+        salonWide: "Salon-wide block",
+        type: "Type",
+        date: "Date",
+        scope: "Scope",
+        noReason: "No reason saved."
       },
       create: {
         action: "Create booking",

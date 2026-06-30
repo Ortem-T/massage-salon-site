@@ -210,8 +210,11 @@ const ru = {
   },
   testimonials: {
     eyebrow: "Отзывы",
-    title: "Гости возвращаются за спокойствием, которое остается",
-    items: []
+    title: "Отзывы клиентов",
+    description: "Впечатления клиентов, которые уже посетили Raine.",
+    sourceLabel: "Отзыв в Google",
+    googleCta: "Смотреть отзывы в Google",
+    ratingLabel: "5 из 5"
   },
   about: {
     eyebrow: "О САЛОНЕ",
@@ -469,6 +472,21 @@ const ru = {
         confirmed: "Подтв",
         cancelled: "Отм",
         completed: "Гот"
+      },
+      scheduleBlocks: {
+        unavailable: "Недоступно",
+        unavailableAllDay: "Недоступен весь день",
+        blockedTime: "Заблокированное время",
+        scheduleBlock: "Блок расписания",
+        openInSchedule: "Открыть в расписании",
+        fullDay: "Весь день",
+        timeRange: "Интервал",
+        blockReason: "Причина блокировки",
+        salonWide: "Весь салон",
+        type: "Тип",
+        date: "Дата",
+        scope: "Область",
+        noReason: "Причина не указана."
       },
       create: {
         action: "Создать запись",

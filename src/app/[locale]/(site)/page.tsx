@@ -7,6 +7,7 @@ import { ServicesSection } from "@/components/sections/services-section";
 import { SpecialistsSection } from "@/components/sections/specialists-section";
 import { TestimonialsSection } from "@/components/sections/testimonials-section";
 import { homepageFeatures } from "@/config/homepage";
+import { googleReviews } from "@/config/reviews";
 import { isLocale, locales, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getActivePromotionForPlacement } from "@/lib/promotions/public";
@@ -38,7 +39,9 @@ export default async function HomePage({ params }: HomePageProps) {
       <HeroSection locale={locale} dictionary={dictionary} />
       <ServicesSection locale={locale} dictionary={dictionary} serviceCatalog={serviceCatalog} />
       <SpecialistsSection dictionary={dictionary} />
-      <BenefitsSection dictionary={dictionary} />
+      {homepageFeatures.showTestimonials && googleReviews.length > 0 ? (
+        <TestimonialsSection dictionary={dictionary} reviews={googleReviews} />
+      ) : null}
       <BookingSection
         locale={locale}
         dictionary={dictionary}
@@ -46,9 +49,7 @@ export default async function HomePage({ params }: HomePageProps) {
         serviceCatalog={serviceCatalog}
         therapistCatalog={therapistCatalog}
       />
-      {homepageFeatures.showTestimonials && dictionary.testimonials.items.length > 0 ? (
-        <TestimonialsSection dictionary={dictionary} />
-      ) : null}
+      <BenefitsSection dictionary={dictionary} />
       <AboutSection dictionary={dictionary} />
       <ContactSection dictionary={dictionary} />
     </main>
