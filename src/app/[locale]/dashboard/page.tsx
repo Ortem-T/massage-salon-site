@@ -41,6 +41,7 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
       initialDate={initialDate}
       locale={locale}
       role={user.role}
+      scheduleBlocks={data.scheduleBlocks}
       serviceCatalog={serviceCatalogData.services}
       serviceCatalogError={serviceCatalogData.error}
       therapists={data.therapists}

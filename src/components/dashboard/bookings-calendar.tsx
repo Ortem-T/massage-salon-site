@@ -31,7 +31,7 @@ import {
   manualBookingSourceChannels,
   type ManualBookingSourceChannel
 } from "@/lib/dashboard/constants";
-import { type DashboardBooking, type DashboardTherapist } from "@/lib/dashboard/bookings";
+import { type DashboardBooking, type DashboardScheduleBlock, type DashboardTherapist } from "@/lib/dashboard/bookings";
 import {
   formatServiceDuration,
   formatServicePrice,
@@ -45,6 +45,24 @@ type CalendarView = "day" | "week" | "month";
 type StatusFilter = BookingStatus | "all";
 type CreateBookingStatus = (typeof manualBookingCreateStatuses)[number];
 type ClientMode = "existing" | "new";
+
+type DashboardCalendarBookingEvent = {
+  kind: "booking";
+  id: string;
+  date: string;
+  sortTime: string;
+  booking: DashboardBooking;
+};
+
+type DashboardCalendarScheduleBlockEvent = {
+  kind: "schedule_block";
+  id: string;
+  date: string;
+  sortTime: string;
+  block: DashboardScheduleBlock;
+};
+
+type DashboardCalendarEvent = DashboardCalendarBookingEvent | DashboardCalendarScheduleBlockEvent;
 
 type ManualBookingFormState = {
   clientMode: ClientMode;
@@ -81,6 +99,7 @@ type BookingsCalendarProps = {
   initialDate?: string;
   locale: Locale;
   role: DashboardRole;
+  scheduleBlocks: DashboardScheduleBlock[];
   serviceCatalog: ServiceCatalogItem[];
   serviceCatalogError: boolean;
   therapists: DashboardTherapist[];
@@ -96,6 +115,8 @@ const statusStyles: Record<BookingStatus, string> = {
   cancelled: "border-[#b47c72]/35 bg-[#f1ded9] text-[#7b3c34]",
   completed: "border-[#8f9d86]/35 bg-[#e7eadf] text-[#46543d]"
 };
+const scheduleBlockEventStyle =
+  "border-border/80 bg-[repeating-linear-gradient(135deg,rgb(236_231_220/0.64)_0,rgb(236_231_220/0.64)_6px,rgb(248_246_241/0.82)_6px,rgb(248_246_241/0.82)_12px)] text-primary";
 const salonTimeZone = "Europe/Belgrade";
 const dateLocales: Record<Locale, string> = {
   sr: "sr-Latn-RS",
@@ -198,6 +219,42 @@ function sortBookings(bookings: DashboardBooking[]) {
   });
 }
 
+function isCalendarView(value: string | null): value is CalendarView {
+  return value === "day" || value === "week" || value === "month";
+}
+
+function getInitialCalendarView(storageKey: string): CalendarView {
+  if (typeof window === "undefined") {
+    return "month";
+  }
+
+  const storedView = window.localStorage.getItem(storageKey);
+
+  return isCalendarView(storedView) ? storedView : "month";
+}
+
+function sortCalendarEvents(events: DashboardCalendarEvent[]) {
+  return [...events].sort((a, b) => {
+    const dateCompare = a.date.localeCompare(b.date);
+
+    if (dateCompare !== 0) {
+      return dateCompare;
+    }
+
+    const timeCompare = a.sortTime.localeCompare(b.sortTime);
+
+    if (timeCompare !== 0) {
+      return timeCompare;
+    }
+
+    return a.kind.localeCompare(b.kind);
+  });
+}
+
+function formatScheduleBlockTime(value: string | null) {
+  return value?.slice(0, 5) ?? "";
+}
+
 function ManualFieldError({ id, message }: ManualFieldErrorProps) {
   if (!message) {
     return <p aria-hidden="true" className="min-h-5 text-sm leading-5" />;
@@ -228,17 +285,20 @@ export function BookingsCalendar({
   initialDate,
   locale,
   role,
+  scheduleBlocks,
   serviceCatalog,
   serviceCatalogError,
   therapists
 }: BookingsCalendarProps) {
   const router = useRouter();
   const calendar = dictionary.dashboard.calendar;
-  const [view, setView] = useState<CalendarView>("day");
+  const calendarViewStorageKey = `raine-dashboard-calendar-view:${role}:${locale}`;
+  const [view, setViewState] = useState<CalendarView>("month");
   const [selectedDate, setSelectedDate] = useState(() => getInitialDate(initialDate));
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [therapistFilter, setTherapistFilter] = useState("all");
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+  const [selectedScheduleBlockId, setSelectedScheduleBlockId] = useState<string | null>(null);
   const [internalNotes, setInternalNotes] = useState("");
   const [assignedTherapistId, setAssignedTherapistId] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -269,6 +329,12 @@ export function BookingsCalendar({
   const [isPending, startTransition] = useTransition();
   const dialogRef = useRef<HTMLElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const storedView = getInitialCalendarView(calendarViewStorageKey);
+
+    setViewState((currentView) => (currentView === storedView ? currentView : storedView));
+  }, [calendarViewStorageKey]);
 
   const therapistNames = useMemo(
     () => new Map(therapists.map((therapist) => [therapist.id, therapist.displayName])),
@@ -356,7 +422,18 @@ export function BookingsCalendar({
     });
   }, [bookings, role, statusFilter, therapistFilter]);
 
+  const filteredScheduleBlocks = useMemo(() => {
+    return scheduleBlocks.filter((block) => {
+      if (role !== "admin" || therapistFilter === "all") {
+        return true;
+      }
+
+      return block.blockScope === "salon" || block.therapistId === therapistFilter;
+    });
+  }, [role, scheduleBlocks, therapistFilter]);
+
   const selectedBooking = filteredBookings.find((booking) => booking.id === selectedBookingId) ?? null;
+  const selectedScheduleBlock = filteredScheduleBlocks.find((block) => block.id === selectedScheduleBlockId) ?? null;
   const selectedBookingServiceMeta = selectedBooking ? getBookingServiceMeta(selectedBooking) : null;
   const assignmentAvailableTherapists = useMemo(
     () =>
@@ -367,6 +444,23 @@ export function BookingsCalendar({
   );
   const visibleDays = view === "day" ? [selectedDate] : view === "week" ? getWeekDays(selectedDate) : getMonthDays(selectedDate);
   const visibleBookings = filteredBookings.filter((booking) => visibleDays.includes(booking.preferredDate));
+  const visibleScheduleBlocks = filteredScheduleBlocks.filter((block) => visibleDays.includes(block.date));
+  const visibleEvents = sortCalendarEvents([
+    ...visibleBookings.map((booking): DashboardCalendarBookingEvent => ({
+      kind: "booking",
+      id: booking.id,
+      date: booking.preferredDate,
+      sortTime: booking.preferredTime,
+      booking
+    })),
+    ...visibleScheduleBlocks.map((block): DashboardCalendarScheduleBlockEvent => ({
+      kind: "schedule_block",
+      id: block.id,
+      date: block.date,
+      sortTime: block.blockType === "full_day" ? "00:00" : (block.startTime ?? "00:00"),
+      block
+    }))
+  ]);
 
   const statusCounts = bookingStatuses.map((status) => ({
     status,
@@ -440,8 +534,46 @@ export function BookingsCalendar({
     return calendar.create.contactPlaceholders[channel];
   }
 
+  function updateView(nextView: CalendarView) {
+    setViewState(nextView);
+
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(calendarViewStorageKey, nextView);
+    }
+  }
+
+  function getScheduleBlockTherapistLabel(block: DashboardScheduleBlock) {
+    if (block.blockScope === "salon") {
+      return calendar.scheduleBlocks.salonWide;
+    }
+
+    return therapistNames.get(block.therapistId ?? "") ?? calendar.filters.unassignedTherapist;
+  }
+
+  function getScheduleBlockTimeLabel(block: DashboardScheduleBlock) {
+    if (block.blockType === "full_day") {
+      return calendar.scheduleBlocks.unavailableAllDay;
+    }
+
+    return `${formatScheduleBlockTime(block.startTime)}–${formatScheduleBlockTime(block.endTime)}`;
+  }
+
+  function getScheduleBlockCompactLabel(block: DashboardScheduleBlock) {
+    if (block.blockType === "full_day") {
+      return calendar.scheduleBlocks.unavailableAllDay;
+    }
+
+    return `${getScheduleBlockTimeLabel(block)} · ${calendar.scheduleBlocks.unavailable}`;
+  }
+
+  function getScheduleBlockTitle(block: DashboardScheduleBlock) {
+    return role === "admin"
+      ? `${getScheduleBlockCompactLabel(block)} · ${getScheduleBlockTherapistLabel(block)}`
+      : getScheduleBlockCompactLabel(block);
+  }
+
   useEffect(() => {
-    if (!selectedBookingId && !isCreateOpen) {
+    if (!selectedBookingId && !selectedScheduleBlockId && !isCreateOpen) {
       return;
     }
 
@@ -458,7 +590,7 @@ export function BookingsCalendar({
       window.cancelAnimationFrame(frame);
       previousFocusRef.current?.focus();
     };
-  }, [isCreateOpen, selectedBookingId]);
+  }, [isCreateOpen, selectedBookingId, selectedScheduleBlockId]);
 
   useEffect(() => {
     if (!manualCanLoadAvailability) {
@@ -536,16 +668,25 @@ export function BookingsCalendar({
 
   function openDay(day: string) {
     setSelectedDate(day);
-    setView("day");
+    updateView("day");
     setSelectedBookingId(null);
+    setSelectedScheduleBlockId(null);
     setMessage(null);
   }
 
   function openBooking(booking: DashboardBooking) {
     setIsCreateOpen(false);
+    setSelectedScheduleBlockId(null);
     setSelectedBookingId(booking.id);
     setInternalNotes(booking.internalNotes ?? "");
     setAssignedTherapistId(booking.therapistId);
+    setMessage(null);
+  }
+
+  function openScheduleBlock(block: DashboardScheduleBlock) {
+    setIsCreateOpen(false);
+    setSelectedBookingId(null);
+    setSelectedScheduleBlockId(block.id);
     setMessage(null);
   }
 
@@ -554,10 +695,16 @@ export function BookingsCalendar({
     setMessage(null);
   }
 
+  function closeScheduleBlock() {
+    setSelectedScheduleBlockId(null);
+    setMessage(null);
+  }
+
   function openCreateBooking() {
     const defaultDate = isBookingDateSelectable(selectedDate, manualMinDate) ? selectedDate : "";
 
     setSelectedBookingId(null);
+    setSelectedScheduleBlockId(null);
     setManualBookingForm({
       clientMode: clients.length > 0 ? "existing" : "new",
       selectedClientId: "",
@@ -608,6 +755,11 @@ export function BookingsCalendar({
   function closeActiveDialog() {
     if (isCreateOpen) {
       closeCreateBooking();
+      return;
+    }
+
+    if (selectedScheduleBlockId) {
+      closeScheduleBlock();
       return;
     }
 
@@ -953,7 +1105,7 @@ export function BookingsCalendar({
             <Select
               aria-label={calendar.controls.view}
               value={view}
-              onChange={(event) => setView(event.target.value as CalendarView)}
+              onChange={(event) => updateView(event.target.value as CalendarView)}
             >
               <option value="day">{calendar.views.day}</option>
               <option value="week">{calendar.views.week}</option>
@@ -1051,50 +1203,96 @@ export function BookingsCalendar({
           )}
         >
           {visibleDays.map((day) => {
-            const dayBookings = visibleBookings.filter((booking) => booking.preferredDate === day);
+            const dayEvents = visibleEvents.filter((event) => event.date === day);
             const isCompactView = view !== "day";
 
             return (
               <article
                 key={day}
-                role={isCompactView ? "button" : undefined}
-                tabIndex={isCompactView ? 0 : undefined}
                 onClick={isCompactView ? () => openDay(day) : undefined}
-                onKeyDown={
-                  isCompactView
-                    ? (event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          openDay(day);
-                        }
-                      }
-                    : undefined
-                }
                 className={cn(
                   "rounded-2xl border border-border/70 bg-background/45 p-3",
                   view === "day" && "min-h-64",
-                  view === "week" && "focus-ring min-h-40 cursor-pointer overflow-hidden transition hover:border-primary/25 hover:bg-background/70",
-                  view === "month" && "focus-ring min-h-32 cursor-pointer overflow-hidden transition hover:border-primary/25 hover:bg-background/70"
+                  view === "week" && "min-h-40 cursor-pointer overflow-hidden transition hover:border-primary/25 hover:bg-background/70",
+                  view === "month" && "min-h-32 cursor-pointer overflow-hidden transition hover:border-primary/25 hover:bg-background/70"
                 )}
               >
                 <div className="flex items-baseline justify-between gap-2">
                   <h3 className="text-sm font-semibold text-primary">
-                    {view === "day"
-                      ? formatDate(day, locale, { weekday: "long", day: "numeric" })
-                      : `${formatCompactWeekday(day, locale)} ${formatDate(day, locale, { day: "numeric" })}`}
+                    {isCompactView ? (
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openDay(day);
+                        }}
+                        className="focus-ring rounded-md text-left transition hover:text-accent"
+                      >
+                        {`${formatCompactWeekday(day, locale)} ${formatDate(day, locale, { day: "numeric" })}`}
+                      </button>
+                    ) : (
+                      formatDate(day, locale, { weekday: "long", day: "numeric" })
+                    )}
                   </h3>
-                  <span className="text-xs text-muted-foreground">{dayBookings.length}</span>
+                  <span className="text-xs text-muted-foreground">{dayEvents.length}</span>
                 </div>
 
                 <div className={cn("mt-3 space-y-2", isCompactView && "max-h-[calc(100%-2rem)] overflow-hidden")}>
-                  {dayBookings.length > 0 ? (
+                  {dayEvents.length > 0 ? (
                     <>
-                      {dayBookings.slice(0, isCompactView ? 4 : dayBookings.length).map((booking) => {
+                      {dayEvents.slice(0, isCompactView ? 4 : dayEvents.length).map((event) => {
+                        if (event.kind === "schedule_block") {
+                          const block = event.block;
+
+                          return isCompactView ? (
+                            <button
+                              key={event.id}
+                              type="button"
+                              title={getScheduleBlockTitle(block)}
+                              onClick={(clickEvent) => {
+                                clickEvent.stopPropagation();
+                                openScheduleBlock(block);
+                              }}
+                              className={cn(
+                                "focus-ring w-full truncate rounded-lg border px-2 py-1 text-left text-xs font-semibold leading-5",
+                                scheduleBlockEventStyle
+                              )}
+                            >
+                              <span className="mr-1 uppercase tracking-[0.08em]">
+                                {calendar.scheduleBlocks.blockedTime}
+                              </span>
+                              <span>{getScheduleBlockTitle(block)}</span>
+                            </button>
+                          ) : (
+                            <button
+                              key={event.id}
+                              type="button"
+                              onClick={() => openScheduleBlock(block)}
+                              className={cn(
+                                "focus-ring w-full rounded-xl border p-3 text-left text-sm transition hover:-translate-y-0.5 hover:shadow-sm",
+                                scheduleBlockEventStyle
+                              )}
+                            >
+                              <span className="block text-xs font-semibold uppercase tracking-[0.12em]">
+                                {calendar.scheduleBlocks.scheduleBlock}
+                              </span>
+                              <span className="mt-1 block font-semibold text-foreground">
+                                {getScheduleBlockCompactLabel(block)}
+                              </span>
+                              <span className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                <span>{block.blockType === "full_day" ? calendar.scheduleBlocks.fullDay : calendar.scheduleBlocks.timeRange}</span>
+                                {role === "admin" ? <span>{getScheduleBlockTherapistLabel(block)}</span> : null}
+                              </span>
+                            </button>
+                          );
+                        }
+
+                        const booking = event.booking;
                         const serviceMeta = getBookingServiceMeta(booking);
 
                         return isCompactView ? (
                           <div
-                            key={booking.id}
+                            key={event.id}
                             title={[booking.preferredTime, serviceMeta.serviceName, serviceMeta.compactText].filter(Boolean).join(" - ")}
                             className={cn(
                               "w-full truncate rounded-lg border px-2 py-1 text-left text-xs font-semibold leading-5",
@@ -1109,7 +1307,7 @@ export function BookingsCalendar({
                           </div>
                         ) : (
                           <button
-                            key={booking.id}
+                            key={event.id}
                             type="button"
                             onClick={() => openBooking(booking)}
                             className={cn(
@@ -1138,9 +1336,9 @@ export function BookingsCalendar({
                           </button>
                         );
                       })}
-                      {isCompactView && dayBookings.length > 4 ? (
+                      {isCompactView && dayEvents.length > 4 ? (
                         <p className="px-2 text-xs font-semibold text-muted-foreground">
-                          +{dayBookings.length - 4}
+                          +{dayEvents.length - 4}
                         </p>
                       ) : null}
                     </>
@@ -1747,6 +1945,95 @@ export function BookingsCalendar({
 
             {message ? <p className="mt-4 text-sm font-semibold text-primary">{message}</p> : null}
             {isPending ? <p className="mt-2 text-sm text-muted-foreground">{calendar.actions.saving}</p> : null}
+          </section>
+        </div>
+      ) : null}
+
+      {selectedScheduleBlock ? (
+        <div
+          className="fixed inset-0 z-50 flex items-end bg-primary/25 px-3 py-3 backdrop-blur-sm sm:items-center sm:justify-center sm:p-6"
+          onPointerDown={(event) => {
+            if (event.target === event.currentTarget) {
+              closeScheduleBlock();
+            }
+          }}
+        >
+          <section
+            ref={dialogRef}
+            aria-modal="true"
+            aria-labelledby="schedule-block-details-title"
+            role="dialog"
+            tabIndex={-1}
+            onKeyDown={handleDialogKeyDown}
+            className="max-h-[92vh] w-full overflow-y-auto rounded-3xl border border-border/80 bg-card p-5 shadow-[0_30px_90px_rgb(20_61_42/0.24)] sm:max-w-2xl sm:p-6"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
+                  {calendar.scheduleBlocks.scheduleBlock}
+                </p>
+                <h2 id="schedule-block-details-title" className="mt-2 font-serif text-3xl font-semibold leading-tight text-primary">
+                  {selectedScheduleBlock.blockType === "full_day"
+                    ? calendar.scheduleBlocks.unavailableAllDay
+                    : calendar.scheduleBlocks.blockedTime}
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {formatDate(selectedScheduleBlock.date, locale, {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric"
+                  })}
+                </p>
+              </div>
+              <Button type="button" variant="ghost" size="sm" onClick={closeScheduleBlock}>
+                {calendar.details.close}
+              </Button>
+            </div>
+
+            <dl className="mt-6 grid gap-3 sm:grid-cols-2">
+              {[
+                [
+                  calendar.scheduleBlocks.type,
+                  selectedScheduleBlock.blockType === "full_day"
+                    ? calendar.scheduleBlocks.fullDay
+                    : calendar.scheduleBlocks.timeRange
+                ],
+                [calendar.scheduleBlocks.date, formatDate(selectedScheduleBlock.date, locale, { day: "numeric", month: "long", year: "numeric" })],
+                [calendar.create.fields.time, getScheduleBlockTimeLabel(selectedScheduleBlock)],
+                [calendar.scheduleBlocks.scope, getScheduleBlockTherapistLabel(selectedScheduleBlock)],
+                ...(selectedScheduleBlock.blockScope === "therapist"
+                  ? [[calendar.details.therapist, getScheduleBlockTherapistLabel(selectedScheduleBlock)]]
+                  : [])
+              ].map(([label, value]) => (
+                <div key={label} className="rounded-2xl border border-border/70 bg-background/50 p-3">
+                  <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label}</dt>
+                  <dd className="mt-1 text-sm font-semibold text-foreground">{value}</dd>
+                </div>
+              ))}
+            </dl>
+
+            <div className="mt-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                {calendar.scheduleBlocks.blockReason}
+              </p>
+              <p className="mt-2 rounded-2xl border border-border/70 bg-background/50 p-3 text-sm leading-6 text-foreground">
+                {selectedScheduleBlock.reason || calendar.scheduleBlocks.noReason}
+              </p>
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-2 border-t border-border/70 pt-5">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => router.push(`/${locale}/dashboard/schedule?date=${selectedScheduleBlock.date}`)}
+              >
+                {calendar.scheduleBlocks.openInSchedule}
+              </Button>
+              <Button type="button" variant="ghost" size="sm" onClick={closeScheduleBlock}>
+                {calendar.details.close}
+              </Button>
+            </div>
           </section>
         </div>
       ) : null}

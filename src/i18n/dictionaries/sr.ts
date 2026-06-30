@@ -477,6 +477,21 @@ const sr = {
         cancelled: "Otk",
         completed: "Got"
       },
+      scheduleBlocks: {
+        unavailable: "Nedostupno",
+        unavailableAllDay: "Nedostupan ceo dan",
+        blockedTime: "Blokirano vreme",
+        scheduleBlock: "Blokada rasporeda",
+        openInSchedule: "Otvori u rasporedu",
+        fullDay: "Ceo dan",
+        timeRange: "Vremenski interval",
+        blockReason: "Razlog blokade",
+        salonWide: "Blokada za ceo salon",
+        type: "Tip",
+        date: "Datum",
+        scope: "Obuhvat",
+        noReason: "Razlog nije naveden."
+      },
       create: {
         action: "Napravi termin",
         eyebrow: "Ručni unos",

@@ -1,6 +1,6 @@
 # Development Log
 
-Last updated: 2026-06-18
+Last updated: 2026-06-30
 
 This log is shared context for human and AI-assisted development. Update it after every major development stage so future Codex, `web-coder`, and `grill-me` sessions can continue without rediscovering project history.
 
@@ -95,6 +95,7 @@ The admin-only Clients CRM page is now implemented at `/[locale]/dashboard/clien
 - Polished the homepage specialists/atmosphere section: centered the localized section intro, made specialist cards equal-height on desktop, included all six uploaded atmosphere images, and replaced the static desktop gallery with a calm native-scroll looping carousel that pauses on hover/focus/touch and respects reduced-motion preferences.
 - Fixed dashboard manual booking availability freshness and shared window usage: public booking and dashboard manual booking availability fetches now opt out of browser caching, `/api/booking-availability` is forced dynamic with `Cache-Control: no-store`, and public/manual/server validation all read the same `getDefaultBookingStartWindow()` helper for the 10:00-19:00 inclusive start window.
 - Added an idempotent Supabase migration to make both Sergey and Ekaterina eligible for `lymphatic-drainage-massage-60` and `lymphatic-drainage-massage-90` through `public.therapist_services`, without changing service content, prices, durations, or other therapist-service restrictions.
+- Updated the dashboard bookings calendar to open in Month view by default, persist the selected calendar view in browser storage, and display read-only `schedule_blocks` alongside bookings as explicit `schedule_block` calendar events. Admin therapist filters now apply to both bookings and schedule blocks while booking status filters remain booking-only; Schedule remains the canonical place to create, edit, and delete unavailable time.
 
 ## Current Focus
 
@@ -203,7 +204,10 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Confirm unauthenticated `/sr/dashboard`, `/ru/dashboard`, and `/en/dashboard` visits redirect to the matching login page.
 - Confirm admin users see overview, bookings, clients, services, and therapists navigation.
 - Confirm therapist users see only overview and bookings navigation.
-- Confirm the dashboard calendar defaults to a usable day view on mobile.
+- Confirm the dashboard bookings calendar opens in Month view for a fresh user and preserves Day/Week/Month selection after switching views.
+- Confirm dashboard bookings calendar shows full-day and time-range schedule blocks alongside bookings.
+- Confirm admin therapist filters affect both bookings and schedule blocks, while status filters affect only bookings.
+- Confirm clicking a schedule block opens read-only details and the Schedule section remains the only place to create, edit, or delete blocks.
 - Confirm admin users can filter bookings by therapist and status.
 - Confirm admin users can create manual bookings assigned to any therapist or temporarily unassigned.
 - Confirm manual booking date selection uses the branded calendar and time selection uses the shared slot dropdown.

@@ -470,6 +470,21 @@ const ru = {
         cancelled: "Отм",
         completed: "Гот"
       },
+      scheduleBlocks: {
+        unavailable: "Недоступно",
+        unavailableAllDay: "Недоступен весь день",
+        blockedTime: "Заблокированное время",
+        scheduleBlock: "Блок расписания",
+        openInSchedule: "Открыть в расписании",
+        fullDay: "Весь день",
+        timeRange: "Интервал",
+        blockReason: "Причина блокировки",
+        salonWide: "Весь салон",
+        type: "Тип",
+        date: "Дата",
+        scope: "Область",
+        noReason: "Причина не указана."
+      },
       create: {
         action: "Создать запись",
         eyebrow: "Ручная запись",

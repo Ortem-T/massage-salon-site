@@ -470,6 +470,21 @@ const en = {
         cancelled: "Canc",
         completed: "Done"
       },
+      scheduleBlocks: {
+        unavailable: "Unavailable",
+        unavailableAllDay: "Unavailable all day",
+        blockedTime: "Blocked time",
+        scheduleBlock: "Schedule block",
+        openInSchedule: "Open in Schedule",
+        fullDay: "Full day",
+        timeRange: "Time range",
+        blockReason: "Block reason",
+        salonWide: "Salon-wide block",
+        type: "Type",
+        date: "Date",
+        scope: "Scope",
+        noReason: "No reason saved."
+      },
       create: {
         action: "Create booking",
         eyebrow: "Manual booking",
