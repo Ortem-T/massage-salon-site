@@ -210,8 +210,11 @@ const en = {
   },
   testimonials: {
     eyebrow: "Reviews",
-    title: "Guests return for calm that lasts",
-    items: []
+    title: "Client reviews",
+    description: "Feedback from clients who have already visited Raine.",
+    sourceLabel: "Google review",
+    googleCta: "View reviews on Google",
+    ratingLabel: "5 out of 5"
   },
   about: {
     eyebrow: "ABOUT THE SALON",

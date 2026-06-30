@@ -96,6 +96,7 @@ The admin-only Clients CRM page is now implemented at `/[locale]/dashboard/clien
 - Fixed dashboard manual booking availability freshness and shared window usage: public booking and dashboard manual booking availability fetches now opt out of browser caching, `/api/booking-availability` is forced dynamic with `Cache-Control: no-store`, and public/manual/server validation all read the same `getDefaultBookingStartWindow()` helper for the 10:00-19:00 inclusive start window.
 - Added an idempotent Supabase migration to make both Sergey and Ekaterina eligible for `lymphatic-drainage-massage-60` and `lymphatic-drainage-massage-90` through `public.therapist_services`, without changing service content, prices, durations, or other therapist-service restrictions.
 - Updated the dashboard bookings calendar to open in Month view by default, persist the selected calendar view in browser storage, and display read-only `schedule_blocks` alongside bookings as explicit `schedule_block` calendar events. Admin therapist filters now apply to both bookings and schedule blocks while booking status filters remain booking-only; Schedule remains the canonical place to create, edit, and delete unavailable time.
+- Activated the homepage client reviews section with three real manually maintained Google reviews, keeping review text in the original Russian, Serbian, and English only. Review UI labels are localized through dictionaries, fake placeholder review data remains removed, Google Maps uses the existing contact URL, and no Google API or review structured data was added.
 
 ## Current Focus
 
@@ -170,7 +171,8 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Confirm homepage has no horizontal scroll at 360px, 375px, 390px, 430px, and 768px.
 - Confirm hero and navbar "book" CTAs scroll to the booking form, while messenger CTAs still open WhatsApp.
 - Confirm the quiet CTA after services scrolls to the booking form in `/sr`, `/ru`, and `/en`.
-- Confirm homepage section order is Hero, Services, Specialists/Atmosphere, Benefits, Booking, About, CTA, Contact while testimonials are hidden.
+- Confirm homepage section order is Hero, Services, Specialists/Atmosphere, Client reviews, Booking, Benefits, About, CTA, Contact.
+- Confirm the client reviews section appears on `/sr`, `/ru`, and `/en` with localized UI labels and the original Russian, Serbian, and English review texts unchanged.
 - Confirm the Specialists/Atmosphere section appears on `/sr`, `/ru`, and `/en`.
 - Confirm specialist cards stack cleanly on mobile and use a two-column layout on desktop.
 - Confirm the atmosphere carousel includes all six uploaded photos, scrolls horizontally on mobile, loops calmly on desktop, pauses on hover/focus/touch, and becomes a static scroll row when reduced motion is requested.

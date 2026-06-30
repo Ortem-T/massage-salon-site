@@ -1,9 +1,3 @@
-type TestimonialItem = {
-  quote: string;
-  author: string;
-  detail: string;
-};
-
 const sr = {
   seo: {
     title: "Raine — Masaža u Novom Sadu | Profesionalni tretmani za telo i lice",
@@ -216,8 +210,11 @@ const sr = {
   },
   testimonials: {
     eyebrow: "Utisci",
-    title: "Gosti se vraćaju zbog mira koji traje",
-    items: [] as TestimonialItem[]
+    title: "Utisci klijenata",
+    description: "Utisci klijenata koji su već posetili Raine.",
+    sourceLabel: "Recenzija na Google-u",
+    googleCta: "Pogledajte recenzije na Google-u",
+    ratingLabel: "5 od 5"
   },
   about: {
     eyebrow: "O SALONU",

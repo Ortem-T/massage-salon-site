@@ -210,8 +210,11 @@ const ru = {
   },
   testimonials: {
     eyebrow: "Отзывы",
-    title: "Гости возвращаются за спокойствием, которое остается",
-    items: []
+    title: "Отзывы клиентов",
+    description: "Впечатления клиентов, которые уже посетили Raine.",
+    sourceLabel: "Отзыв в Google",
+    googleCta: "Смотреть отзывы в Google",
+    ratingLabel: "5 из 5"
   },
   about: {
     eyebrow: "О САЛОНЕ",
