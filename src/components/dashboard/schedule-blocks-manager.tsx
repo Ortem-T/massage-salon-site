@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useMemo, useState, useTransition } from "react";
+import { type FormEvent, useCallback, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { BookingDatePicker } from "@/components/booking/booking-date-picker";
@@ -9,6 +9,7 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { type Locale } from "@/i18n/config";
 import { type Dictionary } from "@/i18n/dictionaries";
+import { useDashboardRealtimeRefresh } from "@/hooks/use-dashboard-realtime-refresh";
 import { getTodayValue, isBookingDateSelectable, minutesToTime, timeToMinutes } from "@/lib/booking/booking-availability";
 import { defaultBookingAvailability } from "@/lib/booking/booking-options";
 import {
@@ -51,6 +52,7 @@ const dateLocales: Record<Locale, string> = {
   ru: "ru-RU",
   en: "en-GB"
 };
+const scheduleBlocksRealtimeTables = ["schedule_blocks"] as const;
 
 function getTimeOptions() {
   const start = timeToMinutes(defaultBookingAvailability.firstBookingStart) ?? 600;
@@ -105,6 +107,15 @@ export function ScheduleBlocksManager({
   const [errors, setErrors] = useState<ScheduleBlockFormErrors>({});
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const refreshScheduleData = useCallback(() => {
+    router.refresh();
+  }, [router]);
+
+  useDashboardRealtimeRefresh({
+    channelName: "dashboard-schedule-blocks",
+    onRefresh: refreshScheduleData,
+    tables: scheduleBlocksRealtimeTables
+  });
 
   const therapistNames = useMemo(
     () => new Map(therapists.map((therapist) => [therapist.id, therapist.displayName])),
@@ -266,7 +277,7 @@ export function ScheduleBlocksManager({
 
       if (result.ok) {
         resetForm(form.date);
-        router.refresh();
+        refreshScheduleData();
       }
     });
   }
@@ -299,7 +310,7 @@ export function ScheduleBlocksManager({
 
       if (result.ok) {
         resetForm(block.date);
-        router.refresh();
+        refreshScheduleData();
       }
     });
   }

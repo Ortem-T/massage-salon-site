@@ -1,6 +1,15 @@
 "use client";
 
-import { type FormEvent, type KeyboardEvent, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import {
+  type FormEvent,
+  type KeyboardEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition
+} from "react";
 import { useRouter } from "next/navigation";
 
 import { BookingDatePicker } from "@/components/booking/booking-date-picker";
@@ -10,6 +19,7 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { type Locale } from "@/i18n/config";
 import { type Dictionary } from "@/i18n/dictionaries";
+import { useDashboardRealtimeRefresh } from "@/hooks/use-dashboard-realtime-refresh";
 import { getTodayValue, isBookingDateSelectable } from "@/lib/booking/booking-availability";
 import { type BookingStatus, bookingStatuses } from "@/lib/booking/booking-schema";
 import {
@@ -117,6 +127,7 @@ const statusStyles: Record<BookingStatus, string> = {
 };
 const scheduleBlockEventStyle =
   "border-border/80 bg-[repeating-linear-gradient(135deg,rgb(236_231_220/0.64)_0,rgb(236_231_220/0.64)_6px,rgb(248_246_241/0.82)_6px,rgb(248_246_241/0.82)_12px)] text-primary";
+const dashboardCalendarRealtimeTables = ["bookings", "schedule_blocks"] as const;
 const salonTimeZone = "Europe/Belgrade";
 const dateLocales: Record<Locale, string> = {
   sr: "sr-Latn-RS",
@@ -329,6 +340,15 @@ export function BookingsCalendar({
   const [isPending, startTransition] = useTransition();
   const dialogRef = useRef<HTMLElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const refreshCalendarData = useCallback(() => {
+    router.refresh();
+  }, [router]);
+
+  useDashboardRealtimeRefresh({
+    channelName: "dashboard-calendar",
+    onRefresh: refreshCalendarData,
+    tables: dashboardCalendarRealtimeTables
+  });
 
   useEffect(() => {
     const storedView = getInitialCalendarView(calendarViewStorageKey);
@@ -959,7 +979,7 @@ export function BookingsCalendar({
   function showActionResult(result: DashboardActionResult) {
     if (result.ok) {
       setMessage(calendar.actions.saved);
-      router.refresh();
+      refreshCalendarData();
       return;
     }
 
@@ -1062,7 +1082,7 @@ export function BookingsCalendar({
       if (result.ok) {
         closeCreateBooking();
         setMessage(calendar.create.success);
-        router.refresh();
+        refreshCalendarData();
         return;
       }
 

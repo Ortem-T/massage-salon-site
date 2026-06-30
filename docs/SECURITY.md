@@ -1,6 +1,6 @@
 # Security Notes
 
-Last updated: 2026-06-08
+Last updated: 2026-06-30
 
 ## Current Security Model
 
@@ -79,6 +79,19 @@ The trigger includes an early trusted database role bypass for direct maintenanc
 - `service_role`
 
 This bypass exists because direct database maintenance does not always carry the dashboard `app_metadata.role` JWT claim. It does not grant any frontend bypass, does not expose the service-role key, and does not change anon/public update access.
+
+## Dashboard Realtime
+
+Authenticated dashboard calendars use Supabase Realtime Postgres Changes as a refresh signal for `public.bookings` and `public.schedule_blocks`.
+
+- Realtime is only initialized inside authenticated dashboard client components.
+- The browser uses the Supabase anon key plus the signed-in staff session cookies; no service-role key is exposed.
+- The Realtime payload is not treated as trusted calendar data. The UI debounces the event and refetches the existing dashboard Server Component data instead, preserving current view and filters.
+- Local dashboard actions still perform a direct `router.refresh()` after server success, so booking management does not depend on websocket delivery.
+- `20260630120000_enable_dashboard_realtime.sql` only adds `bookings` and `schedule_blocks` to the `supabase_realtime` publication. It does not grant public table access and does not disable RLS.
+- RLS remains the security boundary: admins receive rows they can select; therapists receive only rows allowed by existing booking and schedule-block SELECT policies; anon visitors do not subscribe to dashboard data.
+
+If a Realtime connection briefly drops, the initial dashboard fetch and local action refetch still work. On subscription recovery, the dashboard performs a current-range refetch.
 
 ## Rate Limiting
 
