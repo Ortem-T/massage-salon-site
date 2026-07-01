@@ -99,6 +99,7 @@ The admin-only Clients CRM page is now implemented at `/[locale]/dashboard/clien
 - Activated the homepage client reviews section with three real manually maintained Google reviews, keeping review text in the original Russian, Serbian, and English only. Review UI labels are localized through dictionaries, fake placeholder review data remains removed, Google Maps uses the existing contact URL, and no Google API or review structured data was added.
 - Added immediate dashboard calendar refresh and Supabase Realtime synchronization for bookings and schedule blocks. Local dashboard actions still refetch directly with `router.refresh()` after server success, while authenticated Realtime subscriptions debounce external `bookings` and `schedule_blocks` changes from public bookings, other dashboard users, or other browser tabs. A safe migration adds both tables to the `supabase_realtime` publication without changing RLS.
 - Moved the dashboard bookings calendar Day/Week/Month control out of the upper filters and into the calendar header as an accessible segmented button group. The shared calendar component now uses the same control for admin and therapist dashboards, keeping Month fallback and browser persistence while leaving booking/status/therapist filters unchanged.
+- Simplified compact dashboard calendar events in Month and Week views: bookings now show only start time in Month and time range in Week, schedule blocks show only their blocked range or localized all-day label, native `title` tooltips were removed, and a Raine-styled hover/focus tooltip now provides booking or schedule-block details without changing click-to-open modals.
 
 ## Current Focus
 
@@ -212,6 +213,8 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Confirm the dashboard bookings calendar opens in Month view for a fresh user and preserves Day/Week/Month selection after switching views.
 - Confirm the dashboard bookings calendar has no old view dropdown in the upper filters and shows Day/Week/Month buttons between the current period and Previous/Today/Next navigation.
 - Confirm the segmented view buttons are keyboard reachable, show a visible focus state, and use `aria-pressed` for the active view.
+- Confirm Month view compact bookings show only start time, Week view compact bookings show only time range, and compact schedule blocks show only time range or localized all-day text.
+- Confirm compact calendar events no longer show native browser `title` tooltips and instead show the custom Raine-styled tooltip on hover/focus.
 - Confirm dashboard bookings calendar shows full-day and time-range schedule blocks alongside bookings.
 - Confirm admin therapist filters affect both bookings and schedule blocks, while status filters affect only bookings.
 - Confirm clicking a schedule block opens read-only details and the Schedule section remains the only place to create, edit, or delete blocks.

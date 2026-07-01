@@ -3,6 +3,7 @@
 import {
   type FormEvent,
   type KeyboardEvent,
+  type ReactNode,
   useCallback,
   useEffect,
   useMemo,
@@ -103,6 +104,23 @@ type ManualFieldErrorProps = {
   message?: string;
 };
 
+type CompactCalendarEventButtonProps = {
+  ariaLabel: string;
+  children: ReactNode;
+  className: string;
+  onClick: () => void;
+  onTooltipClose: () => void;
+  onTooltipOpen: (target: HTMLElement, content: ReactNode) => void;
+  tooltip: ReactNode;
+  tooltipId: string;
+};
+
+type CalendarTooltipState = {
+  content: ReactNode;
+  id: string;
+  rect: DOMRect;
+};
+
 type BookingsCalendarProps = {
   bookings: DashboardBooking[];
   clients: BookingClient[];
@@ -126,6 +144,12 @@ const statusStyles: Record<BookingStatus, string> = {
   confirmed: "border-primary/25 bg-[#e3ede5] text-primary",
   cancelled: "border-[#b47c72]/35 bg-[#f1ded9] text-[#7b3c34]",
   completed: "border-[#8f9d86]/35 bg-[#e7eadf] text-[#46543d]"
+};
+const compactBookingStatusStyles: Record<BookingStatus, string> = {
+  pending: "border-[#c6a15a]/45 bg-[#f8efe0] text-[#72551f] hover:bg-[#f4e5ca]",
+  confirmed: "border-primary/25 bg-[#e4eee6] text-primary hover:bg-[#d8e8dc]",
+  cancelled: "border-[#b47c72]/35 bg-[#f2e2dd] text-[#7b3c34] opacity-75 hover:bg-[#ead3cc]",
+  completed: "border-[#8f9d86]/35 bg-[#e8e9e1] text-[#46543d] hover:bg-[#dedfd4]"
 };
 const scheduleBlockEventStyle =
   "border-border/80 bg-[repeating-linear-gradient(135deg,rgb(236_231_220/0.64)_0,rgb(236_231_220/0.64)_6px,rgb(248_246_241/0.82)_6px,rgb(248_246_241/0.82)_12px)] text-primary";
@@ -268,6 +292,26 @@ function formatScheduleBlockTime(value: string | null) {
   return value?.slice(0, 5) ?? "";
 }
 
+function timeToMinutes(value: string | null | undefined) {
+  const normalized = value?.slice(0, 5);
+
+  if (!normalized?.match(/^\d{2}:\d{2}$/)) {
+    return null;
+  }
+
+  const [hours, minutes] = normalized.split(":").map(Number);
+
+  return hours * 60 + minutes;
+}
+
+function minutesToTime(value: number) {
+  const normalized = ((value % 1440) + 1440) % 1440;
+  const hours = Math.floor(normalized / 60);
+  const minutes = normalized % 60;
+
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
+
 function ManualFieldError({ id, message }: ManualFieldErrorProps) {
   if (!message) {
     return <p aria-hidden="true" className="min-h-5 text-sm leading-5" />;
@@ -277,6 +321,38 @@ function ManualFieldError({ id, message }: ManualFieldErrorProps) {
     <p id={id} role="alert" aria-live="polite" className="min-h-5 text-sm leading-5 text-accent">
       {message}
     </p>
+  );
+}
+
+function CompactCalendarEventButton({
+  ariaLabel,
+  children,
+  className,
+  onClick,
+  onTooltipClose,
+  onTooltipOpen,
+  tooltip,
+  tooltipId
+}: CompactCalendarEventButtonProps) {
+  return (
+    <span className="block">
+      <button
+        type="button"
+        aria-describedby={tooltipId}
+        aria-label={ariaLabel}
+        onBlur={onTooltipClose}
+        onFocus={(event) => onTooltipOpen(event.currentTarget, tooltip)}
+        onClick={(event) => {
+          event.stopPropagation();
+          onClick();
+        }}
+        onMouseEnter={(event) => onTooltipOpen(event.currentTarget, tooltip)}
+        onMouseLeave={onTooltipClose}
+        className={className}
+      >
+        {children}
+      </button>
+    </span>
   );
 }
 
@@ -312,6 +388,7 @@ export function BookingsCalendar({
   const [therapistFilter, setTherapistFilter] = useState("all");
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   const [selectedScheduleBlockId, setSelectedScheduleBlockId] = useState<string | null>(null);
+  const [activeTooltip, setActiveTooltip] = useState<CalendarTooltipState | null>(null);
   const [internalNotes, setInternalNotes] = useState("");
   const [assignedTherapistId, setAssignedTherapistId] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -510,6 +587,39 @@ export function BookingsCalendar({
     };
   }
 
+  function getBookingTimeRange(booking: DashboardBooking) {
+    const service = servicesBySlug.get(booking.service);
+    const startMinutes = timeToMinutes(booking.preferredTime);
+    const durationMinutes = booking.durationMinutes ?? service?.durationMinutes ?? null;
+
+    if (startMinutes === null || !durationMinutes) {
+      return booking.preferredTime;
+    }
+
+    return `${booking.preferredTime}–${minutesToTime(startMinutes + durationMinutes)}`;
+  }
+
+  function getCompactEventAppearance(event: DashboardCalendarEvent) {
+    if (event.kind === "schedule_block") {
+      return {
+        button: cn(
+          "focus-ring flex min-h-7 w-full items-center rounded-lg border border-dashed border-border/85 px-1.5 py-1 text-left text-[0.72rem] font-medium leading-5 transition",
+          scheduleBlockEventStyle,
+          "hover:border-primary/30 hover:text-primary"
+        )
+      };
+    }
+
+    const appearance = compactBookingStatusStyles[event.booking.status];
+
+    return {
+      button: cn(
+        "focus-ring flex min-h-7 w-full items-center rounded-lg border px-1.5 py-1 text-left text-[0.72rem] font-medium leading-5 transition",
+        appearance
+      )
+    };
+  }
+
   function getClientPrimaryContact(client: BookingClient) {
     if (client.primaryContactChannel) {
       return {
@@ -564,6 +674,30 @@ export function BookingsCalendar({
     }
   }
 
+  function openCompactTooltip(tooltipId: string, target: HTMLElement, content: ReactNode) {
+    setActiveTooltip({
+      id: tooltipId,
+      content,
+      rect: target.getBoundingClientRect()
+    });
+  }
+
+  function closeCompactTooltip() {
+    setActiveTooltip(null);
+  }
+
+  function getTooltipPosition(rect: DOMRect) {
+    const tooltipWidth = 288;
+    const tooltipGap = 10;
+    const viewportWidth = typeof window === "undefined" ? tooltipWidth + 32 : window.innerWidth;
+    const viewportHeight = typeof window === "undefined" ? 800 : window.innerHeight;
+    const left = Math.min(Math.max(rect.left, 16), Math.max(16, viewportWidth - tooltipWidth - 16));
+    const belowTop = rect.bottom + tooltipGap;
+    const top = belowTop + 220 > viewportHeight ? Math.max(16, rect.top - 220 - tooltipGap) : belowTop;
+
+    return { left, top };
+  }
+
   function getScheduleBlockTherapistLabel(block: DashboardScheduleBlock) {
     if (block.blockScope === "salon") {
       return calendar.scheduleBlocks.salonWide;
@@ -574,7 +708,7 @@ export function BookingsCalendar({
 
   function getScheduleBlockTimeLabel(block: DashboardScheduleBlock) {
     if (block.blockType === "full_day") {
-      return calendar.scheduleBlocks.unavailableAllDay;
+      return calendar.scheduleBlocks.fullDay;
     }
 
     return `${formatScheduleBlockTime(block.startTime)}–${formatScheduleBlockTime(block.endTime)}`;
@@ -588,10 +722,111 @@ export function BookingsCalendar({
     return `${getScheduleBlockTimeLabel(block)} · ${calendar.scheduleBlocks.unavailable}`;
   }
 
-  function getScheduleBlockTitle(block: DashboardScheduleBlock) {
-    return role === "admin"
-      ? `${getScheduleBlockCompactLabel(block)} · ${getScheduleBlockTherapistLabel(block)}`
-      : getScheduleBlockCompactLabel(block);
+  function getCompactEventLabel(event: DashboardCalendarEvent) {
+    if (event.kind === "schedule_block") {
+      return getScheduleBlockTimeLabel(event.block);
+    }
+
+    return view === "week" ? getBookingTimeRange(event.booking) : event.booking.preferredTime;
+  }
+
+  function getBookingAriaLabel(booking: DashboardBooking) {
+    const serviceMeta = getBookingServiceMeta(booking);
+
+    return [
+      getBookingTimeRange(booking),
+      serviceMeta.serviceName,
+      booking.clientName,
+      role === "admin" ? (therapistNames.get(booking.therapistId ?? "") ?? booking.specialist) : null,
+      dictionary.booking.statuses[booking.status]
+    ]
+      .filter(Boolean)
+      .join(", ");
+  }
+
+  function getScheduleBlockAriaLabel(block: DashboardScheduleBlock) {
+    return [
+      getScheduleBlockTimeLabel(block),
+      calendar.scheduleBlocks.blockedTime,
+      role === "admin" ? getScheduleBlockTherapistLabel(block) : null
+    ]
+      .filter(Boolean)
+      .join(", ");
+  }
+
+  function renderCompactEventTooltip(event: DashboardCalendarEvent) {
+    if (event.kind === "schedule_block") {
+      const block = event.block;
+
+      return (
+        <span className="block space-y-3">
+          <span className="block">
+            <span className="block text-xs font-semibold uppercase tracking-[0.12em] text-accent">
+              {calendar.scheduleBlocks.unavailable}
+            </span>
+            <span className="mt-1 block text-sm font-semibold text-primary">{getScheduleBlockTimeLabel(block)}</span>
+            <span className="mt-1 block text-xs text-muted-foreground">
+              {formatDate(block.date, locale, { day: "numeric", month: "long", year: "numeric" })}
+            </span>
+          </span>
+          <span className="block space-y-1 text-xs leading-5 text-muted-foreground">
+            {block.blockScope === "salon" ? (
+              <span className="block">
+                <span className="font-semibold text-primary">{calendar.scheduleBlocks.scope}: </span>
+                {calendar.scheduleBlocks.salonWide}
+              </span>
+            ) : null}
+            {block.blockScope === "therapist" && role === "admin" ? (
+              <span className="block">
+                <span className="font-semibold text-primary">{calendar.details.therapist}: </span>
+                {getScheduleBlockTherapistLabel(block)}
+              </span>
+            ) : null}
+            {(role === "admin" || block.blockScope === "therapist") && block.reason ? (
+              <span className="block">
+                <span className="font-semibold text-primary">{calendar.scheduleBlocks.blockReason}: </span>
+                {block.reason}
+              </span>
+            ) : null}
+          </span>
+        </span>
+      );
+    }
+
+    const booking = event.booking;
+    const serviceMeta = getBookingServiceMeta(booking);
+
+    return (
+      <span className="block space-y-3">
+        <span className="block">
+          <span className="block text-sm font-semibold text-primary">{getBookingTimeRange(booking)}</span>
+          <span className="mt-1 block text-sm text-foreground">{serviceMeta.serviceName}</span>
+        </span>
+        <span className="block space-y-1 text-xs leading-5 text-muted-foreground">
+          <span className="block">
+            <span className="font-semibold text-primary">{calendar.details.client}: </span>
+            {booking.clientName}
+          </span>
+          {role === "admin" ? (
+            <span className="block">
+              <span className="font-semibold text-primary">{calendar.details.therapist}: </span>
+              {therapistNames.get(booking.therapistId ?? "") ?? booking.specialist}
+            </span>
+          ) : null}
+          <span className="block">
+            <span className="font-semibold text-primary">{calendar.details.status}: </span>
+            {dictionary.booking.statuses[booking.status]}
+          </span>
+          {serviceMeta.compactText ? <span className="block font-semibold text-primary/80">{serviceMeta.compactText}</span> : null}
+          {booking.sourceChannel ? (
+            <span className="block">
+              <span className="font-semibold text-primary">{calendar.details.sourceChannel}: </span>
+              {calendar.create.sourceChannels[booking.sourceChannel]}
+            </span>
+          ) : null}
+        </span>
+      </span>
+    );
   }
 
   useEffect(() => {
@@ -689,6 +924,7 @@ export function BookingsCalendar({
   }
 
   function openDay(day: string) {
+    closeCompactTooltip();
     setSelectedDate(day);
     updateView("day");
     setSelectedBookingId(null);
@@ -697,6 +933,7 @@ export function BookingsCalendar({
   }
 
   function openBooking(booking: DashboardBooking) {
+    closeCompactTooltip();
     setIsCreateOpen(false);
     setSelectedScheduleBlockId(null);
     setSelectedBookingId(booking.id);
@@ -706,6 +943,7 @@ export function BookingsCalendar({
   }
 
   function openScheduleBlock(block: DashboardScheduleBlock) {
+    closeCompactTooltip();
     setIsCreateOpen(false);
     setSelectedBookingId(null);
     setSelectedScheduleBlockId(block.id);
@@ -1282,26 +1520,24 @@ export function BookingsCalendar({
                       {dayEvents.slice(0, isCompactView ? 4 : dayEvents.length).map((event) => {
                         if (event.kind === "schedule_block") {
                           const block = event.block;
+                          const appearance = getCompactEventAppearance(event);
+                          const label = getCompactEventLabel(event);
 
                           return isCompactView ? (
-                            <button
+                            <CompactCalendarEventButton
                               key={event.id}
-                              type="button"
-                              title={getScheduleBlockTitle(block)}
-                              onClick={(clickEvent) => {
-                                clickEvent.stopPropagation();
-                                openScheduleBlock(block);
-                              }}
-                              className={cn(
-                                "focus-ring w-full truncate rounded-lg border px-2 py-1 text-left text-xs font-semibold leading-5",
-                                scheduleBlockEventStyle
-                              )}
+                              ariaLabel={getScheduleBlockAriaLabel(block)}
+                              className={appearance.button}
+                              onClick={() => openScheduleBlock(block)}
+                              onTooltipClose={closeCompactTooltip}
+                              onTooltipOpen={(target, content) =>
+                                openCompactTooltip(`calendar-tooltip-${event.kind}-${event.id}`, target, content)
+                              }
+                              tooltip={renderCompactEventTooltip(event)}
+                              tooltipId={`calendar-tooltip-${event.kind}-${event.id}`}
                             >
-                              <span className="mr-1 uppercase tracking-[0.08em]">
-                                {calendar.scheduleBlocks.blockedTime}
-                              </span>
-                              <span>{getScheduleBlockTitle(block)}</span>
-                            </button>
+                              <span className="whitespace-nowrap tabular-nums">{label}</span>
+                            </CompactCalendarEventButton>
                           ) : (
                             <button
                               key={event.id}
@@ -1328,22 +1564,24 @@ export function BookingsCalendar({
 
                         const booking = event.booking;
                         const serviceMeta = getBookingServiceMeta(booking);
+                        const appearance = getCompactEventAppearance(event);
+                        const label = getCompactEventLabel(event);
 
                         return isCompactView ? (
-                          <div
+                          <CompactCalendarEventButton
                             key={event.id}
-                            title={[booking.preferredTime, serviceMeta.serviceName, serviceMeta.compactText].filter(Boolean).join(" - ")}
-                            className={cn(
-                              "w-full truncate rounded-lg border px-2 py-1 text-left text-xs font-semibold leading-5",
-                              statusStyles[booking.status]
-                            )}
+                            ariaLabel={getBookingAriaLabel(booking)}
+                            className={appearance.button}
+                            onClick={() => openBooking(booking)}
+                            onTooltipClose={closeCompactTooltip}
+                            onTooltipOpen={(target, content) =>
+                              openCompactTooltip(`calendar-tooltip-${event.kind}-${event.id}`, target, content)
+                            }
+                            tooltip={renderCompactEventTooltip(event)}
+                            tooltipId={`calendar-tooltip-${event.kind}-${event.id}`}
                           >
-                            <span className="mr-1 uppercase tracking-[0.08em]">
-                              {calendar.statusShort[booking.status]}
-                            </span>
-                            <span className="mr-1 tabular-nums">{booking.preferredTime}</span>
-                            <span>{serviceMeta.serviceName}</span>
-                          </div>
+                            <span className="whitespace-nowrap tabular-nums">{label}</span>
+                          </CompactCalendarEventButton>
                         ) : (
                           <button
                             key={event.id}
@@ -1397,6 +1635,17 @@ export function BookingsCalendar({
           })}
         </div>
       </div>
+
+      {activeTooltip ? (
+        <div
+          id={activeTooltip.id}
+          role="tooltip"
+          style={getTooltipPosition(activeTooltip.rect)}
+          className="pointer-events-none fixed z-[60] hidden w-72 rounded-2xl border border-border/75 bg-card px-4 py-3 text-left text-sm leading-5 text-foreground opacity-100 shadow-[0_18px_50px_rgb(20_61_42/0.16)] md:block"
+        >
+          {activeTooltip.content}
+        </div>
+      ) : null}
 
       {isCreateOpen ? (
         <div

@@ -479,7 +479,7 @@ const en = {
         blockedTime: "Blocked time",
         scheduleBlock: "Schedule block",
         openInSchedule: "Open in Schedule",
-        fullDay: "Full day",
+        fullDay: "All day",
         timeRange: "Time range",
         blockReason: "Block reason",
         salonWide: "Salon-wide block",
