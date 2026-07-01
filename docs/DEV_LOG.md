@@ -1,6 +1,6 @@
 # Development Log
 
-Last updated: 2026-06-30
+Last updated: 2026-07-01
 
 This log is shared context for human and AI-assisted development. Update it after every major development stage so future Codex, `web-coder`, and `grill-me` sessions can continue without rediscovering project history.
 
@@ -98,6 +98,7 @@ The admin-only Clients CRM page is now implemented at `/[locale]/dashboard/clien
 - Updated the dashboard bookings calendar to open in Month view by default, persist the selected calendar view in browser storage, and display read-only `schedule_blocks` alongside bookings as explicit `schedule_block` calendar events. Admin therapist filters now apply to both bookings and schedule blocks while booking status filters remain booking-only; Schedule remains the canonical place to create, edit, and delete unavailable time.
 - Activated the homepage client reviews section with three real manually maintained Google reviews, keeping review text in the original Russian, Serbian, and English only. Review UI labels are localized through dictionaries, fake placeholder review data remains removed, Google Maps uses the existing contact URL, and no Google API or review structured data was added.
 - Added immediate dashboard calendar refresh and Supabase Realtime synchronization for bookings and schedule blocks. Local dashboard actions still refetch directly with `router.refresh()` after server success, while authenticated Realtime subscriptions debounce external `bookings` and `schedule_blocks` changes from public bookings, other dashboard users, or other browser tabs. A safe migration adds both tables to the `supabase_realtime` publication without changing RLS.
+- Moved the dashboard bookings calendar Day/Week/Month control out of the upper filters and into the calendar header as an accessible segmented button group. The shared calendar component now uses the same control for admin and therapist dashboards, keeping Month fallback and browser persistence while leaving booking/status/therapist filters unchanged.
 
 ## Current Focus
 
@@ -209,6 +210,8 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Confirm admin users see overview, bookings, clients, services, and therapists navigation.
 - Confirm therapist users see only overview and bookings navigation.
 - Confirm the dashboard bookings calendar opens in Month view for a fresh user and preserves Day/Week/Month selection after switching views.
+- Confirm the dashboard bookings calendar has no old view dropdown in the upper filters and shows Day/Week/Month buttons between the current period and Previous/Today/Next navigation.
+- Confirm the segmented view buttons are keyboard reachable, show a visible focus state, and use `aria-pressed` for the active view.
 - Confirm dashboard bookings calendar shows full-day and time-range schedule blocks alongside bookings.
 - Confirm admin therapist filters affect both bookings and schedule blocks, while status filters affect only bookings.
 - Confirm clicking a schedule block opens read-only details and the Schedule section remains the only place to create, edit, or delete blocks.
