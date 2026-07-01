@@ -145,23 +145,11 @@ const statusStyles: Record<BookingStatus, string> = {
   cancelled: "border-[#b47c72]/35 bg-[#f1ded9] text-[#7b3c34]",
   completed: "border-[#8f9d86]/35 bg-[#e7eadf] text-[#46543d]"
 };
-const compactBookingStatusStyles: Record<BookingStatus, { button: string; marker: string }> = {
-  pending: {
-    button: "border-l-[#c6a15a] bg-[#f8efe0] text-[#72551f] hover:bg-[#f4e5ca]",
-    marker: "bg-[#c6a15a]"
-  },
-  confirmed: {
-    button: "border-l-primary bg-[#e4eee6] text-primary hover:bg-[#d8e8dc]",
-    marker: "bg-primary"
-  },
-  cancelled: {
-    button: "border-l-[#b47c72] bg-[#f2e2dd] text-[#7b3c34] opacity-75 hover:bg-[#ead3cc]",
-    marker: "bg-[#b47c72]"
-  },
-  completed: {
-    button: "border-l-[#8f9d86] bg-[#e8e9e1] text-[#46543d] hover:bg-[#dedfd4]",
-    marker: "bg-[#8f9d86]"
-  }
+const compactBookingStatusStyles: Record<BookingStatus, string> = {
+  pending: "border-[#c6a15a]/45 bg-[#f8efe0] text-[#72551f] hover:bg-[#f4e5ca]",
+  confirmed: "border-primary/25 bg-[#e4eee6] text-primary hover:bg-[#d8e8dc]",
+  cancelled: "border-[#b47c72]/35 bg-[#f2e2dd] text-[#7b3c34] opacity-75 hover:bg-[#ead3cc]",
+  completed: "border-[#8f9d86]/35 bg-[#e8e9e1] text-[#46543d] hover:bg-[#dedfd4]"
 };
 const scheduleBlockEventStyle =
   "border-border/80 bg-[repeating-linear-gradient(135deg,rgb(236_231_220/0.64)_0,rgb(236_231_220/0.64)_6px,rgb(248_246_241/0.82)_6px,rgb(248_246_241/0.82)_12px)] text-primary";
@@ -615,11 +603,10 @@ export function BookingsCalendar({
     if (event.kind === "schedule_block") {
       return {
         button: cn(
-          "focus-ring flex min-h-7 w-full items-center gap-1.5 rounded-lg border border-dashed border-border/85 border-l-4 border-l-muted-foreground/65 px-2 py-1 text-left text-[0.72rem] font-medium leading-5 transition",
+          "focus-ring flex min-h-7 w-full items-center rounded-lg border border-dashed border-border/85 px-1.5 py-1 text-left text-[0.72rem] font-medium leading-5 transition",
           scheduleBlockEventStyle,
           "hover:border-primary/30 hover:text-primary"
-        ),
-        marker: "bg-muted-foreground/75"
+        )
       };
     }
 
@@ -627,10 +614,9 @@ export function BookingsCalendar({
 
     return {
       button: cn(
-        "focus-ring flex min-h-7 w-full items-center gap-1.5 rounded-lg border border-border/50 border-l-4 px-2 py-1 text-left text-[0.72rem] font-medium leading-5 transition",
-        appearance.button
-      ),
-      marker: appearance.marker
+        "focus-ring flex min-h-7 w-full items-center rounded-lg border px-1.5 py-1 text-left text-[0.72rem] font-medium leading-5 transition",
+        appearance
+      )
     };
   }
 
@@ -1550,7 +1536,6 @@ export function BookingsCalendar({
                               tooltip={renderCompactEventTooltip(event)}
                               tooltipId={`calendar-tooltip-${event.kind}-${event.id}`}
                             >
-                              <span aria-hidden="true" className={cn("h-1.5 w-1.5 shrink-0 rounded-full", appearance.marker)} />
                               <span className="whitespace-nowrap tabular-nums">{label}</span>
                             </CompactCalendarEventButton>
                           ) : (
@@ -1595,7 +1580,6 @@ export function BookingsCalendar({
                             tooltip={renderCompactEventTooltip(event)}
                             tooltipId={`calendar-tooltip-${event.kind}-${event.id}`}
                           >
-                            <span aria-hidden="true" className={cn("h-1.5 w-1.5 shrink-0 rounded-full", appearance.marker)} />
                             <span className="whitespace-nowrap tabular-nums">{label}</span>
                           </CompactCalendarEventButton>
                         ) : (
