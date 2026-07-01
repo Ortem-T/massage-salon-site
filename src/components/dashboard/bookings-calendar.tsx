@@ -798,10 +798,6 @@ export function BookingsCalendar({
       labels.push(mobile.today);
     }
 
-    if (day.dateKey === selectedDate) {
-      labels.push(mobile.selected);
-    }
-
     if (!day.isCurrentMonth) {
       labels.push(mobile.outsideMonth);
     }
@@ -1031,6 +1027,14 @@ export function BookingsCalendar({
     setMessage(null);
   }
 
+  function getManualBookingInitialDate() {
+    if (view === "day" && isDateKey(selectedDate) && isBookingDateSelectable(selectedDate, manualMinDate)) {
+      return selectedDate;
+    }
+
+    return todayKey();
+  }
+
   function closeBooking() {
     setSelectedBookingId(null);
     setMessage(null);
@@ -1042,7 +1046,7 @@ export function BookingsCalendar({
   }
 
   function openCreateBooking() {
-    const defaultDate = isBookingDateSelectable(selectedDate, manualMinDate) ? selectedDate : "";
+    const defaultDate = getManualBookingInitialDate();
 
     setSelectedBookingId(null);
     setSelectedScheduleBlockId(null);
@@ -1568,7 +1572,6 @@ export function BookingsCalendar({
                 const hasBooking = Boolean(summary?.hasBooking);
                 const hasPendingBooking = Boolean(summary?.hasPendingBooking);
                 const hasScheduleBlock = Boolean(summary?.hasScheduleBlock);
-                const isSelected = day.dateKey === selectedDate;
                 const isToday = day.dateKey === todayKey();
 
                 return (
@@ -1577,36 +1580,34 @@ export function BookingsCalendar({
                     type="button"
                     aria-label={getMobileMonthDayAriaLabel(day, summary)}
                     aria-current={isToday ? "date" : undefined}
-                    aria-pressed={isSelected}
                     onClick={() => openDay(day.dateKey)}
                     className={cn(
-                      "focus-ring flex min-h-12 flex-col items-center justify-center rounded-xl border px-1 py-1.5 text-sm font-semibold transition",
-                      day.isCurrentMonth
-                        ? "border-border/65 bg-background/54 text-primary"
-                        : "border-transparent bg-transparent text-muted-foreground/45",
-                      isToday && !isSelected && "border-primary/35 ring-1 ring-primary/15",
-                      isSelected
-                        ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                        : "hover:border-primary/25 hover:bg-secondary/70 hover:text-primary"
+                      "focus-ring flex min-h-12 flex-col items-center justify-center rounded-xl px-1 py-1.5 text-sm font-semibold transition active:scale-[0.98]",
+                      day.isCurrentMonth ? "text-primary" : "text-muted-foreground/45"
                     )}
                   >
-                    <span className="tabular-nums leading-5">{day.dayOfMonth}</span>
+                    <span
+                      className={cn(
+                        "flex size-8 items-center justify-center rounded-full tabular-nums leading-none transition",
+                        isToday
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "hover:bg-secondary/78 hover:text-primary"
+                      )}
+                    >
+                      {day.dayOfMonth}
+                    </span>
                     <span aria-hidden="true" className="mt-1 flex h-2 items-center justify-center gap-1">
                       {hasBooking ? (
                         <span
                           className={cn(
                             "size-1.5 rounded-full",
-                            hasPendingBooking ? "bg-[#c6a15a]" : "bg-primary/55",
-                            isSelected && "bg-primary-foreground/85"
+                            hasPendingBooking ? "bg-[#c6a15a]" : "bg-primary/55"
                           )}
                         />
                       ) : null}
                       {hasScheduleBlock ? (
                         <span
-                          className={cn(
-                            "size-1.5 rounded-full border border-border/90 bg-card",
-                            isSelected && "border-primary-foreground/80 bg-primary-foreground/25"
-                          )}
+                          className="size-1.5 rounded-full border border-border/90 bg-card"
                         />
                       ) : null}
                     </span>
