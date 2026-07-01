@@ -6,6 +6,7 @@ import { type KeyboardEvent as ReactKeyboardEvent, useEffect, useMemo, useRef, u
 import { Button } from "@/components/ui/button";
 import { type Locale } from "@/i18n/config";
 import { parseDateValue, toDateValue } from "@/lib/booking/booking-availability";
+import { getCalendarMonthGridDays } from "@/lib/calendar/month-grid";
 import { cn } from "@/lib/utils";
 
 type BookingCalendarCopy = {
@@ -40,18 +41,6 @@ function getMonthStart(value: string) {
   const date = parseDateValue(value) ?? new Date();
 
   return new Date(date.getFullYear(), date.getMonth(), 1);
-}
-
-function getCalendarDays(month: Date) {
-  const firstDay = new Date(month.getFullYear(), month.getMonth(), 1);
-  const startOffset = (firstDay.getDay() + 6) % 7;
-  const startDate = new Date(month.getFullYear(), month.getMonth(), 1 - startOffset);
-
-  return Array.from({ length: 42 }, (_, index) => {
-    const date = new Date(startDate);
-    date.setDate(startDate.getDate() + index);
-    return date;
-  });
 }
 
 function moveMonth(month: Date, offset: number) {
@@ -97,7 +86,13 @@ export function BookingDatePicker({
       return new Intl.DateTimeFormat(formatterLocale, { weekday: "short" }).format(date);
     });
   }, [formatterLocale]);
-  const days = useMemo(() => getCalendarDays(visibleMonth), [visibleMonth]);
+  const days = useMemo(
+    () =>
+      getCalendarMonthGridDays(toDateValue(visibleMonth))
+        .map((day) => parseDateValue(day.dateKey))
+        .filter((date): date is Date => Boolean(date)),
+    [visibleMonth]
+  );
   const selectableDateValues = useMemo(
     () => days.map(toDateValue).filter((dateValue) => isDateSelectable(dateValue)),
     [days, isDateSelectable]

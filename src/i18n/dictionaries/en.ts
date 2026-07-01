@@ -467,6 +467,22 @@ const en = {
       currentRange: "Current range",
       emptyDay: "No bookings for this day.",
       emptyCompact: "Free",
+      mobileMonth: {
+        openDay: "Open day",
+        today: "Today",
+        selected: "Selected date",
+        outsideMonth: "Outside current month",
+        bookings: {
+          one: "booking",
+          few: "bookings",
+          many: "bookings"
+        },
+        blocks: {
+          one: "blocked time",
+          few: "blocked times",
+          many: "blocked times"
+        }
+      },
       statusShort: {
         pending: "Pend",
         confirmed: "Conf",

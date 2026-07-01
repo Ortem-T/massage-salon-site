@@ -467,6 +467,22 @@ const ru = {
       currentRange: "Текущий период",
       emptyDay: "На этот день записей нет.",
       emptyCompact: "Свободно",
+      mobileMonth: {
+        openDay: "Открыть день",
+        today: "Сегодня",
+        selected: "Выбранная дата",
+        outsideMonth: "Другой месяц",
+        bookings: {
+          one: "запись",
+          few: "записи",
+          many: "записей"
+        },
+        blocks: {
+          one: "блокировка",
+          few: "блокировки",
+          many: "блокировок"
+        }
+      },
       statusShort: {
         pending: "Ожид",
         confirmed: "Подтв",

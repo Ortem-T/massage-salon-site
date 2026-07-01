@@ -468,6 +468,22 @@ const sr = {
       currentRange: "Trenutni period",
       emptyDay: "Nema termina za ovaj dan.",
       emptyCompact: "Slobodno",
+      mobileMonth: {
+        openDay: "Otvori dan",
+        today: "Danas",
+        selected: "Izabrani datum",
+        outsideMonth: "Drugi mesec",
+        bookings: {
+          one: "termin",
+          few: "termina",
+          many: "termina"
+        },
+        blocks: {
+          one: "blokirano vreme",
+          few: "blokirana vremena",
+          many: "blokiranih vremena"
+        }
+      },
       statusShort: {
         pending: "Čeka",
         confirmed: "Potv",

@@ -43,6 +43,7 @@ import {
   type ManualBookingSourceChannel
 } from "@/lib/dashboard/constants";
 import { type DashboardBooking, type DashboardScheduleBlock, type DashboardTherapist } from "@/lib/dashboard/bookings";
+import { getCalendarMonthGridDays } from "@/lib/calendar/month-grid";
 import {
   formatServiceDuration,
   formatServicePrice,
@@ -76,6 +77,14 @@ type DashboardCalendarScheduleBlockEvent = {
 type DashboardCalendarEvent = DashboardCalendarBookingEvent | DashboardCalendarScheduleBlockEvent;
 
 const calendarViews: CalendarView[] = ["day", "week", "month"];
+
+type CalendarDaySummary = {
+  bookingCount: number;
+  blockCount: number;
+  hasBooking: boolean;
+  hasPendingBooking: boolean;
+  hasScheduleBlock: boolean;
+};
 
 type ManualBookingFormState = {
   clientMode: ClientMode;
@@ -224,21 +233,7 @@ function getWeekDays(value: string) {
 }
 
 function getMonthDays(value: string) {
-  const date = parseDateKey(value);
-  const first = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1, 12));
-  const last = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0, 12));
-  const start = startOfWeek(toDateKey(first));
-  const lastWeek = getWeekDays(toDateKey(last));
-  const end = lastWeek[lastWeek.length - 1];
-  const days: string[] = [];
-  let cursor = start;
-
-  while (cursor <= end) {
-    days.push(cursor);
-    cursor = addDays(cursor, 1);
-  }
-
-  return days;
+  return getCalendarMonthGridDays(value).map((day) => day.dateKey);
 }
 
 function formatDate(value: string, locale: Locale, options: Intl.DateTimeFormatOptions) {
@@ -247,6 +242,35 @@ function formatDate(value: string, locale: Locale, options: Intl.DateTimeFormatO
 
 function formatCompactWeekday(value: string, locale: Locale) {
   return formatDate(value, locale, { weekday: "short" }).replace(".", "").slice(0, 2);
+}
+
+function getWeekdayLabels(locale: Locale) {
+  return getWeekDays("2026-01-05").map((day) => formatCompactWeekday(day, locale));
+}
+
+function getPluralForm(count: number, locale: Locale) {
+  if (locale === "en") {
+    return count === 1 ? "one" : "many";
+  }
+
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+
+  if (mod10 === 1 && mod100 !== 11) {
+    return "one";
+  }
+
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+    return "few";
+  }
+
+  return "many";
+}
+
+function formatCalendarCount(count: number, locale: Locale, forms: { one: string; few: string; many: string }) {
+  const form = getPluralForm(count, locale);
+
+  return `${count} ${forms[form]}`;
 }
 
 function sortBookings(bookings: DashboardBooking[]) {
@@ -544,22 +568,54 @@ export function BookingsCalendar({
   const visibleDays = view === "day" ? [selectedDate] : view === "week" ? getWeekDays(selectedDate) : getMonthDays(selectedDate);
   const visibleBookings = filteredBookings.filter((booking) => visibleDays.includes(booking.preferredDate));
   const visibleScheduleBlocks = filteredScheduleBlocks.filter((block) => visibleDays.includes(block.date));
-  const visibleEvents = sortCalendarEvents([
-    ...visibleBookings.map((booking): DashboardCalendarBookingEvent => ({
-      kind: "booking",
-      id: booking.id,
-      date: booking.preferredDate,
-      sortTime: booking.preferredTime,
-      booking
-    })),
-    ...visibleScheduleBlocks.map((block): DashboardCalendarScheduleBlockEvent => ({
-      kind: "schedule_block",
-      id: block.id,
-      date: block.date,
-      sortTime: block.blockType === "full_day" ? "00:00" : (block.startTime ?? "00:00"),
-      block
-    }))
-  ]);
+  const visibleEvents = useMemo(
+    () =>
+      sortCalendarEvents([
+        ...visibleBookings.map((booking): DashboardCalendarBookingEvent => ({
+          kind: "booking",
+          id: booking.id,
+          date: booking.preferredDate,
+          sortTime: booking.preferredTime,
+          booking
+        })),
+        ...visibleScheduleBlocks.map((block): DashboardCalendarScheduleBlockEvent => ({
+          kind: "schedule_block",
+          id: block.id,
+          date: block.date,
+          sortTime: block.blockType === "full_day" ? "00:00" : (block.startTime ?? "00:00"),
+          block
+        }))
+      ]),
+    [visibleBookings, visibleScheduleBlocks]
+  );
+  const mobileMonthDays = useMemo(() => getCalendarMonthGridDays(selectedDate), [selectedDate]);
+  const mobileWeekdayLabels = useMemo(() => getWeekdayLabels(locale), [locale]);
+  const daySummaryByDate = useMemo(() => {
+    const summaries = new Map<string, CalendarDaySummary>();
+
+    for (const event of visibleEvents) {
+      const summary = summaries.get(event.date) ?? {
+        bookingCount: 0,
+        blockCount: 0,
+        hasBooking: false,
+        hasPendingBooking: false,
+        hasScheduleBlock: false
+      };
+
+      if (event.kind === "booking") {
+        summary.bookingCount += 1;
+        summary.hasBooking = true;
+        summary.hasPendingBooking = summary.hasPendingBooking || event.booking.status === "pending";
+      } else {
+        summary.blockCount += 1;
+        summary.hasScheduleBlock = true;
+      }
+
+      summaries.set(event.date, summary);
+    }
+
+    return summaries;
+  }, [visibleEvents]);
 
   const statusCounts = bookingStatuses.map((status) => ({
     status,
@@ -728,6 +784,31 @@ export function BookingsCalendar({
     }
 
     return view === "week" ? getBookingTimeRange(event.booking) : event.booking.preferredTime;
+  }
+
+  function getMobileMonthDayAriaLabel(day: (typeof mobileMonthDays)[number], summary?: CalendarDaySummary) {
+    const mobile = calendar.mobileMonth;
+    const labels = [
+      formatDate(day.dateKey, locale, { day: "numeric", month: "long", year: "numeric" }),
+      formatCalendarCount(summary?.bookingCount ?? 0, locale, mobile.bookings),
+      formatCalendarCount(summary?.blockCount ?? 0, locale, mobile.blocks)
+    ];
+
+    if (day.dateKey === todayKey()) {
+      labels.push(mobile.today);
+    }
+
+    if (day.dateKey === selectedDate) {
+      labels.push(mobile.selected);
+    }
+
+    if (!day.isCurrentMonth) {
+      labels.push(mobile.outsideMonth);
+    }
+
+    labels.push(mobile.openDay);
+
+    return labels.join(". ");
   }
 
   function getBookingAriaLabel(booking: DashboardBooking) {
@@ -1471,10 +1552,75 @@ export function BookingsCalendar({
           </div>
         </div>
 
+        {view === "month" ? (
+          <div className="mt-4 md:hidden">
+            <div className="grid grid-cols-7 gap-1 text-center">
+              {mobileWeekdayLabels.map((day) => (
+                <p key={day} className="pb-1 text-[0.68rem] font-semibold uppercase leading-5 text-muted-foreground">
+                  {day}
+                </p>
+              ))}
+            </div>
+
+            <div className="mt-1 grid grid-cols-7 gap-1">
+              {mobileMonthDays.map((day) => {
+                const summary = daySummaryByDate.get(day.dateKey);
+                const hasBooking = Boolean(summary?.hasBooking);
+                const hasPendingBooking = Boolean(summary?.hasPendingBooking);
+                const hasScheduleBlock = Boolean(summary?.hasScheduleBlock);
+                const isSelected = day.dateKey === selectedDate;
+                const isToday = day.dateKey === todayKey();
+
+                return (
+                  <button
+                    key={day.dateKey}
+                    type="button"
+                    aria-label={getMobileMonthDayAriaLabel(day, summary)}
+                    aria-current={isToday ? "date" : undefined}
+                    aria-pressed={isSelected}
+                    onClick={() => openDay(day.dateKey)}
+                    className={cn(
+                      "focus-ring flex min-h-12 flex-col items-center justify-center rounded-xl border px-1 py-1.5 text-sm font-semibold transition",
+                      day.isCurrentMonth
+                        ? "border-border/65 bg-background/54 text-primary"
+                        : "border-transparent bg-transparent text-muted-foreground/45",
+                      isToday && !isSelected && "border-primary/35 ring-1 ring-primary/15",
+                      isSelected
+                        ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                        : "hover:border-primary/25 hover:bg-secondary/70 hover:text-primary"
+                    )}
+                  >
+                    <span className="tabular-nums leading-5">{day.dayOfMonth}</span>
+                    <span aria-hidden="true" className="mt-1 flex h-2 items-center justify-center gap-1">
+                      {hasBooking ? (
+                        <span
+                          className={cn(
+                            "size-1.5 rounded-full",
+                            hasPendingBooking ? "bg-[#c6a15a]" : "bg-primary/55",
+                            isSelected && "bg-primary-foreground/85"
+                          )}
+                        />
+                      ) : null}
+                      {hasScheduleBlock ? (
+                        <span
+                          className={cn(
+                            "size-1.5 rounded-full border border-border/90 bg-card",
+                            isSelected && "border-primary-foreground/80 bg-primary-foreground/25"
+                          )}
+                        />
+                      ) : null}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
+
         <div
           className={cn(
             "mt-4 grid gap-3",
-            view === "day" ? "grid-cols-1" : "grid-cols-1 md:grid-cols-7",
+            view === "day" ? "grid-cols-1" : view === "month" ? "hidden md:grid md:grid-cols-7" : "grid-cols-1 md:grid-cols-7",
             view === "month" && "md:auto-rows-[8.5rem]",
             view === "week" && "md:auto-rows-[12rem]"
           )}
