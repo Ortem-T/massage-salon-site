@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
+import { ClientNotificationsPanel } from "@/components/dashboard/client-notifications-panel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -44,6 +45,7 @@ type ClientsManagerProps = {
   dictionary: Dictionary;
   locale: Locale;
   serviceCatalog: ServiceCatalogItem[];
+  localizedServiceNames: Record<Locale, Record<string, string>>;
 };
 
 const dateLocales: Record<Locale, string> = {
@@ -125,7 +127,14 @@ function getClientSearchText(client: DashboardClient) {
     .toLowerCase();
 }
 
-export function ClientsManager({ clients, dataError, dictionary, locale, serviceCatalog }: ClientsManagerProps) {
+export function ClientsManager({
+  clients,
+  dataError,
+  dictionary,
+  locale,
+  serviceCatalog,
+  localizedServiceNames
+}: ClientsManagerProps) {
   const router = useRouter();
   const copy = dictionary.dashboard.clients;
   const [search, setSearch] = useState("");
@@ -338,7 +347,7 @@ export function ClientsManager({ clients, dataError, dictionary, locale, service
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[0.95fr_1.05fr]">
-        <div className="space-y-3">
+        <div className="order-2 space-y-3 xl:order-1">
           {filteredClients.length > 0 ? (
             filteredClients.map((client) => (
               <button
@@ -396,7 +405,7 @@ export function ClientsManager({ clients, dataError, dictionary, locale, service
           )}
         </div>
 
-        <aside className="rounded-3xl border border-border/70 bg-card/78 p-4 shadow-soft sm:p-5 xl:sticky xl:top-8 xl:max-h-[calc(100vh-4rem)] xl:overflow-y-auto">
+        <aside className="order-1 rounded-3xl border border-border/70 bg-card/78 p-4 shadow-soft sm:p-5 xl:sticky xl:top-8 xl:order-2 xl:max-h-[calc(100vh-4rem)] xl:overflow-y-auto">
           {isEditing ? (
             <div>
               <div className="flex items-start justify-between gap-4">
@@ -580,6 +589,14 @@ export function ClientsManager({ clients, dataError, dictionary, locale, service
                   <p className="mt-2 text-sm leading-6 text-foreground/82">{selectedClient.notes}</p>
                 </div>
               ) : null}
+
+              <ClientNotificationsPanel
+                client={selectedClient}
+                dictionary={dictionary}
+                locale={locale}
+                serviceCatalog={serviceCatalog}
+                localizedServiceNames={localizedServiceNames}
+              />
 
               <div className="mt-6 border-t border-border/70 pt-5">
                 <h3 className="text-lg font-semibold text-primary">{copy.bookingHistory}</h3>

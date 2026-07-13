@@ -187,6 +187,14 @@ const en = {
     submit: "Book appointment",
     submitting: "Sending request",
     formNote: "After you submit the request, we will confirm your appointment through your preferred messenger.",
+    returningClient: {
+      welcome: "Welcome back!",
+      clear: "Not you? Clear details"
+    },
+    rebookingLink: {
+      supporting: "We filled in your contact details to make booking again faster.",
+      error: "This rebooking link is invalid or has expired. You can still complete the form manually."
+    },
     success: {
       title: "Request received",
       message: "Thank you. We will review your preferred time and contact you shortly."
@@ -394,6 +402,54 @@ const en = {
       saving: "Saving...",
       cancel: "Cancel",
       snapshotWarning: "Changing contact details updates the client record for future bookings. Existing bookings keep their historical contact snapshots.",
+      notifications: {
+        eyebrow: "Client messages",
+        title: "Notifications",
+        subtitle: "Generate a text, edit it if needed, and copy it for manual sending.",
+        generateAndCopy: "Generate and copy",
+        copy: "Copy",
+        copied: "Message copied",
+        copyFailed: "Could not copy the message. Copy the text manually.",
+        bookingRequired: "This message needs a future confirmed or pending booking.",
+        rebookingNote: "The personal link safely fills the client's name and phone. The details remain editable before the request is sent.",
+        tokenStatus: {
+          none: "No link created",
+          active: "Active",
+          expired: "Expired",
+          revoked: "Revoked"
+        },
+        tokenManagement: {
+          status: "Link status",
+          expires: "Expires",
+          generateNew: "Generate new link",
+          revoke: "Revoke link"
+        },
+        tokenMessages: {
+          generated: "New link created.",
+          revoked: "Link revoked.",
+          error: "Could not update the link."
+        },
+        fields: {
+          language: "Message language",
+          type: "Message type",
+          booking: "Booking",
+          preview: "Message preview"
+        },
+        placeholders: {
+          booking: "Select booking"
+        },
+        languages: {
+          sr: "Serbian",
+          ru: "Russian",
+          en: "English"
+        },
+        types: {
+          booking_confirmation: "Booking confirmation",
+          appointment_reminder: "Appointment reminder",
+          rebooking: "Book again",
+          google_review: "Google review request"
+        }
+      },
       channels: {
         instagram: "Instagram",
         whatsapp: "WhatsApp",

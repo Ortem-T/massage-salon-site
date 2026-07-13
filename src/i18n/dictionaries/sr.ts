@@ -187,6 +187,14 @@ const sr = {
     submit: "Zakaži termin",
     submitting: "Šaljemo zahtev",
     formNote: "Nakon slanja zahteva, potvrdićemo termin putem messengera koji vam najviše odgovara.",
+    returningClient: {
+      welcome: "Drago nam je što ste ponovo sa nama!",
+      clear: "Niste vi? Obrišite podatke"
+    },
+    rebookingLink: {
+      supporting: "Popunili smo vaše kontakt podatke kako bi ponovno zakazivanje bilo brže.",
+      error: "Link za ponovno zakazivanje nije važeći ili je istekao. Formular možete popuniti ručno."
+    },
     success: {
       title: "Zahtev je primljen",
       message: "Hvala. Proverićemo željeno vreme i uskoro vas kontaktirati."
@@ -395,6 +403,54 @@ const sr = {
       saving: "Čuvamo...",
       cancel: "Otkaži",
       snapshotWarning: "Izmena kontakta ažurira karticu klijenta za buduće termine. Stari termini zadržavaju svoje istorijske kontakt snimke.",
+      notifications: {
+        eyebrow: "Poruke klijentu",
+        title: "Obaveštenja",
+        subtitle: "Generišite tekst, po potrebi ga uredite i kopirajte za ručno slanje.",
+        generateAndCopy: "Generiši i kopiraj",
+        copy: "Kopiraj",
+        copied: "Poruka je kopirana",
+        copyFailed: "Poruku nije moguće kopirati. Kopirajte tekst ručno.",
+        bookingRequired: "Za ovu poruku je potreban budući potvrđen termin ili termin na čekanju.",
+        rebookingNote: "Lični link bezbedno popunjava ime i telefon klijenta. Podaci ostaju izmenjivi pre slanja zahteva.",
+        tokenStatus: {
+          none: "Link nije kreiran",
+          active: "Aktivan",
+          expired: "Istekao",
+          revoked: "Opozvan"
+        },
+        tokenManagement: {
+          status: "Status linka",
+          expires: "Ističe",
+          generateNew: "Kreiraj novi link",
+          revoke: "Opozovi link"
+        },
+        tokenMessages: {
+          generated: "Novi link je kreiran.",
+          revoked: "Link je opozvan.",
+          error: "Link nije moguće ažurirati."
+        },
+        fields: {
+          language: "Jezik poruke",
+          type: "Tip poruke",
+          booking: "Termin",
+          preview: "Pregled poruke"
+        },
+        placeholders: {
+          booking: "Izaberite termin"
+        },
+        languages: {
+          sr: "Srpski",
+          ru: "Ruski",
+          en: "Engleski"
+        },
+        types: {
+          booking_confirmation: "Potvrda termina",
+          appointment_reminder: "Podsetnik",
+          rebooking: "Ponovno zakazivanje",
+          google_review: "Molba za Google recenziju"
+        }
+      },
       channels: {
         instagram: "Instagram",
         whatsapp: "WhatsApp",

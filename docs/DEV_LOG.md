@@ -1,6 +1,6 @@
 # Development Log
 
-Last updated: 2026-07-01
+Last updated: 2026-07-13
 
 This log is shared context for human and AI-assisted development. Update it after every major development stage so future Codex, `web-coder`, and `grill-me` sessions can continue without rediscovering project history.
 
@@ -101,10 +101,16 @@ The admin-only Clients CRM page is now implemented at `/[locale]/dashboard/clien
 - Moved the dashboard bookings calendar Day/Week/Month control out of the upper filters and into the calendar header as an accessible segmented button group. The shared calendar component now uses the same control for admin and therapist dashboards, keeping Month fallback and browser persistence while leaving booking/status/therapist filters unchanged.
 - Simplified compact dashboard calendar events in Month and Week views: bookings now show only start time in Month and time range in Week, schedule blocks show only their blocked range or localized all-day label, native `title` tooltips were removed, and a Raine-styled hover/focus tooltip now provides booking or schedule-block details without changing click-to-open modals.
 - Added a compact mobile Month view for the dashboard bookings calendar. Desktop/tablet Month still shows compact event cards and custom tooltips, while mobile Month now renders a 7-column date grid with localized weekday headings, selected/today states, booking and schedule-block indicators, accessible count labels, and Month-to-Day navigation on date tap.
+- Added returning-client autofill for the public booking form using browser-only `localStorage` key `raine.booking.client.v1`. The form saves only client name and phone after a successful server-confirmed public booking, safely preloads valid saved details on future visits, and includes localized welcome/clear controls without changing booking workflow, availability, or authentication.
+- Added an admin-only client notification generator inside the Clients CRM details view, before booking history. Admins can choose message language, message type, and a relevant future booking when required, generate localized editable templates, and copy them manually. Templates are centralized in a typed module and include confirmation, reminder, rebooking stage 1 text without personal URLs, and Google review request text.
+- Added secure token-based personalized rebooking links for the admin Clients CRM notification generator. Admin-generated rebooking messages now include a localized `/{locale}?rebook=...` link backed by a 32-byte opaque token, SHA-256 hash-only database storage, 180-day expiry, revoke/generate controls, one-active-token-per-client policy, a minimal public resolver, and public form prefill precedence of valid token over browser storage.
+- Fixed rebooking token RPC generation by qualifying `client_rebooking_tokens` columns inside PL/pgSQL update predicates, avoiding ambiguity with `RETURNS TABLE` output columns such as `revoked_at` and `expires_at`.
+- Fixed Clients CRM notification UX so rebooking link generate/revoke actions no longer reset the notification panel, and generated booking messages now use the selected message language for service names instead of the dashboard route language.
+- Extended personalized rebooking links to suggest the complete public booking form without adding UI banners: the server resolves the token, finds the client's most recent completed or past confirmed visit, validates the previous service and therapist, calculates the earliest valid future slot closest to the previous time from shared availability logic, and returns only minimal safe prefill fields. The browser applies token prefill once in dependency order and keeps user edits authoritative.
 
 ## Current Focus
 
-The current focus is production launch polish after the Vercel deployment plus careful application of the CRM contact, admin Clients CRM, dashboard calendar, and Realtime migrations. The real service, therapist, availability, and schedule-block migrations have been applied to the hosted `raine` Supabase project and public reads are limited to safe catalog/availability data. Contact data is production-shaped and does not expose the phone number as plain text. The contact map now uses the real Raine Massage Salon Google Maps listing and no longer needs a Google Maps embed API key. SEO now targets `https://raine.rs` with localized homepage metadata, canonical/hreflang, sitemap, robots, and local business JSON-LD. The next database step is applying pending catalog/service migrations plus `20260610120000_client_contact_channels.sql`, `20260615120000_dashboard_booking_client_picker_rpc.sql`, and `20260630120000_enable_dashboard_realtime.sql` so clients can store normalized channel-specific contacts, manual bookings can link to client records, therapist users can select existing clients in manual booking without full CRM access, and authenticated dashboard calendars receive live change signals. Deployment still needs Search Console sitemap submission and Google Business Profile setup. Telegram deployment needs server-only `TELEGRAM_BOT_TOKEN`, full `TELEGRAM_CHAT_ID` such as `-1003965424928`, and `NEXT_PUBLIC_SITE_URL=https://raine.rs` for dashboard buttons.
+The current focus is production launch polish after the Vercel deployment plus careful application of the CRM contact, admin Clients CRM, dashboard calendar, Realtime, returning-client autofill, notification-template, and secure rebooking-link milestones. The real service, therapist, availability, and schedule-block migrations have been applied to the hosted `raine` Supabase project and public reads are limited to safe catalog/availability data. Contact data is production-shaped and does not expose the phone number as plain text. The contact map now uses the real Raine Massage Salon Google Maps listing and no longer needs a Google Maps embed API key. SEO now targets `https://raine.rs` with localized homepage metadata, canonical/hreflang, sitemap, robots, and local business JSON-LD. The next database step is applying pending catalog/service migrations plus `20260610120000_client_contact_channels.sql`, `20260615120000_dashboard_booking_client_picker_rpc.sql`, `20260630120000_enable_dashboard_realtime.sql`, and `20260713120000_client_rebooking_tokens.sql` so clients can store normalized channel-specific contacts, manual bookings can link to client records, therapist users can select existing clients in manual booking without full CRM access, authenticated dashboard calendars receive live change signals, and admin-generated rebooking links can resolve securely. Personalized rebooking suggestions need server-only `SUPABASE_SERVICE_ROLE_KEY` in deployment; without it links still resolve name/phone through the public RPC fallback. Deployment still needs Search Console sitemap submission and Google Business Profile setup. Telegram deployment needs server-only `TELEGRAM_BOT_TOKEN`, full `TELEGRAM_CHAT_ID` such as `-1003965424928`, and `NEXT_PUBLIC_SITE_URL=https://raine.rs` for dashboard buttons.
 
 ## Git Workflow
 
@@ -145,6 +151,8 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Apply `20260608120000_trusted_booking_update_roles_and_latest_start.sql` to allow trusted Supabase maintenance roles through the booking update trigger and to support schedule blocks that can cover the 19:00 start slot.
 - Apply `20260618120000_lymphatic_drainage_therapist_eligibility.sql` to allow both Sergey and Ekaterina to provide the 60- and 90-minute lymphatic drainage massage services.
 - Apply `20260630120000_enable_dashboard_realtime.sql` to add `public.bookings` and `public.schedule_blocks` to the Supabase Realtime publication for authenticated dashboard live refresh.
+- Apply `20260713120000_client_rebooking_tokens.sql` to add hash-only client rebooking tokens, admin generate/revoke RPCs, and the public minimal resolver RPC.
+- Apply `20260713123000_fix_client_rebooking_token_rpc.sql` if the first rebooking-token migration was already applied before the RPC ambiguity fix.
 - Test admin status changes, therapist assignment, therapist status changes, and internal notes updates against hosted Supabase RLS.
 - Test manual booking creation for admin assigned, admin unassigned, therapist own, and therapist direct-request attempts against hosted Supabase RLS.
 
@@ -183,6 +191,9 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Confirm the atmosphere carousel includes all six uploaded photos, scrolls horizontally on mobile, loops calmly on desktop, pauses on hover/focus/touch, and becomes a static scroll row when reduced motion is requested.
 - Confirm specialist and atmosphere images load without layout shift and use localized alt text.
 - Complete the form with keyboard only.
+- Submit a successful public booking, revisit the site, and confirm only name and phone are restored from `raine.booking.client.v1`.
+- Confirm malformed or unavailable `localStorage` does not break the booking form.
+- Confirm the returning-client clear action removes only the Raine booking-client record and clears name/phone without changing selected service, therapist, date, time, or comment.
 - Trigger each validation error and confirm layout does not jump awkwardly.
 - Open and use the custom date picker with mouse and keyboard, including Tab, Arrow keys, Home/End, PageUp/PageDown, Enter/Space, and Escape.
 - Confirm the booking calendar is disabled until service and therapist are selected.
@@ -211,6 +222,22 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Confirm unauthenticated `/sr/dashboard`, `/ru/dashboard`, and `/en/dashboard` visits redirect to the matching login page.
 - Confirm admin users see overview, bookings, clients, services, and therapists navigation.
 - Confirm therapist users see only overview and bookings navigation.
+- Confirm admin Clients CRM details shows the Notifications block before booking history, while therapists still cannot access the full Clients CRM page.
+- Confirm notification language defaults to client locale when available, otherwise the current dashboard locale.
+- Confirm booking confirmation and reminder require a future confirmed or pending booking and default to the nearest suitable booking.
+- Confirm generated notifications use localized service names, locale-aware dates, 24-hour time, duration, and never include internal notes.
+- Confirm the client comment notice appears only when the selected booking has a non-empty public client comment.
+- Confirm rebooking text includes a localized `/{locale}?rebook=...` personalized URL, while Google review text still contains `https://g.page/r/CbG6AlmShVWTEBM/review`.
+- Confirm admin can generate a new rebooking link, see active/expired/revoked status, and revoke the current active link.
+- Confirm generating a new rebooking link revokes previous active tokens for the same client.
+- Confirm a valid rebooking link prefills public booking name and phone, shows the personalized welcome copy, removes `rebook` from the visible URL, and does not auto-submit.
+- Confirm invalid, expired, revoked, malformed, and rate-limited rebooking links show the localized generic error while leaving the manual booking form usable.
+- Confirm valid rebooking token prefill wins over stored browser returning-client data and then updates `raine.booking.client.v1`.
+- Confirm valid rebooking token with a suitable previous visit prefills service, therapist, nearest valid future date, and nearest time based on the previous visit time.
+- Confirm invalid previous service returns name/phone only; invalid previous therapist returns service only; no availability returns service and therapist only.
+- Confirm rebooking prefill never copies previous comments, internal notes, booking ids, client ids, source/channel history, or promotion history.
+- Confirm no raw token, phone number, client id, or booking id appears in public logs or generated URLs.
+- Confirm generated messages can be edited and copied again, and copy failures are not reported as success.
 - Confirm the dashboard bookings calendar opens in Month view for a fresh user and preserves Day/Week/Month selection after switching views.
 - Confirm the dashboard bookings calendar has no old view dropdown in the upper filters and shows Day/Week/Month buttons between the current period and Previous/Today/Next navigation.
 - Confirm the segmented view buttons are keyboard reachable, show a visible focus state, and use `aria-pressed` for the active view.
@@ -287,6 +314,7 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Use server-only `TELEGRAM_BOT_TOKEN` and full `TELEGRAM_CHAT_ID` values for team notifications; do not expose the bot token with `NEXT_PUBLIC_` or store it in Supabase.
 - Keep Telegram notification failures non-blocking for booking creation, status updates, and therapist assignment changes.
 - Keep public booking protection layered: endpoint validation, basic Origin/Referer checks, honeypot, rate limits, RLS, and availability re-checks all help, but none replaces durable rate limiting or database-level conflict prevention.
+- Keep personalized public rebooking links opaque and revocable: never encode client identifiers or contact data in URLs, store only SHA-256 token hashes, and resolve tokens through the narrow public API/RPC.
 - Treat `defaultBookingAvailability.lastBookingStart` as the last allowed start time, not as the required end-of-service time.
 - Keep the custom branded booking calendar, but support roving keyboard focus instead of replacing it with a new component dependency.
 - Keep UI primitives local and lightweight rather than pulling in a full component dependency for every shadcn/ui part.
