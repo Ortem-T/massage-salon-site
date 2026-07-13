@@ -104,6 +104,7 @@ The admin-only Clients CRM page is now implemented at `/[locale]/dashboard/clien
 - Added returning-client autofill for the public booking form using browser-only `localStorage` key `raine.booking.client.v1`. The form saves only client name and phone after a successful server-confirmed public booking, safely preloads valid saved details on future visits, and includes localized welcome/clear controls without changing booking workflow, availability, or authentication.
 - Added an admin-only client notification generator inside the Clients CRM details view, before booking history. Admins can choose message language, message type, and a relevant future booking when required, generate localized editable templates, and copy them manually. Templates are centralized in a typed module and include confirmation, reminder, rebooking stage 1 text without personal URLs, and Google review request text.
 - Added secure token-based personalized rebooking links for the admin Clients CRM notification generator. Admin-generated rebooking messages now include a localized `/{locale}?rebook=...` link backed by a 32-byte opaque token, SHA-256 hash-only database storage, 180-day expiry, revoke/generate controls, one-active-token-per-client policy, a minimal public resolver, and public form prefill precedence of valid token over browser storage.
+- Fixed rebooking token RPC generation by qualifying `client_rebooking_tokens` columns inside PL/pgSQL update predicates, avoiding ambiguity with `RETURNS TABLE` output columns such as `revoked_at` and `expires_at`.
 
 ## Current Focus
 
@@ -149,6 +150,7 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Apply `20260618120000_lymphatic_drainage_therapist_eligibility.sql` to allow both Sergey and Ekaterina to provide the 60- and 90-minute lymphatic drainage massage services.
 - Apply `20260630120000_enable_dashboard_realtime.sql` to add `public.bookings` and `public.schedule_blocks` to the Supabase Realtime publication for authenticated dashboard live refresh.
 - Apply `20260713120000_client_rebooking_tokens.sql` to add hash-only client rebooking tokens, admin generate/revoke RPCs, and the public minimal resolver RPC.
+- Apply `20260713123000_fix_client_rebooking_token_rpc.sql` if the first rebooking-token migration was already applied before the RPC ambiguity fix.
 - Test admin status changes, therapist assignment, therapist status changes, and internal notes updates against hosted Supabase RLS.
 - Test manual booking creation for admin assigned, admin unassigned, therapist own, and therapist direct-request attempts against hosted Supabase RLS.
 

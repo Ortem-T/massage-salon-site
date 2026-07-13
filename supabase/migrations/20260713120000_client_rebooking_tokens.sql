@@ -82,12 +82,12 @@ begin
     raise exception 'Client not found' using errcode = '22023';
   end if;
 
-  update public.client_rebooking_tokens
+  update public.client_rebooking_tokens as token
   set revoked_at = now(),
       updated_at = now()
-  where client_id = p_client_id
-    and revoked_at is null
-    and expires_at > now();
+  where token.client_id = p_client_id
+    and token.revoked_at is null
+    and token.expires_at > now();
 
   return query
   insert into public.client_rebooking_tokens (
@@ -129,18 +129,18 @@ begin
   end if;
 
   return query
-  update public.client_rebooking_tokens
-  set revoked_at = coalesce(revoked_at, now()),
+  update public.client_rebooking_tokens as token
+  set revoked_at = coalesce(token.revoked_at, now()),
       updated_at = now()
-  where client_id = p_client_id
-    and revoked_at is null
-    and expires_at > now()
+  where token.client_id = p_client_id
+    and token.revoked_at is null
+    and token.expires_at > now()
   returning
-    client_rebooking_tokens.id,
-    client_rebooking_tokens.expires_at,
-    client_rebooking_tokens.revoked_at,
-    client_rebooking_tokens.last_used_at,
-    client_rebooking_tokens.use_count;
+    token.id,
+    token.expires_at,
+    token.revoked_at,
+    token.last_used_at,
+    token.use_count;
 end;
 $$;
 
