@@ -105,6 +105,7 @@ The admin-only Clients CRM page is now implemented at `/[locale]/dashboard/clien
 - Added an admin-only client notification generator inside the Clients CRM details view, before booking history. Admins can choose message language, message type, and a relevant future booking when required, generate localized editable templates, and copy them manually. Templates are centralized in a typed module and include confirmation, reminder, rebooking stage 1 text without personal URLs, and Google review request text.
 - Added secure token-based personalized rebooking links for the admin Clients CRM notification generator. Admin-generated rebooking messages now include a localized `/{locale}?rebook=...` link backed by a 32-byte opaque token, SHA-256 hash-only database storage, 180-day expiry, revoke/generate controls, one-active-token-per-client policy, a minimal public resolver, and public form prefill precedence of valid token over browser storage.
 - Fixed rebooking token RPC generation by qualifying `client_rebooking_tokens` columns inside PL/pgSQL update predicates, avoiding ambiguity with `RETURNS TABLE` output columns such as `revoked_at` and `expires_at`.
+- Fixed Clients CRM notification UX so rebooking link generate/revoke actions no longer reset the notification panel, and generated booking messages now use the selected message language for service names instead of the dashboard route language.
 
 ## Current Focus
 

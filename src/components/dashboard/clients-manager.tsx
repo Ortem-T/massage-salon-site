@@ -45,6 +45,7 @@ type ClientsManagerProps = {
   dictionary: Dictionary;
   locale: Locale;
   serviceCatalog: ServiceCatalogItem[];
+  localizedServiceNames: Record<Locale, Record<string, string>>;
 };
 
 const dateLocales: Record<Locale, string> = {
@@ -126,7 +127,14 @@ function getClientSearchText(client: DashboardClient) {
     .toLowerCase();
 }
 
-export function ClientsManager({ clients, dataError, dictionary, locale, serviceCatalog }: ClientsManagerProps) {
+export function ClientsManager({
+  clients,
+  dataError,
+  dictionary,
+  locale,
+  serviceCatalog,
+  localizedServiceNames
+}: ClientsManagerProps) {
   const router = useRouter();
   const copy = dictionary.dashboard.clients;
   const [search, setSearch] = useState("");
@@ -587,6 +595,7 @@ export function ClientsManager({ clients, dataError, dictionary, locale, service
                 dictionary={dictionary}
                 locale={locale}
                 serviceCatalog={serviceCatalog}
+                localizedServiceNames={localizedServiceNames}
               />
 
               <div className="mt-6 border-t border-border/70 pt-5">

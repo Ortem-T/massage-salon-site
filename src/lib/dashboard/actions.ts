@@ -239,7 +239,6 @@ export async function generateClientRebookingLinkAction(
       clientId: input.clientId,
       locale: input.messageLocale
     });
-    revalidateDashboard(locale);
     return {
       ok: true,
       rebookingUrl: result.url,
@@ -265,7 +264,6 @@ export async function revokeClientRebookingLinkAction(
   try {
     const user = await requireDashboardUser(locale);
     const token = await revokeClientRebookingLink(user, input.clientId);
-    revalidateDashboard(locale);
     return {
       ok: true,
       token

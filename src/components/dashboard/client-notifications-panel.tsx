@@ -25,6 +25,7 @@ type ClientNotificationsPanelProps = {
   dictionary: Dictionary;
   locale: Locale;
   serviceCatalog: ServiceCatalogItem[];
+  localizedServiceNames: Record<Locale, Record<string, string>>;
 };
 
 const notificationTypes: readonly ClientNotificationType[] = [
@@ -92,7 +93,8 @@ export function ClientNotificationsPanel({
   client,
   dictionary,
   locale,
-  serviceCatalog
+  serviceCatalog,
+  localizedServiceNames
 }: ClientNotificationsPanelProps) {
   const copy = dictionary.dashboard.clients.notifications;
   const clientsCopy = dictionary.dashboard.clients;
@@ -142,6 +144,10 @@ export function ClientNotificationsPanel({
 
   function getServiceName(booking: DashboardClientBooking) {
     return serviceBySlug.get(booking.service)?.name ?? booking.service;
+  }
+
+  function getMessageServiceName(booking: DashboardClientBooking) {
+    return localizedServiceNames[messageLanguage]?.[booking.service] ?? getServiceName(booking);
   }
 
   function getDurationMinutes(booking: DashboardClientBooking) {
@@ -266,7 +272,7 @@ export function ClientNotificationsPanel({
         ? {
             date: selectedBooking.preferredDate,
             time: selectedBooking.preferredTime,
-            serviceName: getServiceName(selectedBooking),
+            serviceName: getMessageServiceName(selectedBooking),
             durationMinutes: getDurationMinutes(selectedBooking),
             hasClientComment: Boolean(selectedBooking.clientComment?.trim())
           }
