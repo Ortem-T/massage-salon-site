@@ -70,6 +70,7 @@ function getPublicOrigin() {
 export function buildRebookingUrl(locale: Locale, token: string) {
   const url = new URL(`/${locale}`, getPublicOrigin());
   url.searchParams.set("rebook", token);
+  url.hash = "booking";
   return url.toString();
 }
 
