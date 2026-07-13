@@ -6,6 +6,8 @@ import { siteUrl } from "@/config/seo";
 import { isLocale, type Locale } from "@/i18n/config";
 import { type DashboardUser } from "@/lib/dashboard/auth";
 import { DashboardForbiddenError } from "@/lib/dashboard/bookings";
+import { getSuggestedRebookingForClient, type SuggestedRebooking } from "@/lib/rebooking/suggestions";
+import { createSupabaseAdminClient, hasSupabaseAdminEnv } from "@/lib/supabase/admin";
 import { createSupabasePublicClient } from "@/lib/supabase/client";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -24,6 +26,7 @@ export type RebookingPrefill = {
   name: string;
   phone: string;
   preferredLocale: Locale | null;
+  suggestedBooking: SuggestedRebooking | null;
 };
 
 const rebookingTokenBytes = 32;
@@ -137,6 +140,61 @@ export async function resolveClientRebookingToken(rawToken: string): Promise<Reb
     return null;
   }
 
+  if (hasSupabaseAdminEnv()) {
+    return resolveClientRebookingTokenWithAdmin(rawToken);
+  }
+
+  return resolveClientRebookingTokenWithPublicRpc(rawToken);
+}
+
+async function resolveClientRebookingTokenWithAdmin(rawToken: string): Promise<RebookingPrefill | null> {
+  const supabase = createSupabaseAdminClient();
+  const { data: token, error: tokenError } = await supabase
+    .from("client_rebooking_tokens")
+    .select("id, client_id, use_count")
+    .eq("token_hash", hashRebookingToken(rawToken))
+    .is("revoked_at", null)
+    .gt("expires_at", new Date().toISOString())
+    .maybeSingle();
+
+  if (tokenError || !token) {
+    return null;
+  }
+
+  const { data: client, error: clientError } = await supabase
+    .from("clients")
+    .select("name, phone, locale")
+    .eq("id", token.client_id)
+    .maybeSingle();
+
+  if (
+    clientError ||
+    !client?.phone ||
+    client.name.trim().length < 2 ||
+    client.phone.trim().length < 6
+  ) {
+    return null;
+  }
+
+  const suggestedBooking = await getSuggestedRebookingForClient(supabase, token.client_id);
+
+  await supabase
+    .from("client_rebooking_tokens")
+    .update({
+      last_used_at: new Date().toISOString(),
+      use_count: token.use_count + 1
+    })
+    .eq("id", token.id);
+
+  return {
+    name: client.name,
+    phone: client.phone,
+    preferredLocale: client.locale && isLocale(client.locale) ? client.locale : null,
+    suggestedBooking
+  };
+}
+
+async function resolveClientRebookingTokenWithPublicRpc(rawToken: string): Promise<RebookingPrefill | null> {
   const supabase = createSupabasePublicClient();
   const { data, error } = await supabase.rpc("resolve_client_rebooking_token", {
     p_token_hash: hashRebookingToken(rawToken)
@@ -151,6 +209,7 @@ export async function resolveClientRebookingToken(rawToken: string): Promise<Reb
   return {
     name: row.name,
     phone: row.phone,
-    preferredLocale: row.preferred_locale && isLocale(row.preferred_locale) ? row.preferred_locale : null
+    preferredLocale: row.preferred_locale && isLocale(row.preferred_locale) ? row.preferred_locale : null,
+    suggestedBooking: null
   };
 }

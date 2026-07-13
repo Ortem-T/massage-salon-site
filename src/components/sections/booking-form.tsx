@@ -57,7 +57,17 @@ type RebookingResolveResponse = {
   name: string;
   phone: string;
   preferredLocale?: Locale | null;
+  suggestedBooking?: RebookingSuggestedBooking | null;
 };
+
+type RebookingSuggestedBooking = {
+  serviceId: string;
+  therapistId: string | null;
+  date: string | null;
+  time: string | null;
+};
+
+type RebookingPrefillStep = "idle" | "therapist" | "date";
 
 function getMonthStartValue(value: string) {
   const date = parseDateValue(value) ?? new Date();
@@ -117,10 +127,13 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
   const [availabilityError, setAvailabilityError] = useState(false);
   const [availabilityRefreshKey, setAvailabilityRefreshKey] = useState(0);
   const [hasReturningClient, setHasReturningClient] = useState(false);
-  const [isRebookingPrefill, setIsRebookingPrefill] = useState(false);
   const [rebookingLinkError, setRebookingLinkError] = useState<string | null>(null);
+  const [pendingRebookingSuggestion, setPendingRebookingSuggestion] = useState<RebookingSuggestedBooking | null>(null);
+  const [rebookingPrefillStep, setRebookingPrefillStep] = useState<RebookingPrefillStep>("idle");
   const previousSelectionRef = useRef({ service: "", therapist: "" });
   const autoSelectionServiceRef = useRef("");
+  const appliedRebookingTokenRef = useRef<string | null>(null);
+  const suppressAutoTherapistForServiceRef = useRef<string | null>(null);
   const availabilityRange = useMemo(() => getCalendarRange(visibleMonth), [visibleMonth]);
   const schema = useMemo(
     () =>
@@ -201,6 +214,38 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
   );
 
   useEffect(() => {
+    function cancelPendingSuggestion() {
+      setPendingRebookingSuggestion(null);
+      setRebookingPrefillStep("idle");
+    }
+
+    function isServiceAvailable(serviceId: string) {
+      return serviceCatalog.some((service) => service.slug === serviceId && service.active && service.bookableOnline);
+    }
+
+    function applySuggestedBooking(suggestion: RebookingSuggestedBooking | null | undefined) {
+      if (!suggestion?.serviceId || !isServiceAvailable(suggestion.serviceId)) {
+        cancelPendingSuggestion();
+        return;
+      }
+
+      const serviceState = getFieldState("service");
+      const currentService = getValues("service");
+
+      if (serviceState.isDirty && currentService && currentService !== suggestion.serviceId) {
+        cancelPendingSuggestion();
+        return;
+      }
+
+      if (!suggestion.therapistId) {
+        suppressAutoTherapistForServiceRef.current = suggestion.serviceId;
+      }
+
+      setPendingRebookingSuggestion(suggestion);
+      setRebookingPrefillStep("therapist");
+      setValue("service", suggestion.serviceId, { shouldDirty: false, shouldTouch: false, shouldValidate: true });
+    }
+
     function applyClientPrefill(input: { name: string; phone: string }, source: "storage" | "rebooking") {
       const nameState = getFieldState("clientName");
       const phoneState = getFieldState("phoneNumber");
@@ -216,7 +261,6 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
       }
 
       setHasReturningClient(true);
-      setIsRebookingPrefill(source === "rebooking");
     }
 
     function applyStoredClient() {
@@ -250,7 +294,13 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
         return (await response.json()) as RebookingResolveResponse;
       })
       .then((data) => {
+        if (appliedRebookingTokenRef.current === token) {
+          return;
+        }
+
+        appliedRebookingTokenRef.current = token;
         applyClientPrefill({ name: data.name, phone: data.phone }, "rebooking");
+        applySuggestedBooking(data.suggestedBooking);
         saveStoredBookingClient({ name: data.name, phone: data.phone });
         setRebookingLinkError(null);
 
@@ -270,7 +320,7 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
     return () => {
       controller.abort();
     };
-  }, [booking.rebookingLink.error, booking.validation, getFieldState, getValues, setValue]);
+  }, [booking.rebookingLink.error, booking.validation, getFieldState, getValues, serviceCatalog, setValue]);
 
   useEffect(() => {
     function applyPreselectedService(serviceSlug: string | null) {
@@ -334,11 +384,19 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
     const serviceChanged = autoSelectionServiceRef.current !== selectedService;
     autoSelectionServiceRef.current = selectedService;
 
+    if (suppressAutoTherapistForServiceRef.current && suppressAutoTherapistForServiceRef.current !== selectedService) {
+      suppressAutoTherapistForServiceRef.current = null;
+    }
+
     if (!selectedService) {
       if (selectedTherapist) {
         setValue("specialist", "", { shouldDirty: true, shouldValidate: true });
       }
 
+      return;
+    }
+
+    if (suppressAutoTherapistForServiceRef.current === selectedService && !selectedTherapist) {
       return;
     }
 
@@ -354,6 +412,69 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
       setValue("specialist", "", { shouldDirty: true, shouldValidate: true });
     }
   }, [allowedTherapistIds, availableTherapists, selectedService, selectedTherapist, setValue]);
+
+  useEffect(() => {
+    if (!pendingRebookingSuggestion || rebookingPrefillStep !== "therapist") {
+      return;
+    }
+
+    if (selectedService !== pendingRebookingSuggestion.serviceId) {
+      if (getFieldState("service").isDirty) {
+        setPendingRebookingSuggestion(null);
+        setRebookingPrefillStep("idle");
+      }
+
+      return;
+    }
+
+    if (!pendingRebookingSuggestion.therapistId) {
+      suppressAutoTherapistForServiceRef.current = pendingRebookingSuggestion.serviceId;
+      setPendingRebookingSuggestion(null);
+      setRebookingPrefillStep("idle");
+      return;
+    }
+
+    const therapistIsAvailable = availableTherapists.some(
+      (therapist) => therapist.id === pendingRebookingSuggestion.therapistId
+    );
+
+    if (!therapistIsAvailable) {
+      setPendingRebookingSuggestion(null);
+      setRebookingPrefillStep("idle");
+      return;
+    }
+
+    const specialistState = getFieldState("specialist");
+
+    if (
+      specialistState.isDirty &&
+      selectedTherapist &&
+      selectedTherapist !== pendingRebookingSuggestion.therapistId
+    ) {
+      setPendingRebookingSuggestion(null);
+      setRebookingPrefillStep("idle");
+      return;
+    }
+
+    if (selectedTherapist !== pendingRebookingSuggestion.therapistId) {
+      setValue("specialist", pendingRebookingSuggestion.therapistId, {
+        shouldDirty: false,
+        shouldTouch: false,
+        shouldValidate: true
+      });
+      return;
+    }
+
+    setRebookingPrefillStep("date");
+  }, [
+    availableTherapists,
+    getFieldState,
+    pendingRebookingSuggestion,
+    rebookingPrefillStep,
+    selectedService,
+    selectedTherapist,
+    setValue
+  ]);
 
   useEffect(() => {
     if (!canLoadAvailability) {
@@ -432,6 +553,92 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
     }
   }, [availabilityByDate, canLoadAvailability, isAvailabilityLoading, selectedDate, setValue]);
 
+  useEffect(() => {
+    if (!pendingRebookingSuggestion || rebookingPrefillStep !== "date") {
+      return;
+    }
+
+    if (
+      selectedService !== pendingRebookingSuggestion.serviceId ||
+      selectedTherapist !== pendingRebookingSuggestion.therapistId
+    ) {
+      if (getFieldState("service").isDirty || getFieldState("specialist").isDirty) {
+        setPendingRebookingSuggestion(null);
+        setRebookingPrefillStep("idle");
+      }
+
+      return;
+    }
+
+    if (!pendingRebookingSuggestion.date) {
+      setPendingRebookingSuggestion(null);
+      setRebookingPrefillStep("idle");
+      return;
+    }
+
+    if (!isBookingDateSelectable(pendingRebookingSuggestion.date, today, maxBookingDate)) {
+      setPendingRebookingSuggestion(null);
+      setRebookingPrefillStep("idle");
+      return;
+    }
+
+    if (getFieldState("preferredDate").isDirty && selectedDate && selectedDate !== pendingRebookingSuggestion.date) {
+      setPendingRebookingSuggestion(null);
+      setRebookingPrefillStep("idle");
+      return;
+    }
+
+    setVisibleMonth(getMonthStartValue(pendingRebookingSuggestion.date));
+
+    const suggestedDay = availabilityByDate[pendingRebookingSuggestion.date];
+
+    if (!suggestedDay || isAvailabilityLoading) {
+      return;
+    }
+
+    if (!suggestedDay.available) {
+      setPendingRebookingSuggestion(null);
+      setRebookingPrefillStep("idle");
+      return;
+    }
+
+    if (selectedDate !== pendingRebookingSuggestion.date) {
+      setValue("preferredDate", pendingRebookingSuggestion.date, {
+        shouldDirty: false,
+        shouldTouch: false,
+        shouldValidate: true
+      });
+      return;
+    }
+
+    if (
+      pendingRebookingSuggestion.time &&
+      suggestedDay.availableTimeSlots.includes(pendingRebookingSuggestion.time) &&
+      !getFieldState("preferredTime").isDirty
+    ) {
+      setValue("preferredTime", pendingRebookingSuggestion.time, {
+        shouldDirty: false,
+        shouldTouch: false,
+        shouldValidate: true
+      });
+    }
+
+    setPendingRebookingSuggestion(null);
+    setRebookingPrefillStep("idle");
+  }, [
+    availabilityByDate,
+    getFieldState,
+    isAvailabilityLoading,
+    maxBookingDate,
+    pendingRebookingSuggestion,
+    rebookingPrefillStep,
+    selectedDate,
+    selectedService,
+    selectedTherapist,
+    setValue,
+    today
+  ]);
+
   function selectDate(value: string) {
     setValue("preferredDate", value, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
   }
@@ -451,8 +658,9 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
       setAvailabilityRefreshKey((current) => current + 1);
       setIsSuccess(true);
       setHasReturningClient(false);
-      setIsRebookingPrefill(false);
       setRebookingLinkError(null);
+      setPendingRebookingSuggestion(null);
+      setRebookingPrefillStep("idle");
       reset();
     } catch (error) {
       if (error instanceof BookingRequestError && error.code === "slot_unavailable") {
@@ -480,8 +688,10 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
   function clearReturningClient() {
     clearStoredBookingClient();
     setHasReturningClient(false);
-    setIsRebookingPrefill(false);
     setRebookingLinkError(null);
+    setPendingRebookingSuggestion(null);
+    setRebookingPrefillStep("idle");
+    suppressAutoTherapistForServiceRef.current = null;
     setValue("clientName", "", { shouldDirty: true, shouldTouch: true, shouldValidate: true });
     setValue("phoneNumber", "", { shouldDirty: true, shouldTouch: true, shouldValidate: true });
   }
@@ -598,9 +808,6 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
               <p className="font-serif text-2xl font-semibold leading-tight text-primary sm:text-3xl">
                 {booking.returningClient.welcome}
               </p>
-              {isRebookingPrefill ? (
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">{booking.rebookingLink.supporting}</p>
-              ) : null}
             </div>
           ) : null}
 

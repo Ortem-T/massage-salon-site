@@ -160,11 +160,15 @@ Admin users can generate personalized rebooking links for clients from the Clien
 - The database stores only the SHA-256 hash in `public.client_rebooking_tokens`.
 - Tokens expire after 180 days, can be revoked, and the MVP keeps one active token per client by revoking previous active tokens when a new one is generated.
 - Admin generation and revocation happen through authenticated server actions and security-definer RPCs that check `app_metadata.role = admin`.
-- The public resolver `GET /api/rebooking/resolve?token=...` hashes the provided token and calls a narrow anon-executable RPC.
-- The resolver returns only the minimum public prefill payload: client name, phone, and optional preferred locale.
+- The public resolver `GET /api/rebooking/resolve?token=...` hashes the provided token and performs server-only token lookup. Full suggested booking prefill requires a server-only `SUPABASE_SERVICE_ROLE_KEY`; without it, the resolver falls back to the narrow anon-executable RPC and returns name/phone only.
+- The resolver returns only the minimum public prefill payload: client name, phone, optional preferred locale, and an optional suggested booking object containing service slug, therapist id, date, and time.
+- Suggested booking data is derived from the client's own most recent completed visit, or most recent past confirmed visit when no completed visit exists. Cancelled, pending, future, unrelated, comments, internal notes, source/channel history, promotion history, booking ids, and client ids are not exposed.
+- Suggested service and therapist are revalidated against active public services, active therapists, and active `therapist_services` before they are returned.
+- Suggested date/time are calculated server-side from the same safe public availability projections used by the public booking flow, including pending/confirmed bookings, schedule blocks, duration rounding, 30-minute break, and the 10:00-19:00 start window.
 - Invalid, expired, revoked, malformed, or missing tokens return the same generic public error shape.
 - The public booking form removes a valid token from the visible URL after successful resolution and does not auto-submit.
 - Raw tokens and phone numbers must not be logged.
+- The server-only service-role key must never be imported into client components and must never use a `NEXT_PUBLIC_` prefix.
 
 The resolver has an in-memory rate limit of 10 attempts per IP per 10 minutes. This is useful as a first-stage abuse brake but is not durable across server restarts or horizontally scaled instances.
 

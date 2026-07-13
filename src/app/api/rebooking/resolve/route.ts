@@ -54,7 +54,8 @@ export async function GET(request: Request) {
     {
       name: prefill.name,
       phone: prefill.phone,
-      preferredLocale: prefill.preferredLocale
+      preferredLocale: prefill.preferredLocale,
+      suggestedBooking: prefill.suggestedBooking
     },
     {
       headers: {
