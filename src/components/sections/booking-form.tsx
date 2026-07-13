@@ -524,15 +524,10 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
           </div>
 
           {hasReturningClient ? (
-            <div className="rounded-2xl border border-primary/12 bg-secondary/45 px-4 py-3 text-sm leading-6 text-muted-foreground">
-              <p className="font-semibold text-primary">{booking.returningClient.welcome}</p>
-              <button
-                type="button"
-                onClick={clearReturningClient}
-                className="mt-1 text-left text-sm font-semibold text-accent underline-offset-4 transition hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                {booking.returningClient.clear}
-              </button>
+            <div className="rounded-2xl border border-primary/12 bg-secondary/45 px-5 py-4 shadow-sm">
+              <p className="font-serif text-2xl font-semibold leading-tight text-primary sm:text-3xl">
+                {booking.returningClient.welcome}
+              </p>
             </div>
           ) : null}
 
@@ -615,6 +610,16 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
               <FieldError id="booking-phone-error" message={errors.phoneNumber?.message} />
             </div>
           </div>
+
+          {hasReturningClient ? (
+            <button
+              type="button"
+              onClick={clearReturningClient}
+              className="-mt-2 w-fit text-left text-sm font-semibold text-accent underline-offset-4 transition hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {booking.returningClient.clear}
+            </button>
+          ) : null}
 
           <div className="grid gap-2.5">
             <Label htmlFor="booking-comment">{booking.fields.comment.label}</Label>
