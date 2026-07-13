@@ -1,6 +1,6 @@
 # Security Notes
 
-Last updated: 2026-06-30
+Last updated: 2026-07-13
 
 ## Current Security Model
 
@@ -138,6 +138,27 @@ Public booking-related client data fetching should not expose:
 - staff private data
 
 The public availability API now returns only per-day availability and available time slots. The underlying `public.public_booking_availability` view exposes only scheduling fields needed to calculate blocked intervals: date, time, therapist id, service slug, duration, and blocking status. Schedule block reasons stay private; the public schedule-block view exposes only date/time/scope fields needed for availability.
+
+## Returning Client Browser Storage
+
+The public booking form can remember a returning visitor in the current browser after a successful server-confirmed booking.
+
+- Storage key: `raine.booking.client.v1`.
+- Stored fields: version, client name, phone, and saved timestamp.
+- The site does not store service, therapist, date/time, comments, booking history, internal notes, medical details, or personal rebooking tokens in browser storage.
+- Saved data is read only on the client after hydration and is submitted to the server only when the visitor submits the booking form normally.
+- Malformed stored data is ignored and removed when possible.
+- The clear action removes only this Raine booking-client record.
+
+## Admin Notification Generator
+
+The Clients CRM notification block is an admin-only manual text generator.
+
+- It does not send messages automatically.
+- It does not store generated messages in the database.
+- It does not create personalized rebooking links or tokens in stage 1.
+- It does not expose internal booking notes in generated messages.
+- Therapists still cannot access the full Clients CRM page through this feature.
 
 ## Known Limitations
 

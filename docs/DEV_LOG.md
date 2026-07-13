@@ -1,6 +1,6 @@
 # Development Log
 
-Last updated: 2026-07-01
+Last updated: 2026-07-13
 
 This log is shared context for human and AI-assisted development. Update it after every major development stage so future Codex, `web-coder`, and `grill-me` sessions can continue without rediscovering project history.
 
@@ -101,10 +101,12 @@ The admin-only Clients CRM page is now implemented at `/[locale]/dashboard/clien
 - Moved the dashboard bookings calendar Day/Week/Month control out of the upper filters and into the calendar header as an accessible segmented button group. The shared calendar component now uses the same control for admin and therapist dashboards, keeping Month fallback and browser persistence while leaving booking/status/therapist filters unchanged.
 - Simplified compact dashboard calendar events in Month and Week views: bookings now show only start time in Month and time range in Week, schedule blocks show only their blocked range or localized all-day label, native `title` tooltips were removed, and a Raine-styled hover/focus tooltip now provides booking or schedule-block details without changing click-to-open modals.
 - Added a compact mobile Month view for the dashboard bookings calendar. Desktop/tablet Month still shows compact event cards and custom tooltips, while mobile Month now renders a 7-column date grid with localized weekday headings, selected/today states, booking and schedule-block indicators, accessible count labels, and Month-to-Day navigation on date tap.
+- Added returning-client autofill for the public booking form using browser-only `localStorage` key `raine.booking.client.v1`. The form saves only client name and phone after a successful server-confirmed public booking, safely preloads valid saved details on future visits, and includes localized welcome/clear controls without changing booking workflow, availability, or authentication.
+- Added an admin-only client notification generator inside the Clients CRM details view, before booking history. Admins can choose message language, message type, and a relevant future booking when required, generate localized editable templates, and copy them manually. Templates are centralized in a typed module and include confirmation, reminder, rebooking stage 1 text without personal URLs, and Google review request text.
 
 ## Current Focus
 
-The current focus is production launch polish after the Vercel deployment plus careful application of the CRM contact, admin Clients CRM, dashboard calendar, and Realtime migrations. The real service, therapist, availability, and schedule-block migrations have been applied to the hosted `raine` Supabase project and public reads are limited to safe catalog/availability data. Contact data is production-shaped and does not expose the phone number as plain text. The contact map now uses the real Raine Massage Salon Google Maps listing and no longer needs a Google Maps embed API key. SEO now targets `https://raine.rs` with localized homepage metadata, canonical/hreflang, sitemap, robots, and local business JSON-LD. The next database step is applying pending catalog/service migrations plus `20260610120000_client_contact_channels.sql`, `20260615120000_dashboard_booking_client_picker_rpc.sql`, and `20260630120000_enable_dashboard_realtime.sql` so clients can store normalized channel-specific contacts, manual bookings can link to client records, therapist users can select existing clients in manual booking without full CRM access, and authenticated dashboard calendars receive live change signals. Deployment still needs Search Console sitemap submission and Google Business Profile setup. Telegram deployment needs server-only `TELEGRAM_BOT_TOKEN`, full `TELEGRAM_CHAT_ID` such as `-1003965424928`, and `NEXT_PUBLIC_SITE_URL=https://raine.rs` for dashboard buttons.
+The current focus is production launch polish after the Vercel deployment plus careful application of the CRM contact, admin Clients CRM, dashboard calendar, Realtime, returning-client autofill, and notification-template milestones. The real service, therapist, availability, and schedule-block migrations have been applied to the hosted `raine` Supabase project and public reads are limited to safe catalog/availability data. Contact data is production-shaped and does not expose the phone number as plain text. The contact map now uses the real Raine Massage Salon Google Maps listing and no longer needs a Google Maps embed API key. SEO now targets `https://raine.rs` with localized homepage metadata, canonical/hreflang, sitemap, robots, and local business JSON-LD. The next database step is applying pending catalog/service migrations plus `20260610120000_client_contact_channels.sql`, `20260615120000_dashboard_booking_client_picker_rpc.sql`, and `20260630120000_enable_dashboard_realtime.sql` so clients can store normalized channel-specific contacts, manual bookings can link to client records, therapist users can select existing clients in manual booking without full CRM access, and authenticated dashboard calendars receive live change signals. Deployment still needs Search Console sitemap submission and Google Business Profile setup. Telegram deployment needs server-only `TELEGRAM_BOT_TOKEN`, full `TELEGRAM_CHAT_ID` such as `-1003965424928`, and `NEXT_PUBLIC_SITE_URL=https://raine.rs` for dashboard buttons.
 
 ## Git Workflow
 
@@ -183,6 +185,9 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Confirm the atmosphere carousel includes all six uploaded photos, scrolls horizontally on mobile, loops calmly on desktop, pauses on hover/focus/touch, and becomes a static scroll row when reduced motion is requested.
 - Confirm specialist and atmosphere images load without layout shift and use localized alt text.
 - Complete the form with keyboard only.
+- Submit a successful public booking, revisit the site, and confirm only name and phone are restored from `raine.booking.client.v1`.
+- Confirm malformed or unavailable `localStorage` does not break the booking form.
+- Confirm the returning-client clear action removes only the Raine booking-client record and clears name/phone without changing selected service, therapist, date, time, or comment.
 - Trigger each validation error and confirm layout does not jump awkwardly.
 - Open and use the custom date picker with mouse and keyboard, including Tab, Arrow keys, Home/End, PageUp/PageDown, Enter/Space, and Escape.
 - Confirm the booking calendar is disabled until service and therapist are selected.
@@ -211,6 +216,13 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Confirm unauthenticated `/sr/dashboard`, `/ru/dashboard`, and `/en/dashboard` visits redirect to the matching login page.
 - Confirm admin users see overview, bookings, clients, services, and therapists navigation.
 - Confirm therapist users see only overview and bookings navigation.
+- Confirm admin Clients CRM details shows the Notifications block before booking history, while therapists still cannot access the full Clients CRM page.
+- Confirm notification language defaults to client locale when available, otherwise the current dashboard locale.
+- Confirm booking confirmation and reminder require a future confirmed or pending booking and default to the nearest suitable booking.
+- Confirm generated notifications use localized service names, locale-aware dates, 24-hour time, duration, and never include internal notes.
+- Confirm the client comment notice appears only when the selected booking has a non-empty public client comment.
+- Confirm rebooking text contains no personalized URL and Google review text contains `https://g.page/r/CbG6AlmShVWTEBM/review`.
+- Confirm generated messages can be edited and copied again, and copy failures are not reported as success.
 - Confirm the dashboard bookings calendar opens in Month view for a fresh user and preserves Day/Week/Month selection after switching views.
 - Confirm the dashboard bookings calendar has no old view dropdown in the upper filters and shows Day/Week/Month buttons between the current period and Previous/Today/Next navigation.
 - Confirm the segmented view buttons are keyboard reachable, show a visible focus state, and use `aria-pressed` for the active view.

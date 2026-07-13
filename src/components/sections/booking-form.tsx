@@ -17,6 +17,11 @@ import { type Dictionary } from "@/i18n/dictionaries";
 import { getTodayValue, isBookingDateSelectable, parseDateValue, toDateValue } from "@/lib/booking/booking-availability";
 import { type BookingFormValues, createBookingFormSchema } from "@/lib/booking/booking-schema";
 import { BookingRequestError, createBookingRequest } from "@/lib/booking/create-booking-request";
+import {
+  clearStoredBookingClient,
+  readStoredBookingClient,
+  saveStoredBookingClient
+} from "@/lib/booking/returning-client-storage";
 import { bookingServiceQueryParam, bookingServiceSelectEvent } from "@/lib/booking/service-preselection";
 import {
   getAllowedTherapistIdsForService,
@@ -105,6 +110,7 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
   const [isAvailabilityLoading, setIsAvailabilityLoading] = useState(false);
   const [availabilityError, setAvailabilityError] = useState(false);
   const [availabilityRefreshKey, setAvailabilityRefreshKey] = useState(0);
+  const [hasReturningClient, setHasReturningClient] = useState(false);
   const previousSelectionRef = useRef({ service: "", therapist: "" });
   const autoSelectionServiceRef = useRef("");
   const availabilityRange = useMemo(() => getCalendarRange(visibleMonth), [visibleMonth]);
@@ -122,6 +128,7 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
     register,
     handleSubmit,
     getValues,
+    getFieldState,
     reset,
     setValue,
     watch,
@@ -184,6 +191,29 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
     },
     [availabilityByDate, canLoadAvailability, maxBookingDate, today]
   );
+
+  useEffect(() => {
+    const storedClient = readStoredBookingClient(booking.validation);
+
+    if (!storedClient) {
+      return;
+    }
+
+    const nameState = getFieldState("clientName");
+    const phoneState = getFieldState("phoneNumber");
+    const currentName = getValues("clientName").trim();
+    const currentPhone = getValues("phoneNumber").trim();
+
+    if (!nameState.isDirty && !currentName) {
+      setValue("clientName", storedClient.name, { shouldDirty: false, shouldTouch: false, shouldValidate: true });
+    }
+
+    if (!phoneState.isDirty && !currentPhone) {
+      setValue("phoneNumber", storedClient.phone, { shouldDirty: false, shouldTouch: false, shouldValidate: true });
+    }
+
+    setHasReturningClient(true);
+  }, [booking.validation, getFieldState, getValues, setValue]);
 
   useEffect(() => {
     function applyPreselectedService(serviceSlug: string | null) {
@@ -360,8 +390,10 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
 
     try {
       await createBookingRequest({ ...values, siteLocale: locale });
+      saveStoredBookingClient({ name: values.clientName, phone: values.phoneNumber });
       setAvailabilityRefreshKey((current) => current + 1);
       setIsSuccess(true);
+      setHasReturningClient(false);
       reset();
     } catch (error) {
       if (error instanceof BookingRequestError && error.code === "slot_unavailable") {
@@ -384,6 +416,13 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
 
       setSubmitError(booking.error.message);
     }
+  }
+
+  function clearReturningClient() {
+    clearStoredBookingClient();
+    setHasReturningClient(false);
+    setValue("clientName", "", { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+    setValue("phoneNumber", "", { shouldDirty: true, shouldTouch: true, shouldValidate: true });
   }
 
   const timePlaceholder = isAvailabilityLoading
@@ -483,6 +522,19 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
               />
             </div>
           </div>
+
+          {hasReturningClient ? (
+            <div className="rounded-2xl border border-primary/12 bg-secondary/45 px-4 py-3 text-sm leading-6 text-muted-foreground">
+              <p className="font-semibold text-primary">{booking.returningClient.welcome}</p>
+              <button
+                type="button"
+                onClick={clearReturningClient}
+                className="mt-1 text-left text-sm font-semibold text-accent underline-offset-4 transition hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {booking.returningClient.clear}
+              </button>
+            </div>
+          ) : null}
 
           <div className="grid gap-4 sm:grid-cols-2 lg:gap-5">
             <div className="grid gap-2.5">

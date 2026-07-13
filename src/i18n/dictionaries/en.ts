@@ -187,6 +187,10 @@ const en = {
     submit: "Book appointment",
     submitting: "Sending request",
     formNote: "After you submit the request, we will confirm your appointment through your preferred messenger.",
+    returningClient: {
+      welcome: "Welcome back!",
+      clear: "Not you? Clear details"
+    },
     success: {
       title: "Request received",
       message: "Thank you. We will review your preferred time and contact you shortly."
@@ -394,6 +398,37 @@ const en = {
       saving: "Saving...",
       cancel: "Cancel",
       snapshotWarning: "Changing contact details updates the client record for future bookings. Existing bookings keep their historical contact snapshots.",
+      notifications: {
+        eyebrow: "Client messages",
+        title: "Notifications",
+        subtitle: "Generate a text, edit it if needed, and copy it for manual sending.",
+        generateAndCopy: "Generate and copy",
+        copy: "Copy",
+        copied: "Message copied",
+        copyFailed: "Could not copy the message. Copy the text manually.",
+        bookingRequired: "This message needs a future confirmed or pending booking.",
+        rebookingNote: "A personal rebooking link will be available in stage 2. For now, only text is generated.",
+        fields: {
+          language: "Message language",
+          type: "Message type",
+          booking: "Booking",
+          preview: "Message preview"
+        },
+        placeholders: {
+          booking: "Select booking"
+        },
+        languages: {
+          sr: "Serbian",
+          ru: "Russian",
+          en: "English"
+        },
+        types: {
+          booking_confirmation: "Booking confirmation",
+          appointment_reminder: "Appointment reminder",
+          rebooking: "Book again",
+          google_review: "Google review request"
+        }
+      },
       channels: {
         instagram: "Instagram",
         whatsapp: "WhatsApp",

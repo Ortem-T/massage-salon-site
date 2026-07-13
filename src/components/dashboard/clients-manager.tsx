@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
+import { ClientNotificationsPanel } from "@/components/dashboard/client-notifications-panel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -580,6 +581,13 @@ export function ClientsManager({ clients, dataError, dictionary, locale, service
                   <p className="mt-2 text-sm leading-6 text-foreground/82">{selectedClient.notes}</p>
                 </div>
               ) : null}
+
+              <ClientNotificationsPanel
+                client={selectedClient}
+                dictionary={dictionary}
+                locale={locale}
+                serviceCatalog={serviceCatalog}
+              />
 
               <div className="mt-6 border-t border-border/70 pt-5">
                 <h3 className="text-lg font-semibold text-primary">{copy.bookingHistory}</h3>

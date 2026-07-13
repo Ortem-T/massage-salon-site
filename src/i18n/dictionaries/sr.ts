@@ -187,6 +187,10 @@ const sr = {
     submit: "Zakaži termin",
     submitting: "Šaljemo zahtev",
     formNote: "Nakon slanja zahteva, potvrdićemo termin putem messengera koji vam najviše odgovara.",
+    returningClient: {
+      welcome: "Drago nam je što ste ponovo sa nama!",
+      clear: "Niste vi? Obrišite podatke"
+    },
     success: {
       title: "Zahtev je primljen",
       message: "Hvala. Proverićemo željeno vreme i uskoro vas kontaktirati."
@@ -395,6 +399,37 @@ const sr = {
       saving: "Čuvamo...",
       cancel: "Otkaži",
       snapshotWarning: "Izmena kontakta ažurira karticu klijenta za buduće termine. Stari termini zadržavaju svoje istorijske kontakt snimke.",
+      notifications: {
+        eyebrow: "Poruke klijentu",
+        title: "Obaveštenja",
+        subtitle: "Generišite tekst, po potrebi ga uredite i kopirajte za ručno slanje.",
+        generateAndCopy: "Generiši i kopiraj",
+        copy: "Kopiraj",
+        copied: "Poruka je kopirana",
+        copyFailed: "Poruku nije moguće kopirati. Kopirajte tekst ručno.",
+        bookingRequired: "Za ovu poruku je potreban budući potvrđen termin ili termin na čekanju.",
+        rebookingNote: "Lični link za ponovno zakazivanje biće dostupan u fazi 2. Sada se generiše samo tekst.",
+        fields: {
+          language: "Jezik poruke",
+          type: "Tip poruke",
+          booking: "Termin",
+          preview: "Pregled poruke"
+        },
+        placeholders: {
+          booking: "Izaberite termin"
+        },
+        languages: {
+          sr: "Srpski",
+          ru: "Ruski",
+          en: "Engleski"
+        },
+        types: {
+          booking_confirmation: "Potvrda termina",
+          appointment_reminder: "Podsetnik",
+          rebooking: "Ponovno zakazivanje",
+          google_review: "Molba za Google recenziju"
+        }
+      },
       channels: {
         instagram: "Instagram",
         whatsapp: "WhatsApp",

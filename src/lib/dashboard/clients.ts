@@ -22,6 +22,8 @@ export type DashboardClientBooking = {
   status: BookingStatus;
   source: string;
   sourceChannel: ManualBookingSourceChannel | null;
+  durationMinutes: number | null;
+  clientComment: string | null;
   internalNotes: string | null;
 };
 
@@ -62,6 +64,8 @@ type ClientBookingRow = {
   status: BookingStatus;
   source: string;
   source_channel: ManualBookingSourceChannel | null;
+  duration_minutes: number | null;
+  client_comment: string | null;
   client_phone: string;
   client_contact_channel: ClientContactChannel | null;
   client_contact_value: string | null;
@@ -71,7 +75,7 @@ type ClientBookingRow = {
 
 const clientColumnsWithTimestamps = `${clientContactColumns}, created_at, updated_at`;
 const bookingColumnsWithContacts =
-  "id, preferred_date, preferred_time, service, specialist, status, source, source_channel, client_phone, client_contact_channel, client_contact_value, internal_notes, client_id";
+  "id, preferred_date, preferred_time, service, specialist, status, source, source_channel, duration_minutes, client_comment, client_phone, client_contact_channel, client_contact_value, internal_notes, client_id";
 const legacyBookingColumns =
   "id, preferred_date, preferred_time, service, specialist, status, source, source_channel, client_phone, internal_notes, client_id";
 
@@ -117,6 +121,8 @@ function toDashboardClientBooking(row: ClientBookingRow): DashboardClientBooking
     status: row.status,
     source: row.source,
     sourceChannel: row.source_channel,
+    durationMinutes: row.duration_minutes ?? null,
+    clientComment: row.client_comment ?? null,
     internalNotes: row.internal_notes
   };
 }
