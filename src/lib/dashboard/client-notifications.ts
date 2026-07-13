@@ -26,6 +26,7 @@ export type ClientNotificationInput = {
   language: ClientNotificationLanguage;
   type: ClientNotificationType;
   booking?: ClientNotificationBooking | null;
+  rebookingUrl?: string | null;
 };
 
 const dateLocales: Record<ClientNotificationLanguage, string> = {
@@ -175,12 +176,16 @@ function generateAppointmentReminder(input: ClientNotificationInput) {
   ]);
 }
 
-function generateRebooking(language: ClientNotificationLanguage) {
+function generateRebooking(language: ClientNotificationLanguage, rebookingUrl?: string | null) {
+  const url = rebookingUrl ?? "";
+
   if (language === "ru") {
     return compactLines([
       "Спасибо за визит!",
       "",
-      "Когда захотите записаться снова, просто напишите нам удобным способом.",
+      "Если захотите записаться снова, воспользуйтесь этой удобной ссылкой:",
+      "",
+      url,
       "",
       "С уважением,",
       "Rainë"
@@ -191,7 +196,9 @@ function generateRebooking(language: ClientNotificationLanguage) {
     return compactLines([
       "Thank you for visiting us!",
       "",
-      "When you would like to book again, simply contact us through your preferred messenger.",
+      "When you would like to book again, you can use this link:",
+      "",
+      url,
       "",
       "Kind regards,",
       "Rainë"
@@ -201,7 +208,9 @@ function generateRebooking(language: ClientNotificationLanguage) {
   return compactLines([
     "Hvala vam na poseti!",
     "",
-    "Kada budete želeli da ponovo zakažete termin, slobodno nam se javite.",
+    "Kada budete želeli da ponovo zakažete termin, možete koristiti ovaj link:",
+    "",
+    url,
     "",
     "Srdačan pozdrav,",
     "Rainë"
@@ -257,7 +266,7 @@ export function generateClientNotificationMessage(input: ClientNotificationInput
   }
 
   if (input.type === "rebooking") {
-    return generateRebooking(input.language);
+    return generateRebooking(input.language, input.rebookingUrl);
   }
 
   return generateGoogleReview(input.language);

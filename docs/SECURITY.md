@@ -150,13 +150,32 @@ The public booking form can remember a returning visitor in the current browser 
 - Malformed stored data is ignored and removed when possible.
 - The clear action removes only this Raine booking-client record.
 
+## Personalized Rebooking Links
+
+Admin users can generate personalized rebooking links for clients from the Clients CRM notification block.
+
+- Public URLs use only an opaque random token, for example `/{locale}?rebook=...`.
+- Client name, phone, `client_id`, and booking ids are never placed in the URL.
+- Raw tokens are 32 random bytes encoded with URL-safe Base64 and are returned only once to the admin UI.
+- The database stores only the SHA-256 hash in `public.client_rebooking_tokens`.
+- Tokens expire after 180 days, can be revoked, and the MVP keeps one active token per client by revoking previous active tokens when a new one is generated.
+- Admin generation and revocation happen through authenticated server actions and security-definer RPCs that check `app_metadata.role = admin`.
+- The public resolver `GET /api/rebooking/resolve?token=...` hashes the provided token and calls a narrow anon-executable RPC.
+- The resolver returns only the minimum public prefill payload: client name, phone, and optional preferred locale.
+- Invalid, expired, revoked, malformed, or missing tokens return the same generic public error shape.
+- The public booking form removes a valid token from the visible URL after successful resolution and does not auto-submit.
+- Raw tokens and phone numbers must not be logged.
+
+The resolver has an in-memory rate limit of 10 attempts per IP per 10 minutes. This is useful as a first-stage abuse brake but is not durable across server restarts or horizontally scaled instances.
+
 ## Admin Notification Generator
 
 The Clients CRM notification block is an admin-only manual text generator.
 
 - It does not send messages automatically.
 - It does not store generated messages in the database.
-- It does not create personalized rebooking links or tokens in stage 1.
+- Rebooking messages include an admin-generated personalized link when the message type is `rebooking`.
+- Google review messages remain unchanged and do not use personalized links.
 - It does not expose internal booking notes in generated messages.
 - Therapists still cannot access the full Clients CRM page through this feature.
 
@@ -164,6 +183,7 @@ The Clients CRM notification block is an admin-only manual text generator.
 
 - Public booking insert still depends on anon insert RLS for `public.bookings` while the server endpoint is stabilized.
 - Rate limiting is in-memory and not durable yet.
+- Rebooking-link resolve rate limiting is also in-memory and should move to durable KV/Redis before heavier campaign usage.
 - Availability re-check and insert are not a single database transaction yet, so a race condition is still possible under simultaneous requests.
 - There is no CAPTCHA or Turnstile yet. This is intentional until spam pressure justifies the UX cost.
 - Security headers are not comprehensively configured yet.

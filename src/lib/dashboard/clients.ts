@@ -11,6 +11,7 @@ import { type BookingStatus } from "@/lib/booking/booking-schema";
 import { type DashboardUser } from "@/lib/dashboard/auth";
 import { DashboardForbiddenError } from "@/lib/dashboard/bookings";
 import { type ManualBookingSourceChannel } from "@/lib/dashboard/constants";
+import { toRebookingTokenMetadata, type RebookingTokenMetadata } from "@/lib/rebooking/tokens";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type DashboardClientBooking = {
@@ -34,6 +35,7 @@ export type DashboardClient = BookingClient & {
   bookingsCount: number;
   lastBookingDate: string | null;
   latestService: string | null;
+  rebookingToken: RebookingTokenMetadata | null;
 };
 
 export type SaveClientInput = {
@@ -73,6 +75,16 @@ type ClientBookingRow = {
   client_id: string | null;
 };
 
+type RebookingTokenRow = {
+  id: string;
+  client_id: string;
+  expires_at: string;
+  revoked_at: string | null;
+  last_used_at: string | null;
+  use_count: number;
+  created_at: string;
+};
+
 const clientColumnsWithTimestamps = `${clientContactColumns}, created_at, updated_at`;
 const bookingColumnsWithContacts =
   "id, preferred_date, preferred_time, service, specialist, status, source, source_channel, duration_minutes, client_comment, client_phone, client_contact_channel, client_contact_value, internal_notes, client_id";
@@ -93,7 +105,11 @@ function normalizeUsername(value: string | null | undefined, channel: "instagram
   return normalizePrimaryContactValue(channel, value);
 }
 
-function toDashboardClient(row: ClientRow, bookings: DashboardClientBooking[]): DashboardClient {
+function toDashboardClient(
+  row: ClientRow,
+  bookings: DashboardClientBooking[],
+  rebookingToken: RebookingTokenMetadata | null
+): DashboardClient {
   const base = toBookingClient(row);
   const sortedBookings = [...bookings].sort((a, b) => {
     const dateCompare = b.preferredDate.localeCompare(a.preferredDate);
@@ -107,7 +123,8 @@ function toDashboardClient(row: ClientRow, bookings: DashboardClientBooking[]): 
     bookings: sortedBookings,
     bookingsCount: sortedBookings.length,
     lastBookingDate: sortedBookings[0]?.preferredDate ?? null,
-    latestService: sortedBookings[0]?.service ?? null
+    latestService: sortedBookings[0]?.service ?? null,
+    rebookingToken
   };
 }
 
@@ -184,6 +201,18 @@ function bookingMatchesClient(client: ClientRow, booking: ClientBookingRow) {
   return false;
 }
 
+function getLatestRebookingToken(clientId: string, tokens: RebookingTokenRow[]) {
+  const clientTokens = tokens
+    .filter((token) => token.client_id === clientId)
+    .sort((a, b) => b.created_at.localeCompare(a.created_at));
+
+  return (
+    clientTokens.find((token) => !token.revoked_at && new Date(token.expires_at).getTime() > Date.now()) ??
+    clientTokens[0] ??
+    null
+  );
+}
+
 function validateClientInput(input: SaveClientInput) {
   const name = input.name.trim();
   const primaryContactValue = normalizePrimaryContactValue(input.primaryContactChannel, input.primaryContactValue);
@@ -257,6 +286,12 @@ export async function getClientsForDashboard(user: DashboardUser) {
       ? []
       : ((legacyBookings ?? []) as ClientBookingRow[])
     : ((bookings ?? []) as ClientBookingRow[]);
+  const { data: tokenRows } = await supabase
+    .from("client_rebooking_tokens")
+    .select("id, client_id, expires_at, revoked_at, last_used_at, use_count, created_at")
+    .in("client_id", clientIds)
+    .order("created_at", { ascending: false });
+  const rebookingTokens = (tokenRows ?? []) as RebookingTokenRow[];
 
   return {
     clients: clientRows.map((client) =>
@@ -264,7 +299,11 @@ export async function getClientsForDashboard(user: DashboardUser) {
         client,
         bookingRows
           .filter((booking) => bookingMatchesClient(client, booking))
-          .map(toDashboardClientBooking)
+          .map(toDashboardClientBooking),
+        (() => {
+          const token = getLatestRebookingToken(client.id, rebookingTokens);
+          return token ? toRebookingTokenMetadata(token) : null;
+        })()
       )
     ),
     error: Boolean(bookingsError && legacyBookingsError)

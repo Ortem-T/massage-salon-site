@@ -97,6 +97,34 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["clients"]["Insert"]>;
         Relationships: [];
       };
+      client_rebooking_tokens: {
+        Row: {
+          id: string;
+          client_id: string;
+          token_hash: string;
+          expires_at: string;
+          revoked_at: string | null;
+          last_used_at: string | null;
+          created_by: string | null;
+          use_count: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          client_id: string;
+          token_hash: string;
+          expires_at: string;
+          revoked_at?: string | null;
+          last_used_at?: string | null;
+          created_by?: string | null;
+          use_count?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["client_rebooking_tokens"]["Insert"]>;
+        Relationships: [];
+      };
       profiles: {
         Row: {
           id: string;
@@ -329,6 +357,20 @@ export type Database = {
         };
         Returns: string;
       };
+      create_client_rebooking_token: {
+        Args: {
+          p_client_id: string;
+          p_token_hash: string;
+          p_expires_at: string;
+        };
+        Returns: {
+          token_id: string;
+          expires_at: string;
+          revoked_at: string | null;
+          last_used_at: string | null;
+          use_count: number;
+        }[];
+      };
       list_dashboard_booking_clients: {
         Args: Record<string, never>;
         Returns: {
@@ -343,6 +385,28 @@ export type Database = {
           primary_contact_value: string | null;
           locale: Locale | null;
           notes: string | null;
+        }[];
+      };
+      resolve_client_rebooking_token: {
+        Args: {
+          p_token_hash: string;
+        };
+        Returns: {
+          name: string;
+          phone: string;
+          preferred_locale: Locale | null;
+        }[];
+      };
+      revoke_client_rebooking_token: {
+        Args: {
+          p_client_id: string;
+        };
+        Returns: {
+          token_id: string;
+          expires_at: string;
+          revoked_at: string | null;
+          last_used_at: string | null;
+          use_count: number;
         }[];
       };
     };

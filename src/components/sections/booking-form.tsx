@@ -53,6 +53,12 @@ type AvailabilityResponse = {
   days: Record<string, AvailabilityDay>;
 };
 
+type RebookingResolveResponse = {
+  name: string;
+  phone: string;
+  preferredLocale?: Locale | null;
+};
+
 function getMonthStartValue(value: string) {
   const date = parseDateValue(value) ?? new Date();
 
@@ -111,6 +117,8 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
   const [availabilityError, setAvailabilityError] = useState(false);
   const [availabilityRefreshKey, setAvailabilityRefreshKey] = useState(0);
   const [hasReturningClient, setHasReturningClient] = useState(false);
+  const [isRebookingPrefill, setIsRebookingPrefill] = useState(false);
+  const [rebookingLinkError, setRebookingLinkError] = useState<string | null>(null);
   const previousSelectionRef = useRef({ service: "", therapist: "" });
   const autoSelectionServiceRef = useRef("");
   const availabilityRange = useMemo(() => getCalendarRange(visibleMonth), [visibleMonth]);
@@ -193,27 +201,76 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
   );
 
   useEffect(() => {
-    const storedClient = readStoredBookingClient(booking.validation);
+    function applyClientPrefill(input: { name: string; phone: string }, source: "storage" | "rebooking") {
+      const nameState = getFieldState("clientName");
+      const phoneState = getFieldState("phoneNumber");
+      const currentName = getValues("clientName").trim();
+      const currentPhone = getValues("phoneNumber").trim();
 
-    if (!storedClient) {
+      if (!nameState.isDirty && (!currentName || source === "rebooking")) {
+        setValue("clientName", input.name, { shouldDirty: false, shouldTouch: false, shouldValidate: true });
+      }
+
+      if (!phoneState.isDirty && (!currentPhone || source === "rebooking")) {
+        setValue("phoneNumber", input.phone, { shouldDirty: false, shouldTouch: false, shouldValidate: true });
+      }
+
+      setHasReturningClient(true);
+      setIsRebookingPrefill(source === "rebooking");
+    }
+
+    function applyStoredClient() {
+      const storedClient = readStoredBookingClient(booking.validation);
+
+      if (!storedClient) {
+        return;
+      }
+
+      applyClientPrefill({ name: storedClient.name, phone: storedClient.phone }, "storage");
+    }
+
+    const token = new URLSearchParams(window.location.search).get("rebook")?.trim();
+
+    if (!token) {
+      applyStoredClient();
       return;
     }
 
-    const nameState = getFieldState("clientName");
-    const phoneState = getFieldState("phoneNumber");
-    const currentName = getValues("clientName").trim();
-    const currentPhone = getValues("phoneNumber").trim();
+    const controller = new AbortController();
 
-    if (!nameState.isDirty && !currentName) {
-      setValue("clientName", storedClient.name, { shouldDirty: false, shouldTouch: false, shouldValidate: true });
-    }
+    fetch(`/api/rebooking/resolve?token=${encodeURIComponent(token)}`, {
+      cache: "no-store",
+      signal: controller.signal
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("Rebooking token could not be resolved.");
+        }
 
-    if (!phoneState.isDirty && !currentPhone) {
-      setValue("phoneNumber", storedClient.phone, { shouldDirty: false, shouldTouch: false, shouldValidate: true });
-    }
+        return (await response.json()) as RebookingResolveResponse;
+      })
+      .then((data) => {
+        applyClientPrefill({ name: data.name, phone: data.phone }, "rebooking");
+        saveStoredBookingClient({ name: data.name, phone: data.phone });
+        setRebookingLinkError(null);
 
-    setHasReturningClient(true);
-  }, [booking.validation, getFieldState, getValues, setValue]);
+        const url = new URL(window.location.href);
+        url.searchParams.delete("rebook");
+        window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+      })
+      .catch((error) => {
+        if ((error as Error).name === "AbortError") {
+          return;
+        }
+
+        setRebookingLinkError(booking.rebookingLink.error);
+        applyStoredClient();
+      });
+
+    return () => {
+      controller.abort();
+    };
+  }, [booking.rebookingLink.error, booking.validation, getFieldState, getValues, setValue]);
 
   useEffect(() => {
     function applyPreselectedService(serviceSlug: string | null) {
@@ -394,6 +451,8 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
       setAvailabilityRefreshKey((current) => current + 1);
       setIsSuccess(true);
       setHasReturningClient(false);
+      setIsRebookingPrefill(false);
+      setRebookingLinkError(null);
       reset();
     } catch (error) {
       if (error instanceof BookingRequestError && error.code === "slot_unavailable") {
@@ -421,6 +480,8 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
   function clearReturningClient() {
     clearStoredBookingClient();
     setHasReturningClient(false);
+    setIsRebookingPrefill(false);
+    setRebookingLinkError(null);
     setValue("clientName", "", { shouldDirty: true, shouldTouch: true, shouldValidate: true });
     setValue("phoneNumber", "", { shouldDirty: true, shouldTouch: true, shouldValidate: true });
   }
@@ -452,6 +513,15 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
             className="mb-7 rounded-xl border border-accent/25 bg-accent/10 p-5 text-sm leading-7 text-accent shadow-sm"
           >
             {submitError}
+          </div>
+        ) : null}
+
+        {rebookingLinkError ? (
+          <div
+            role="alert"
+            className="mb-7 rounded-xl border border-accent/25 bg-accent/10 p-5 text-sm leading-7 text-accent shadow-sm"
+          >
+            {rebookingLinkError}
           </div>
         ) : null}
 
@@ -528,6 +598,9 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
               <p className="font-serif text-2xl font-semibold leading-tight text-primary sm:text-3xl">
                 {booking.returningClient.welcome}
               </p>
+              {isRebookingPrefill ? (
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{booking.rebookingLink.supporting}</p>
+              ) : null}
             </div>
           ) : null}
 

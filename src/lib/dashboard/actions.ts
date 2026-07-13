@@ -27,12 +27,28 @@ import {
   type SavePromotionInput
 } from "@/lib/dashboard/promotions";
 import { saveClient, type SaveClientInput } from "@/lib/dashboard/clients";
+import {
+  createClientRebookingLink,
+  revokeClientRebookingLink,
+  type RebookingTokenMetadata
+} from "@/lib/rebooking/tokens";
 import { type BookingStatus } from "@/lib/booking/booking-schema";
 
 export type DashboardActionResult = {
   ok: boolean;
   reason?: "forbidden" | "error" | "invalid" | "invalid_time" | "overlap" | "blocked" | "service_restriction";
 };
+
+export type RebookingLinkActionResult =
+  | {
+      ok: true;
+      rebookingUrl?: string;
+      token: RebookingTokenMetadata | null;
+    }
+  | {
+      ok: false;
+      reason: "forbidden" | "error";
+    };
 
 type BookingActionInput = {
   bookingId: string;
@@ -210,5 +226,59 @@ export async function saveClientAction(
     return { ok: true };
   } catch (error) {
     return toActionResult(error);
+  }
+}
+
+export async function generateClientRebookingLinkAction(
+  locale: Locale,
+  input: { clientId: string; messageLocale: Locale }
+): Promise<RebookingLinkActionResult> {
+  try {
+    const user = await requireDashboardUser(locale);
+    const result = await createClientRebookingLink(user, {
+      clientId: input.clientId,
+      locale: input.messageLocale
+    });
+    revalidateDashboard(locale);
+    return {
+      ok: true,
+      rebookingUrl: result.url,
+      token: result.token
+    };
+  } catch (error) {
+    if (error instanceof DashboardForbiddenError) {
+      return { ok: false, reason: "forbidden" };
+    }
+
+    if (process.env.NODE_ENV !== "production") {
+      console.error("[rebooking link action failed]", error);
+    }
+
+    return { ok: false, reason: "error" };
+  }
+}
+
+export async function revokeClientRebookingLinkAction(
+  locale: Locale,
+  input: { clientId: string }
+): Promise<RebookingLinkActionResult> {
+  try {
+    const user = await requireDashboardUser(locale);
+    const token = await revokeClientRebookingLink(user, input.clientId);
+    revalidateDashboard(locale);
+    return {
+      ok: true,
+      token
+    };
+  } catch (error) {
+    if (error instanceof DashboardForbiddenError) {
+      return { ok: false, reason: "forbidden" };
+    }
+
+    if (process.env.NODE_ENV !== "production") {
+      console.error("[rebooking revoke action failed]", error);
+    }
+
+    return { ok: false, reason: "error" };
   }
 }

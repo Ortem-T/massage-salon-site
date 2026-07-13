@@ -191,6 +191,10 @@ const en = {
       welcome: "Welcome back!",
       clear: "Not you? Clear details"
     },
+    rebookingLink: {
+      supporting: "We filled in your contact details to make booking again faster.",
+      error: "This rebooking link is invalid or has expired. You can still complete the form manually."
+    },
     success: {
       title: "Request received",
       message: "Thank you. We will review your preferred time and contact you shortly."
@@ -407,7 +411,24 @@ const en = {
         copied: "Message copied",
         copyFailed: "Could not copy the message. Copy the text manually.",
         bookingRequired: "This message needs a future confirmed or pending booking.",
-        rebookingNote: "A personal rebooking link will be available in stage 2. For now, only text is generated.",
+        rebookingNote: "The personal link safely fills the client's name and phone. The details remain editable before the request is sent.",
+        tokenStatus: {
+          none: "No link created",
+          active: "Active",
+          expired: "Expired",
+          revoked: "Revoked"
+        },
+        tokenManagement: {
+          status: "Link status",
+          expires: "Expires",
+          generateNew: "Generate new link",
+          revoke: "Revoke link"
+        },
+        tokenMessages: {
+          generated: "New link created.",
+          revoked: "Link revoked.",
+          error: "Could not update the link."
+        },
         fields: {
           language: "Message language",
           type: "Message type",

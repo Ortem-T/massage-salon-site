@@ -8,11 +8,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { isLocale, locales, type Locale } from "@/i18n/config";
 import { type Dictionary } from "@/i18n/dictionaries";
 import {
+  generateClientRebookingLinkAction,
+  revokeClientRebookingLinkAction
+} from "@/lib/dashboard/actions";
+import {
   generateClientNotificationMessage,
   type ClientNotificationLanguage,
   type ClientNotificationType
 } from "@/lib/dashboard/client-notifications";
 import { type DashboardClient, type DashboardClientBooking } from "@/lib/dashboard/clients";
+import { type RebookingTokenMetadata } from "@/lib/rebooking/tokens";
 import { type ServiceCatalogItem } from "@/lib/services/catalog";
 
 type ClientNotificationsPanelProps = {
@@ -90,6 +95,7 @@ export function ClientNotificationsPanel({
   serviceCatalog
 }: ClientNotificationsPanelProps) {
   const copy = dictionary.dashboard.clients.notifications;
+  const clientsCopy = dictionary.dashboard.clients;
   const statusLabels = dictionary.booking.statuses;
   const serviceBySlug = useMemo(
     () => new Map(serviceCatalog.map((service) => [service.slug, service])),
@@ -109,6 +115,9 @@ export function ClientNotificationsPanel({
   const [selectedBookingId, setSelectedBookingId] = useState(() => findDefaultBooking(client.bookings)?.id ?? "");
   const [preview, setPreview] = useState("");
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
+  const [tokenStatus, setTokenStatus] = useState<RebookingTokenMetadata | null>(client.rebookingToken);
+  const [latestRebookingUrl, setLatestRebookingUrl] = useState<string | null>(null);
+  const [isTokenPending, setIsTokenPending] = useState(false);
   const requiresBooking = bookingRequiredTypes.has(messageType);
   const selectedBooking = eligibleBookings.find((booking) => booking.id === selectedBookingId) ?? null;
   const canGenerate = !requiresBooking || Boolean(selectedBooking);
@@ -119,7 +128,9 @@ export function ClientNotificationsPanel({
     setSelectedBookingId(findDefaultBooking(client.bookings)?.id ?? "");
     setPreview("");
     setCopyMessage(null);
-  }, [client.id, client.bookings, client.locale, locale]);
+    setTokenStatus(client.rebookingToken);
+    setLatestRebookingUrl(null);
+  }, [client.id, client.bookings, client.locale, client.rebookingToken, locale]);
 
   useEffect(() => {
     if (!requiresBooking || selectedBookingId) {
@@ -165,9 +176,84 @@ export function ClientNotificationsPanel({
     }
   }
 
+  function getTokenStatusLabel(token: RebookingTokenMetadata | null) {
+    if (!token) {
+      return copy.tokenStatus.none;
+    }
+
+    return copy.tokenStatus[token.status];
+  }
+
+  function formatTokenDate(value: string | null) {
+    if (!value) {
+      return clientsCopy.notSet;
+    }
+
+    return new Intl.DateTimeFormat(dateLocales[locale], {
+      day: "numeric",
+      month: "short",
+      timeZone: "Europe/Belgrade",
+      year: "numeric"
+    }).format(new Date(value));
+  }
+
+  async function createRebookingLink() {
+    setIsTokenPending(true);
+    setCopyMessage(null);
+
+    try {
+      const result = await generateClientRebookingLinkAction(locale, {
+        clientId: client.id,
+        messageLocale: messageLanguage
+      });
+
+      if (!result.ok || !result.rebookingUrl) {
+        setCopyMessage(copy.tokenMessages.error);
+        return null;
+      }
+
+      setTokenStatus(result.token);
+      setLatestRebookingUrl(result.rebookingUrl);
+      setCopyMessage(copy.tokenMessages.generated);
+      return result.rebookingUrl;
+    } finally {
+      setIsTokenPending(false);
+    }
+  }
+
+  async function revokeRebookingLink() {
+    setIsTokenPending(true);
+    setCopyMessage(null);
+
+    try {
+      const result = await revokeClientRebookingLinkAction(locale, {
+        clientId: client.id
+      });
+
+      if (!result.ok) {
+        setCopyMessage(copy.tokenMessages.error);
+        return;
+      }
+
+      setTokenStatus(result.token);
+      setLatestRebookingUrl(null);
+      setCopyMessage(copy.tokenMessages.revoked);
+    } finally {
+      setIsTokenPending(false);
+    }
+  }
+
   async function generateAndCopy() {
     if (!canGenerate) {
       setCopyMessage(copy.bookingRequired);
+      return;
+    }
+
+    const rebookingUrl = messageType === "rebooking"
+      ? latestRebookingUrl ?? (await createRebookingLink())
+      : null;
+
+    if (messageType === "rebooking" && !rebookingUrl) {
       return;
     }
 
@@ -175,6 +261,7 @@ export function ClientNotificationsPanel({
       clientName: client.name,
       language: messageLanguage,
       type: messageType,
+      rebookingUrl,
       booking: selectedBooking
         ? {
             date: selectedBooking.preferredDate,
@@ -217,6 +304,7 @@ export function ClientNotificationsPanel({
               value={messageLanguage}
               onChange={(event) => {
                 setMessageLanguage(event.target.value as ClientNotificationLanguage);
+                setLatestRebookingUrl(null);
                 setCopyMessage(null);
               }}
             >
@@ -237,6 +325,7 @@ export function ClientNotificationsPanel({
               value={messageType}
               onChange={(event) => {
                 setMessageType(event.target.value as ClientNotificationType);
+                setLatestRebookingUrl(null);
                 setCopyMessage(null);
               }}
             >
@@ -282,8 +371,40 @@ export function ClientNotificationsPanel({
           </p>
         ) : null}
 
+        {messageType === "rebooking" ? (
+          <div className="mt-4 rounded-2xl border border-border/70 bg-card/60 p-4">
+            <div className="grid gap-3 text-sm leading-6 sm:grid-cols-2">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                  {copy.tokenManagement.status}
+                </p>
+                <p className="mt-1 font-semibold text-primary">{getTokenStatusLabel(tokenStatus)}</p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                  {copy.tokenManagement.expires}
+                </p>
+                <p className="mt-1 font-semibold text-primary">{formatTokenDate(tokenStatus?.expiresAt ?? null)}</p>
+              </div>
+            </div>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <Button type="button" variant="outline" onClick={createRebookingLink} disabled={isTokenPending}>
+                {copy.tokenManagement.generateNew}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={revokeRebookingLink}
+                disabled={isTokenPending || tokenStatus?.status !== "active"}
+              >
+                {copy.tokenManagement.revoke}
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-          <Button type="button" onClick={generateAndCopy} disabled={!canGenerate}>
+          <Button type="button" onClick={generateAndCopy} disabled={!canGenerate || isTokenPending}>
             {copy.generateAndCopy}
           </Button>
           {preview ? (

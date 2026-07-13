@@ -191,6 +191,10 @@ const sr = {
       welcome: "Drago nam je što ste ponovo sa nama!",
       clear: "Niste vi? Obrišite podatke"
     },
+    rebookingLink: {
+      supporting: "Popunili smo vaše kontakt podatke kako bi ponovno zakazivanje bilo brže.",
+      error: "Link za ponovno zakazivanje nije važeći ili je istekao. Formular možete popuniti ručno."
+    },
     success: {
       title: "Zahtev je primljen",
       message: "Hvala. Proverićemo željeno vreme i uskoro vas kontaktirati."
@@ -408,7 +412,24 @@ const sr = {
         copied: "Poruka je kopirana",
         copyFailed: "Poruku nije moguće kopirati. Kopirajte tekst ručno.",
         bookingRequired: "Za ovu poruku je potreban budući potvrđen termin ili termin na čekanju.",
-        rebookingNote: "Lični link za ponovno zakazivanje biće dostupan u fazi 2. Sada se generiše samo tekst.",
+        rebookingNote: "Lični link bezbedno popunjava ime i telefon klijenta. Podaci ostaju izmenjivi pre slanja zahteva.",
+        tokenStatus: {
+          none: "Link nije kreiran",
+          active: "Aktivan",
+          expired: "Istekao",
+          revoked: "Opozvan"
+        },
+        tokenManagement: {
+          status: "Status linka",
+          expires: "Ističe",
+          generateNew: "Kreiraj novi link",
+          revoke: "Opozovi link"
+        },
+        tokenMessages: {
+          generated: "Novi link je kreiran.",
+          revoked: "Link je opozvan.",
+          error: "Link nije moguće ažurirati."
+        },
         fields: {
           language: "Jezik poruke",
           type: "Tip poruke",
