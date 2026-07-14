@@ -14,6 +14,7 @@ import {
 import { useRouter } from "next/navigation";
 
 import { BookingDatePicker } from "@/components/booking/booking-date-picker";
+import { NotificationGenerator } from "@/components/dashboard/notification-generator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -141,6 +142,7 @@ type BookingsCalendarProps = {
   scheduleBlocks: DashboardScheduleBlock[];
   serviceCatalog: ServiceCatalogItem[];
   serviceCatalogError: boolean;
+  localizedServiceNames: Record<Locale, Record<string, string>>;
   therapists: DashboardTherapist[];
 };
 
@@ -401,6 +403,7 @@ export function BookingsCalendar({
   scheduleBlocks,
   serviceCatalog,
   serviceCatalogError,
+  localizedServiceNames,
   therapists
 }: BookingsCalendarProps) {
   const router = useRouter();
@@ -2335,6 +2338,31 @@ export function BookingsCalendar({
                   </Button>
                 </div>
               ) : null}
+
+              <NotificationGenerator
+                mode="booking"
+                booking={{
+                  id: selectedBooking.id,
+                  preferredDate: selectedBooking.preferredDate,
+                  preferredTime: selectedBooking.preferredTime,
+                  service: selectedBooking.service,
+                  specialist: therapistNames.get(selectedBooking.therapistId ?? "") ?? selectedBooking.specialist,
+                  status: selectedBooking.status,
+                  source: selectedBooking.source,
+                  sourceChannel: selectedBooking.sourceChannel,
+                  durationMinutes: selectedBooking.durationMinutes,
+                  clientComment: selectedBooking.clientComment,
+                  internalNotes: selectedBooking.internalNotes,
+                  locale: selectedBooking.locale
+                }}
+                clientId={selectedBooking.clientId}
+                clientName={selectedBooking.clientName}
+                clientLocale={selectedBooking.locale}
+                dictionary={dictionary}
+                locale={locale}
+                serviceCatalog={serviceCatalog}
+                localizedServiceNames={localizedServiceNames}
+              />
 
               <div className="space-y-2">
                 <label htmlFor="booking-notes" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">

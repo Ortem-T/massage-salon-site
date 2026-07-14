@@ -1,6 +1,6 @@
 # Security Notes
 
-Last updated: 2026-07-13
+Last updated: 2026-07-14
 
 ## Current Security Model
 
@@ -182,6 +182,20 @@ The Clients CRM notification block is an admin-only manual text generator.
 - Google review messages remain unchanged and do not use personalized links.
 - It does not expose internal booking notes in generated messages.
 - Therapists still cannot access the full Clients CRM page through this feature.
+
+## Booking Details Notification Generator
+
+The booking details notification block reuses the same manual generator in a booking-scoped context for authenticated dashboard users.
+
+- It does not send messages automatically.
+- It does not show a booking selector; confirmation and reminder messages use only the currently opened booking.
+- Admin users can generate messages for any booking they are allowed to view.
+- Therapist users can generate messages only for bookings selected through the therapist-scoped dashboard query.
+- Rebooking generation sends only `bookingId` and selected message locale to the server action. The server re-fetches the booking with the authenticated dashboard user, verifies admin/therapist access, and resolves `client_id` from the database.
+- Client ids supplied by the browser are not trusted for booking-context rebooking generation.
+- If a booking has no linked `client_id`, the UI shows a localized explanation and no personalized link is created from snapshot name/phone data.
+- Booking-context rebooking token creation uses the server-only Supabase secret client after the booking access check. The secret key is never imported into client components and is never exposed with a `NEXT_PUBLIC_` prefix.
+- Generated reminders compare the booking date to today's date in `Europe/Belgrade`; non-today reminders include the explicit appointment date.
 
 ## Known Limitations
 
