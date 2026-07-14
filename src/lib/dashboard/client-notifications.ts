@@ -224,7 +224,7 @@ function generateAppointmentReminder(input: ClientNotificationInput) {
   return compactLines([
     "Pozdrav!",
     "",
-    `Podsećamo vas da vas danas u ${booking.time} očekujemo na tretmanu ${booking.serviceName}.`,
+    `Podsećamo vas da danas imate termin u ${booking.time} za tretman ${booking.serviceName}.`,
     "",
     "Naša adresa:",
     `${salonNotificationAddress.sr}.`,
