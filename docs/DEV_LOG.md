@@ -1,6 +1,6 @@
 # Development Log
 
-Last updated: 2026-07-13
+Last updated: 2026-07-14
 
 This log is shared context for human and AI-assisted development. Update it after every major development stage so future Codex, `web-coder`, and `grill-me` sessions can continue without rediscovering project history.
 
@@ -15,6 +15,8 @@ Manual dashboard booking now has a CRM-ready client contact foundation. Admins a
 Therapist manual booking client selection now uses a dedicated staff-safe picker RPC instead of relying only on `clients` table RLS. This keeps the full Clients CRM page admin-only while allowing therapists to select existing clients during manual booking creation.
 
 The admin-only Clients CRM page is now implemented at `/[locale]/dashboard/clients`. Admin users can search and filter clients, view primary contact details, notes, booking counts, latest service, and linked booking history, then create or edit client records without changing old booking snapshots. Therapist users still do not see the Clients navigation item and are redirected away from the full CRM route by server-side role checks.
+
+The manual notification generator is now reusable across Clients CRM and booking details. Admins and therapists can generate booking confirmation, reminder, rebooking, and Google review messages directly from a visible booking details modal. Booking-context messages use the opened booking only, omit the booking selector, localize service names by selected message language, and create personalized rebooking links only when the server confirms the booking has a linked client.
 
 ## Completed Tasks
 
@@ -78,6 +80,7 @@ The admin-only Clients CRM page is now implemented at `/[locale]/dashboard/clien
 - Completed a pre-deployment Vercel audit: lint and production build pass, required env placeholders are documented, local env files and build artifacts are ignored, tracked code contains no Telegram bot token, Supabase service-role key, or Google Maps API key, `/sr`, `/ru`, and `/en` smoke-test successfully, unauthenticated dashboard access redirects to login, and a public booking API smoke-test returns `201`.
 - Added the local SEO foundation for `https://raine.rs`: localized production titles/descriptions, absolute canonical and hreflang URLs, sitemap and robots using the production domain, Open Graph locale metadata, LocalBusiness/HealthAndBeautyBusiness JSON-LD, noindex metadata for login/dashboard routes, and `docs/SEO_CHECKLIST.md` for Search Console and Google Business Profile follow-up.
 - Switched the contact section Google Maps embed from address/API-key lookup to the real Raine Massage Salon Google Maps listing embed, and updated the external Google Maps link and JSON-LD `hasMap` value to the same listing.
+- Refactored the Clients CRM notification block into a reusable dashboard notification generator and added it to booking details for admin and therapist dashboards. Booking-context generation uses the opened booking directly, supports date-aware reminders, keeps Google review and rebooking templates aligned with the CRM generator, and resolves rebooking clients server-side from `bookingId`.
 - Added therapist-service eligibility through the new `public.therapist_services` migration, updated and split body services into the new production price list, deactivated deprecated combined body service slugs without deleting historical bookings, and made public booking plus dashboard manual booking filter/validate therapists by selected service.
 - Added two body services for device-based lymphatic drainage: one-zone session and a 12-treatment course, both bookable online, 30 minutes, available to Sergey and Ekaterina through `therapist_services`, with the course treated as a regular first-appointment booking for the MVP.
 - Renamed the `taping-application` service translations to show the shorter public name "Taping" / "Tejping" / "Тейпирование" while keeping the one-application detail in the localized short descriptions.
@@ -223,6 +226,11 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Confirm admin users see overview, bookings, clients, services, and therapists navigation.
 - Confirm therapist users see only overview and bookings navigation.
 - Confirm admin Clients CRM details shows the Notifications block before booking history, while therapists still cannot access the full Clients CRM page.
+- Confirm admin booking details can generate confirmation, reminder, rebooking, and Google review messages without showing a booking selector.
+- Confirm therapist booking details can generate notifications only for assigned/visible bookings.
+- Confirm rebooking generation is disabled with a localized explanation when an old booking has no linked `client_id`.
+- Confirm reminder messages say "today" only for appointments dated today in `Europe/Belgrade`; other dates include the explicit appointment date.
+- Confirm message language selection uses localized service names, including Serbian messages for Serbian dashboard/client language.
 - Confirm notification language defaults to client locale when available, otherwise the current dashboard locale.
 - Confirm booking confirmation and reminder require a future confirmed or pending booking and default to the nearest suitable booking.
 - Confirm generated notifications use localized service names, locale-aware dates, 24-hour time, duration, and never include internal notes.

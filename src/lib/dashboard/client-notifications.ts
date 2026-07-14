@@ -19,6 +19,7 @@ export type ClientNotificationBooking = {
   serviceName: string;
   durationMinutes: number | null;
   hasClientComment: boolean;
+  isToday?: boolean;
 };
 
 export type ClientNotificationInput = {
@@ -69,7 +70,8 @@ function getBooking(input: ClientNotificationInput) {
     ...input.booking,
     date: formatMessageDate(input.booking.date, input.language),
     duration: String(input.booking.durationMinutes ?? 60),
-    commentNotice: input.booking.hasClientComment ? getCommentNotice(input.language) : ""
+    commentNotice: input.booking.hasClientComment ? getCommentNotice(input.language) : "",
+    isToday: input.booking.isToday ?? true
   };
 }
 
@@ -133,6 +135,25 @@ function generateAppointmentReminder(input: ClientNotificationInput) {
   const booking = getBooking(input);
 
   if (input.language === "ru") {
+    if (!booking.isToday) {
+      return compactLines([
+        "Здравствуйте!",
+        "",
+        "Напоминаем о вашей записи:",
+        "",
+        `Процедура: ${booking.serviceName}`,
+        `Дата: ${booking.date}`,
+        `Время: ${booking.time}`,
+        "",
+        "Наш адрес:",
+        `${salonNotificationAddress.ru}.`,
+        `Ориентир — ${salonNotificationLandmark.ru}.`,
+        "",
+        "С уважением,",
+        "Rainë"
+      ]);
+    }
+
     return compactLines([
       "Здравствуйте!",
       "",
@@ -148,6 +169,25 @@ function generateAppointmentReminder(input: ClientNotificationInput) {
   }
 
   if (input.language === "en") {
+    if (!booking.isToday) {
+      return compactLines([
+        "Hello!",
+        "",
+        "This is a reminder about your appointment:",
+        "",
+        `Treatment: ${booking.serviceName}`,
+        `Date: ${booking.date}`,
+        `Time: ${booking.time}`,
+        "",
+        "Our address:",
+        `${salonNotificationAddress.en}.`,
+        `Landmark: ${salonNotificationLandmark.en}.`,
+        "",
+        "Kind regards,",
+        "Rainë"
+      ]);
+    }
+
     return compactLines([
       "Hello!",
       "",
@@ -158,6 +198,25 @@ function generateAppointmentReminder(input: ClientNotificationInput) {
       `Landmark: ${salonNotificationLandmark.en}.`,
       "",
       "Kind regards,",
+      "Rainë"
+    ]);
+  }
+
+  if (!booking.isToday) {
+    return compactLines([
+      "Pozdrav!",
+      "",
+      "Podsećamo vas na zakazani termin:",
+      "",
+      `Tretman: ${booking.serviceName}`,
+      `Datum: ${booking.date}`,
+      `Vreme: ${booking.time}`,
+      "",
+      "Naša adresa:",
+      `${salonNotificationAddress.sr}.`,
+      `Orijentir: ${salonNotificationLandmark.sr}.`,
+      "",
+      "Srdačan pozdrav,",
       "Rainë"
     ]);
   }

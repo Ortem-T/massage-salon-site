@@ -411,6 +411,8 @@ const en = {
         copied: "Message copied",
         copyFailed: "Could not copy the message. Copy the text manually.",
         bookingRequired: "This message needs a future confirmed or pending booking.",
+        bookingDataRequired: "This booking is missing a date, time, or treatment.",
+        linkedClientRequired: "No linked client was found for this booking. A personalized rebooking link cannot be created.",
         rebookingNote: "The personal link safely fills the client's name and phone. The details remain editable before the request is sent.",
         tokenStatus: {
           none: "No link created",

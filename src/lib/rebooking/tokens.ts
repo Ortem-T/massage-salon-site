@@ -136,6 +136,84 @@ export async function revokeClientRebookingLink(user: DashboardUser, clientId: s
   return data?.[0] ? toRebookingTokenMetadata(data[0]) : null;
 }
 
+export async function createClientRebookingLinkForAuthorizedBooking(input: {
+  clientId: string;
+  locale: Locale;
+  createdBy: string;
+}) {
+  const rawToken = createRawRebookingToken();
+  const tokenHash = hashRebookingToken(rawToken);
+  const expiresAt = getExpiryDate().toISOString();
+  const supabase = createSupabaseAdminClient();
+  const now = new Date().toISOString();
+
+  const { data: client, error: clientError } = await supabase
+    .from("clients")
+    .select("id")
+    .eq("id", input.clientId)
+    .maybeSingle();
+
+  if (clientError || !client) {
+    throw new Error("Client not found.");
+  }
+
+  const { error: revokeError } = await supabase
+    .from("client_rebooking_tokens")
+    .update({
+      revoked_at: now,
+      updated_at: now
+    })
+    .eq("client_id", input.clientId)
+    .is("revoked_at", null)
+    .gt("expires_at", now);
+
+  if (revokeError) {
+    throw new Error(revokeError.message);
+  }
+
+  const { data, error } = await supabase
+    .from("client_rebooking_tokens")
+    .insert({
+      client_id: input.clientId,
+      token_hash: tokenHash,
+      expires_at: expiresAt,
+      created_by: input.createdBy
+    })
+    .select("id, expires_at, revoked_at, last_used_at, use_count")
+    .maybeSingle();
+
+  if (error || !data) {
+    throw new Error(error?.message ?? "Rebooking token could not be created.");
+  }
+
+  return {
+    url: buildRebookingUrl(input.locale, rawToken),
+    token: toRebookingTokenMetadata(data)
+  };
+}
+
+export async function revokeClientRebookingLinkForAuthorizedBooking(clientId: string) {
+  const supabase = createSupabaseAdminClient();
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("client_rebooking_tokens")
+    .update({
+      revoked_at: now,
+      updated_at: now
+    })
+    .eq("client_id", clientId)
+    .is("revoked_at", null)
+    .gt("expires_at", now)
+    .select("id, expires_at, revoked_at, last_used_at, use_count")
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data ? toRebookingTokenMetadata(data) : null;
+}
+
 export async function resolveClientRebookingToken(rawToken: string): Promise<RebookingPrefill | null> {
   if (!isRebookingTokenFormat(rawToken)) {
     return null;

@@ -412,6 +412,8 @@ const sr = {
         copied: "Poruka je kopirana",
         copyFailed: "Poruku nije moguće kopirati. Kopirajte tekst ručno.",
         bookingRequired: "Za ovu poruku je potreban budući potvrđen termin ili termin na čekanju.",
+        bookingDataRequired: "Ovom terminu nedostaju datum, vreme ili tretman.",
+        linkedClientRequired: "Za ovaj termin nije pronađen povezani klijent. Nije moguće kreirati personalizovani link za ponovno zakazivanje.",
         rebookingNote: "Lični link bezbedno popunjava ime i telefon klijenta. Podaci ostaju izmenjivi pre slanja zahteva.",
         tokenStatus: {
           none: "Link nije kreiran",

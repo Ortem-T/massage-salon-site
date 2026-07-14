@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { BookingsCalendar } from "@/components/dashboard/bookings-calendar";
-import { isLocale, type Locale } from "@/i18n/config";
+import { isLocale, locales, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { requireDashboardUser } from "@/lib/dashboard/auth";
 import { getBookingsForDashboard } from "@/lib/dashboard/bookings";
@@ -26,11 +26,20 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
 
   const locale: Locale = rawLocale;
   const user = await requireDashboardUser(locale);
-  const [dictionary, data, serviceCatalogData] = await Promise.all([
+  const [dictionary, data, serviceCatalogData, ...localizedServiceCatalogs] = await Promise.all([
     getDictionary(locale),
     getBookingsForDashboard(user),
-    getDashboardServiceCatalogData(locale, { activeOnly: false, bookableOnlineOnly: false })
+    getDashboardServiceCatalogData(locale, { activeOnly: false, bookableOnlineOnly: false }),
+    ...locales.map((messageLocale) =>
+      getDashboardServiceCatalogData(messageLocale, { activeOnly: false, bookableOnlineOnly: false })
+    )
   ]);
+  const localizedServiceNames = Object.fromEntries(
+    locales.map((messageLocale, index) => [
+      messageLocale,
+      Object.fromEntries(localizedServiceCatalogs[index].services.map((service) => [service.slug, service.name]))
+    ])
+  ) as Record<Locale, Record<string, string>>;
 
   return (
     <BookingsCalendar
@@ -44,6 +53,7 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
       scheduleBlocks={data.scheduleBlocks}
       serviceCatalog={serviceCatalogData.services}
       serviceCatalogError={serviceCatalogData.error}
+      localizedServiceNames={localizedServiceNames}
       therapists={data.therapists}
     />
   );

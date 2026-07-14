@@ -11,6 +11,7 @@ import {
   DashboardBlockedTimeError,
   DashboardForbiddenError,
   DashboardServiceRestrictionError,
+  getBookingById,
   updateBookingInternalNotes,
   updateBookingStatus
 } from "@/lib/dashboard/bookings";
@@ -28,7 +29,9 @@ import {
 } from "@/lib/dashboard/promotions";
 import { saveClient, type SaveClientInput } from "@/lib/dashboard/clients";
 import {
+  createClientRebookingLinkForAuthorizedBooking,
   createClientRebookingLink,
+  revokeClientRebookingLinkForAuthorizedBooking,
   revokeClientRebookingLink,
   type RebookingTokenMetadata
 } from "@/lib/rebooking/tokens";
@@ -47,7 +50,7 @@ export type RebookingLinkActionResult =
     }
   | {
       ok: false;
-      reason: "forbidden" | "error";
+      reason: "forbidden" | "error" | "missing_client";
     };
 
 type BookingActionInput = {
@@ -275,6 +278,85 @@ export async function revokeClientRebookingLinkAction(
 
     if (process.env.NODE_ENV !== "production") {
       console.error("[rebooking revoke action failed]", error);
+    }
+
+    return { ok: false, reason: "error" };
+  }
+}
+
+async function getAuthorizedBookingClientId(locale: Locale, bookingId: string) {
+  const user = await requireDashboardUser(locale);
+  const booking = await getBookingById(user, bookingId);
+
+  if (!booking) {
+    throw new DashboardForbiddenError();
+  }
+
+  return {
+    user,
+    clientId: booking.clientId
+  };
+}
+
+export async function generateBookingRebookingLinkAction(
+  locale: Locale,
+  input: { bookingId: string; messageLocale: Locale }
+): Promise<RebookingLinkActionResult> {
+  try {
+    const { user, clientId } = await getAuthorizedBookingClientId(locale, input.bookingId);
+
+    if (!clientId) {
+      return { ok: false, reason: "missing_client" };
+    }
+
+    const result = await createClientRebookingLinkForAuthorizedBooking({
+      clientId,
+      locale: input.messageLocale,
+      createdBy: user.id
+    });
+
+    return {
+      ok: true,
+      rebookingUrl: result.url,
+      token: result.token
+    };
+  } catch (error) {
+    if (error instanceof DashboardForbiddenError) {
+      return { ok: false, reason: "forbidden" };
+    }
+
+    if (process.env.NODE_ENV !== "production") {
+      console.error("[booking rebooking link action failed]", error);
+    }
+
+    return { ok: false, reason: "error" };
+  }
+}
+
+export async function revokeBookingRebookingLinkAction(
+  locale: Locale,
+  input: { bookingId: string }
+): Promise<RebookingLinkActionResult> {
+  try {
+    const { clientId } = await getAuthorizedBookingClientId(locale, input.bookingId);
+
+    if (!clientId) {
+      return { ok: false, reason: "missing_client" };
+    }
+
+    const token = await revokeClientRebookingLinkForAuthorizedBooking(clientId);
+
+    return {
+      ok: true,
+      token
+    };
+  } catch (error) {
+    if (error instanceof DashboardForbiddenError) {
+      return { ok: false, reason: "forbidden" };
+    }
+
+    if (process.env.NODE_ENV !== "production") {
+      console.error("[booking rebooking revoke action failed]", error);
     }
 
     return { ok: false, reason: "error" };
