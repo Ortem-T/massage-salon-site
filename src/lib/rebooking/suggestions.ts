@@ -19,6 +19,16 @@ export type SuggestedRebooking = {
   time: string | null;
 };
 
+export type RebookingSuggestionMode = "automatic" | "manual";
+
+export type RebookingTemplate = {
+  serviceSlug: string;
+  serviceRecordId: string;
+  therapistId: string;
+  serviceDurationMinutes: number;
+  previousTime: string;
+};
+
 type PreviousBookingRow = {
   service: string;
   therapist_id: string | null;
@@ -32,7 +42,6 @@ type PublicAvailabilityRow = Database["public"]["Views"]["public_booking_availab
 type PublicScheduleBlockRow = Database["public"]["Views"]["public_schedule_block_availability"]["Row"];
 
 const salonTimeZone = "Europe/Belgrade";
-const rebookingSearchWindowDays = 60;
 
 function getBelgradeParts(date: Date) {
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -78,6 +87,13 @@ function getDateRange(startDate: string, endDate: string) {
   }
 
   return dates;
+}
+
+function isDateInBookingWindow(value: string) {
+  const now = getBelgradeNow();
+  const endDate = addDays(now.date, defaultBookingAvailability.maxAdvanceBookingDays);
+
+  return value >= now.date && value <= endDate;
 }
 
 function isPastBooking(booking: PreviousBookingRow, nowKey: string) {
@@ -155,7 +171,7 @@ async function findNearestAvailableSlot(
   }
 ) {
   const now = getBelgradeNow();
-  const endDate = addDays(now.date, rebookingSearchWindowDays);
+  const endDate = addDays(now.date, defaultBookingAvailability.maxAdvanceBookingDays);
   const [{ data: availabilityRows, error: availabilityError }, { data: blockRows, error: blocksError }] = await Promise.all([
     supabase
       .from("public_booking_availability")
@@ -207,10 +223,110 @@ async function findNearestAvailableSlot(
   return null;
 }
 
-export async function getSuggestedRebookingForClient(
+async function getAvailableSlotsForDate(
+  supabase: SupabaseAdminClient,
+  input: {
+    date: string;
+    serviceDurationMinutes: number;
+    therapistId: string;
+  }
+) {
+  const now = getBelgradeNow();
+  const [{ data: availabilityRows, error: availabilityError }, { data: blockRows, error: blocksError }] = await Promise.all([
+    supabase
+      .from("public_booking_availability")
+      .select("booking_date, preferred_time, therapist_id, service_slug, duration_minutes, status")
+      .eq("booking_date", input.date),
+    supabase
+      .from("public_schedule_block_availability")
+      .select("block_date, therapist_id, block_type, block_scope, start_time, end_time")
+      .eq("block_date", input.date)
+  ]);
+
+  if (availabilityError || blocksError) {
+    return null;
+  }
+
+  let slots = calculateAvailableTimeSlots({
+    therapistId: input.therapistId,
+    serviceDurationMinutes: input.serviceDurationMinutes,
+    date: input.date,
+    bookings: ((availabilityRows ?? []) as PublicAvailabilityRow[]).map(toAvailabilityBooking),
+    scheduleBlocks: ((blockRows ?? []) as PublicScheduleBlockRow[]).map(toAvailabilityScheduleBlock),
+    bookingWindow: getDefaultBookingStartWindow(),
+    breakMinutes: defaultBookingAvailability.breakMinutes
+  });
+
+  if (input.date === now.date) {
+    slots = slots.filter((slot) => {
+      const minutes = timeToMinutes(slot);
+      return minutes !== null && minutes > now.minutes;
+    });
+  }
+
+  return slots;
+}
+
+async function getValidatedRebookingTemplate(
+  supabase: SupabaseAdminClient,
+  input: {
+    serviceSlug: string;
+    therapistId: string | null;
+    previousTime: string;
+  }
+): Promise<RebookingTemplate | null> {
+  if (!input.therapistId) {
+    return null;
+  }
+
+  const { data: service, error: serviceError } = await supabase
+    .from("services")
+    .select("id, slug, duration_minutes")
+    .eq("slug", input.serviceSlug)
+    .eq("active", true)
+    .eq("bookable_online", true)
+    .maybeSingle();
+
+  if (serviceError || !service || !Number.isFinite(service.duration_minutes) || service.duration_minutes <= 0) {
+    return null;
+  }
+
+  const { data: therapist, error: therapistError } = await supabase
+    .from("therapists")
+    .select("id")
+    .eq("id", input.therapistId)
+    .eq("active", true)
+    .maybeSingle();
+
+  if (therapistError || !therapist) {
+    return null;
+  }
+
+  const { data: therapistService, error: therapistServiceError } = await supabase
+    .from("therapist_services")
+    .select("id")
+    .eq("service_id", service.id)
+    .eq("therapist_id", therapist.id)
+    .eq("active", true)
+    .maybeSingle();
+
+  if (therapistServiceError || !therapistService) {
+    return null;
+  }
+
+  return {
+    serviceSlug: service.slug,
+    serviceRecordId: service.id,
+    therapistId: therapist.id,
+    serviceDurationMinutes: service.duration_minutes,
+    previousTime: input.previousTime
+  };
+}
+
+export async function getRebookingTemplateForClient(
   supabase: SupabaseAdminClient,
   clientId: string
-): Promise<SuggestedRebooking | null> {
+): Promise<RebookingTemplate | null> {
   const now = getBelgradeNow();
   const { data: previousRows, error: previousError } = await supabase
     .from("bookings")
@@ -231,58 +347,45 @@ export async function getSuggestedRebookingForClient(
     return null;
   }
 
-  const { data: service, error: serviceError } = await supabase
-    .from("services")
-    .select("id, slug, duration_minutes")
-    .eq("slug", previousBooking.service)
-    .eq("active", true)
-    .eq("bookable_online", true)
-    .maybeSingle();
+  return getValidatedRebookingTemplate(supabase, {
+    serviceSlug: previousBooking.service,
+    therapistId: previousBooking.therapist_id,
+    previousTime: previousBooking.preferred_time
+  });
+}
 
-  if (serviceError || !service || !Number.isFinite(service.duration_minutes) || service.duration_minutes <= 0) {
+export async function getRebookingTemplateForBooking(
+  supabase: SupabaseAdminClient,
+  input: {
+    serviceSlug: string;
+    therapistId: string | null;
+    previousTime: string;
+  }
+): Promise<RebookingTemplate | null> {
+  return getValidatedRebookingTemplate(supabase, input);
+}
+
+export async function getSuggestedRebookingForClient(
+  supabase: SupabaseAdminClient,
+  clientId: string
+): Promise<SuggestedRebooking | null> {
+  const template = await getRebookingTemplateForClient(supabase, clientId);
+
+  if (!template) {
     return null;
   }
 
   const suggestion: SuggestedRebooking = {
-    serviceId: service.slug,
-    therapistId: null,
+    serviceId: template.serviceSlug,
+    therapistId: template.therapistId,
     date: null,
     time: null
   };
 
-  if (!previousBooking.therapist_id) {
-    return suggestion;
-  }
-
-  const { data: therapist, error: therapistError } = await supabase
-    .from("therapists")
-    .select("id")
-    .eq("id", previousBooking.therapist_id)
-    .eq("active", true)
-    .maybeSingle();
-
-  if (therapistError || !therapist) {
-    return suggestion;
-  }
-
-  const { data: therapistService, error: therapistServiceError } = await supabase
-    .from("therapist_services")
-    .select("id")
-    .eq("service_id", service.id)
-    .eq("therapist_id", therapist.id)
-    .eq("active", true)
-    .maybeSingle();
-
-  if (therapistServiceError || !therapistService) {
-    return suggestion;
-  }
-
-  suggestion.therapistId = therapist.id;
-
   const slot = await findNearestAvailableSlot(supabase, {
-    serviceDurationMinutes: service.duration_minutes,
-    therapistId: therapist.id,
-    previousTime: previousBooking.preferred_time
+    serviceDurationMinutes: template.serviceDurationMinutes,
+    therapistId: template.therapistId,
+    previousTime: template.previousTime
   });
 
   if (slot) {
@@ -291,4 +394,95 @@ export async function getSuggestedRebookingForClient(
   }
 
   return suggestion;
+}
+
+export async function validateManualRebookingSuggestion(
+  supabase: SupabaseAdminClient,
+  input: {
+    template: RebookingTemplate;
+    date: string;
+    time: string;
+  }
+): Promise<SuggestedRebooking | null> {
+  if (!isDateInBookingWindow(input.date)) {
+    return null;
+  }
+
+  const slots = await getAvailableSlotsForDate(supabase, {
+    date: input.date,
+    serviceDurationMinutes: input.template.serviceDurationMinutes,
+    therapistId: input.template.therapistId
+  });
+
+  if (!slots?.includes(input.time)) {
+    return null;
+  }
+
+  return {
+    serviceId: input.template.serviceSlug,
+    therapistId: input.template.therapistId,
+    date: input.date,
+    time: input.time
+  };
+}
+
+export async function resolveStoredManualRebookingSuggestion(
+  supabase: SupabaseAdminClient,
+  input: {
+    serviceId: string | null;
+    therapistId: string | null;
+    date: string | null;
+    time: string | null;
+  }
+): Promise<SuggestedRebooking | null> {
+  if (!input.serviceId || !input.therapistId || !input.date || !input.time) {
+    return null;
+  }
+
+  const { data: service } = await supabase
+    .from("services")
+    .select("slug")
+    .eq("id", input.serviceId)
+    .maybeSingle();
+
+  if (!service?.slug) {
+    return null;
+  }
+
+  const template = await getValidatedRebookingTemplate(supabase, {
+    serviceSlug: service.slug,
+    therapistId: input.therapistId,
+    previousTime: input.time
+  });
+
+  if (!template) {
+    return null;
+  }
+
+  const baseSuggestion: SuggestedRebooking = {
+    serviceId: template.serviceSlug,
+    therapistId: template.therapistId,
+    date: null,
+    time: null
+  };
+
+  if (!isDateInBookingWindow(input.date)) {
+    return baseSuggestion;
+  }
+
+  const slots = await getAvailableSlotsForDate(supabase, {
+    date: input.date,
+    serviceDurationMinutes: template.serviceDurationMinutes,
+    therapistId: template.therapistId
+  });
+
+  if (!slots) {
+    return baseSuggestion;
+  }
+
+  return {
+    ...baseSuggestion,
+    date: input.date,
+    time: orderSlotsByPreferredTime(slots, input.time)[0] ?? null
+  };
 }

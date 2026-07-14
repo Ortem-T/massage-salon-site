@@ -2347,6 +2347,7 @@ export function BookingsCalendar({
                   preferredTime: selectedBooking.preferredTime,
                   service: selectedBooking.service,
                   specialist: therapistNames.get(selectedBooking.therapistId ?? "") ?? selectedBooking.specialist,
+                  therapistId: selectedBooking.therapistId,
                   status: selectedBooking.status,
                   source: selectedBooking.source,
                   sourceChannel: selectedBooking.sourceChannel,

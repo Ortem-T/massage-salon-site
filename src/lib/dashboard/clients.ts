@@ -20,6 +20,7 @@ export type DashboardClientBooking = {
   preferredTime: string;
   service: string;
   specialist: string;
+  therapistId: string | null;
   status: BookingStatus;
   source: string;
   sourceChannel: ManualBookingSourceChannel | null;
@@ -63,6 +64,7 @@ type ClientBookingRow = {
   preferred_time: string;
   service: string;
   specialist: string;
+  therapist_id: string | null;
   status: BookingStatus;
   source: string;
   source_channel: ManualBookingSourceChannel | null;
@@ -87,9 +89,9 @@ type RebookingTokenRow = {
 
 const clientColumnsWithTimestamps = `${clientContactColumns}, created_at, updated_at`;
 const bookingColumnsWithContacts =
-  "id, preferred_date, preferred_time, service, specialist, status, source, source_channel, duration_minutes, client_comment, client_phone, client_contact_channel, client_contact_value, internal_notes, client_id";
+  "id, preferred_date, preferred_time, service, specialist, therapist_id, status, source, source_channel, duration_minutes, client_comment, client_phone, client_contact_channel, client_contact_value, internal_notes, client_id";
 const legacyBookingColumns =
-  "id, preferred_date, preferred_time, service, specialist, status, source, source_channel, client_phone, internal_notes, client_id";
+  "id, preferred_date, preferred_time, service, specialist, therapist_id, status, source, source_channel, client_phone, internal_notes, client_id";
 
 function assertAdmin(user: DashboardUser) {
   if (user.role !== "admin") {
@@ -135,6 +137,7 @@ function toDashboardClientBooking(row: ClientBookingRow): DashboardClientBooking
     preferredTime: row.preferred_time,
     service: row.service,
     specialist: row.specialist,
+    therapistId: row.therapist_id ?? null,
     status: row.status,
     source: row.source,
     sourceChannel: row.source_channel,

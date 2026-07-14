@@ -2,11 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { BookingDatePicker } from "@/components/booking/booking-date-picker";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { isLocale, locales, type Locale } from "@/i18n/config";
 import { type Dictionary } from "@/i18n/dictionaries";
+import { getTodayValue, isBookingDateSelectable, parseDateValue, toDateValue } from "@/lib/booking/booking-availability";
+import { defaultBookingAvailability } from "@/lib/booking/booking-options";
 import {
   generateBookingRebookingLinkAction,
   generateClientRebookingLinkAction,
@@ -52,6 +55,15 @@ type BookingNotificationGeneratorProps = {
 };
 
 type NotificationGeneratorProps = ClientNotificationGeneratorProps | BookingNotificationGeneratorProps;
+
+type AvailabilityDay = {
+  available: boolean;
+  availableTimeSlots: string[];
+};
+
+type AvailabilityResponse = {
+  days: Record<string, AvailabilityDay>;
+};
 
 const notificationTypes: readonly ClientNotificationType[] = [
   "booking_confirmation",
@@ -137,6 +149,25 @@ function hasBookingMessageData(booking: NotificationGeneratorBooking | null) {
   return Boolean(booking?.preferredDate && booking.preferredTime && booking.service);
 }
 
+function addDaysValue(value: string, days: number) {
+  const date = parseDateValue(value) ?? new Date();
+  date.setDate(date.getDate() + days);
+
+  return toDateValue(date);
+}
+
+function findRebookingTemplateBooking(bookings: NotificationGeneratorBooking[]) {
+  const pastBookings = bookings
+    .filter((booking) => `${booking.preferredDate}T${booking.preferredTime}` < getBelgradeNowKey())
+    .sort((a, b) => `${b.preferredDate}T${b.preferredTime}`.localeCompare(`${a.preferredDate}T${a.preferredTime}`));
+
+  return (
+    pastBookings.find((booking) => booking.status === "completed") ??
+    pastBookings.find((booking) => booking.status === "confirmed") ??
+    null
+  );
+}
+
 export function NotificationGenerator(props: NotificationGeneratorProps) {
   const copy = props.dictionary.dashboard.clients.notifications;
   const clientsCopy = props.dictionary.dashboard.clients;
@@ -177,13 +208,32 @@ export function NotificationGenerator(props: NotificationGeneratorProps) {
   const [tokenStatus, setTokenStatus] = useState<RebookingTokenMetadata | null>(initialTokenStatus);
   const [latestRebookingUrl, setLatestRebookingUrl] = useState<string | null>(null);
   const [isTokenPending, setIsTokenPending] = useState(false);
+  const [isAutomaticSuggestion, setIsAutomaticSuggestion] = useState(true);
+  const [manualDate, setManualDate] = useState("");
+  const [manualTime, setManualTime] = useState("");
+  const [manualAvailableTimeSlots, setManualAvailableTimeSlots] = useState<string[]>([]);
+  const [isManualAvailabilityLoading, setIsManualAvailabilityLoading] = useState(false);
+  const [manualAvailabilityError, setManualAvailabilityError] = useState(false);
+  const manualMinDate = useMemo(() => getTodayValue(), []);
+  const manualMaxDate = useMemo(
+    () => addDaysValue(manualMinDate, defaultBookingAvailability.maxAdvanceBookingDays),
+    [manualMinDate]
+  );
   const requiresBooking = bookingRequiredTypes.has(messageType);
   const selectedBooking = isBookingMode
     ? props.booking
     : eligibleBookings.find((booking) => booking.id === selectedBookingId) ?? null;
   const hasLinkedClient = Boolean(props.clientId);
+  const rebookingTemplateBooking = isBookingMode ? props.booking : findRebookingTemplateBooking(props.bookings);
+  const manualServiceSlug = rebookingTemplateBooking?.service ?? "";
+  const manualTherapistId = rebookingTemplateBooking?.therapistId ?? "";
+  const canUseManualSuggestion = Boolean(hasLinkedClient && manualServiceSlug && manualTherapistId);
+  const isManualSuggestionSelected = messageType === "rebooking" && !isAutomaticSuggestion;
+  const manualCanLoadAvailability = Boolean(isManualSuggestionSelected && canUseManualSuggestion && manualDate);
   const hasMessageData = !requiresBooking || hasBookingMessageData(selectedBooking);
-  const canGenerate = hasMessageData && (messageType !== "rebooking" || hasLinkedClient);
+  const hasValidManualSuggestion =
+    !isManualSuggestionSelected || Boolean(manualDate && manualTime && manualAvailableTimeSlots.includes(manualTime));
+  const canGenerate = hasMessageData && (messageType !== "rebooking" || (hasLinkedClient && hasValidManualSuggestion));
   const instanceId = `${props.mode}-${props.mode === "client" ? props.clientId : props.booking.id}`;
 
   useEffect(() => {
@@ -194,6 +244,11 @@ export function NotificationGenerator(props: NotificationGeneratorProps) {
     setCopyMessage(null);
     setTokenStatus(initialTokenStatus);
     setLatestRebookingUrl(null);
+    setIsAutomaticSuggestion(true);
+    setManualDate("");
+    setManualTime("");
+    setManualAvailableTimeSlots([]);
+    setManualAvailabilityError(false);
   }, [defaultBooking?.id, defaultLanguage, identityKey, initialTokenStatus, props.mode]);
 
   useEffect(() => {
@@ -203,6 +258,76 @@ export function NotificationGenerator(props: NotificationGeneratorProps) {
 
     setSelectedBookingId(findDefaultBooking(sourceBookings)?.id ?? "");
   }, [isBookingMode, requiresBooking, selectedBookingId, sourceBookings]);
+
+  useEffect(() => {
+    if (messageType === "rebooking") {
+      return;
+    }
+
+    setIsAutomaticSuggestion(true);
+    setManualDate("");
+    setManualTime("");
+    setManualAvailableTimeSlots([]);
+    setManualAvailabilityError(false);
+    setLatestRebookingUrl(null);
+  }, [messageType]);
+
+  useEffect(() => {
+    if (!manualCanLoadAvailability) {
+      setManualAvailableTimeSlots([]);
+      setIsManualAvailabilityLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const params = new URLSearchParams({
+      therapistId: manualTherapistId,
+      serviceSlug: manualServiceSlug,
+      startDate: manualDate,
+      endDate: manualDate
+    });
+
+    setIsManualAvailabilityLoading(true);
+    setManualAvailabilityError(false);
+
+    fetch(`/api/booking-availability?${params.toString()}`, {
+      cache: "no-store",
+      signal: controller.signal
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("Rebooking availability could not be loaded.");
+        }
+
+        return (await response.json()) as AvailabilityResponse;
+      })
+      .then((data) => {
+        setManualAvailableTimeSlots(data.days[manualDate]?.availableTimeSlots ?? []);
+      })
+      .catch((error) => {
+        if ((error as Error).name === "AbortError") {
+          return;
+        }
+
+        setManualAvailableTimeSlots([]);
+        setManualAvailabilityError(true);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setIsManualAvailabilityLoading(false);
+        }
+      });
+
+    return () => {
+      controller.abort();
+    };
+  }, [manualCanLoadAvailability, manualDate, manualServiceSlug, manualTherapistId]);
+
+  useEffect(() => {
+    if (manualTime && !manualAvailableTimeSlots.includes(manualTime)) {
+      setManualTime("");
+    }
+  }, [manualAvailableTimeSlots, manualTime]);
 
   function getServiceName(booking: NotificationGeneratorBooking) {
     return serviceBySlug.get(booking.service)?.name ?? booking.service;
@@ -275,19 +400,40 @@ export function NotificationGenerator(props: NotificationGeneratorProps) {
     setCopyMessage(null);
 
     try {
+      const suggestionInput = isAutomaticSuggestion
+        ? { suggestionMode: "automatic" as const }
+        : {
+            suggestionMode: "manual" as const,
+            manualSuggestion: {
+              date: manualDate,
+              time: manualTime
+            }
+          };
       const result = props.mode === "client"
         ? await generateClientRebookingLinkAction(props.locale, {
             clientId: props.clientId,
-            messageLocale: messageLanguage
+            messageLocale: messageLanguage,
+            ...suggestionInput
           })
         : await generateBookingRebookingLinkAction(props.locale, {
             bookingId: props.booking.id,
-            messageLocale: messageLanguage
-      });
+            messageLocale: messageLanguage,
+            ...suggestionInput
+          });
 
       if (!result.ok || !result.rebookingUrl) {
         const reason = result.ok ? null : result.reason;
-        setCopyMessage(reason === "missing_client" ? copy.linkedClientRequired : copy.tokenMessages.error);
+        setCopyMessage(
+          reason === "missing_client"
+            ? copy.linkedClientRequired
+            : reason === "manual_required"
+              ? copy.manualRequired
+              : reason === "manual_unavailable"
+                ? copy.manualUnavailable
+                : reason === "slot_unavailable"
+                  ? copy.slotUnavailable
+                  : copy.tokenMessages.error
+        );
         return null;
       }
 
@@ -340,6 +486,23 @@ export function NotificationGenerator(props: NotificationGeneratorProps) {
     if (messageType === "rebooking" && !hasLinkedClient) {
       setCopyMessage(copy.linkedClientRequired);
       return;
+    }
+
+    if (isManualSuggestionSelected) {
+      if (!canUseManualSuggestion) {
+        setCopyMessage(copy.manualUnavailable);
+        return;
+      }
+
+      if (!manualDate || !manualTime) {
+        setCopyMessage(copy.manualRequired);
+        return;
+      }
+
+      if (!manualAvailableTimeSlots.includes(manualTime)) {
+        setCopyMessage(copy.slotUnavailable);
+        return;
+      }
     }
 
     const rebookingUrl = messageType === "rebooking"
@@ -398,7 +561,6 @@ export function NotificationGenerator(props: NotificationGeneratorProps) {
               value={messageLanguage}
               onChange={(event) => {
                 setMessageLanguage(event.target.value as ClientNotificationLanguage);
-                setLatestRebookingUrl(null);
                 setCopyMessage(null);
               }}
             >
@@ -463,6 +625,93 @@ export function NotificationGenerator(props: NotificationGeneratorProps) {
           <p className="mt-3 rounded-2xl border border-primary/12 bg-secondary/45 px-4 py-3 text-xs leading-5 text-muted-foreground">
             {hasLinkedClient ? copy.rebookingNote : copy.linkedClientRequired}
           </p>
+        ) : null}
+
+        {messageType === "rebooking" ? (
+          <div className="mt-4 rounded-2xl border border-border/70 bg-background/50 p-4">
+            <label className="flex items-start gap-3 text-sm font-semibold text-primary">
+              <input
+                type="checkbox"
+                className="mt-1 size-4 rounded border-border accent-primary"
+                checked={isAutomaticSuggestion}
+                onChange={(event) => {
+                  setIsAutomaticSuggestion(event.target.checked);
+                  setManualDate("");
+                  setManualTime("");
+                  setManualAvailableTimeSlots([]);
+                  setManualAvailabilityError(false);
+                  setLatestRebookingUrl(null);
+                  setCopyMessage(null);
+                }}
+              />
+              <span>{copy.automaticDateTime}</span>
+            </label>
+
+            {!isAutomaticSuggestion ? (
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label htmlFor={`${instanceId}-manual-date`} className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                    {copy.fields.date}
+                  </label>
+                  <BookingDatePicker
+                    id={`${instanceId}-manual-date`}
+                    copy={props.dictionary.booking.calendar}
+                    disabled={!canUseManualSuggestion}
+                    invalid={Boolean(copyMessage === copy.manualRequired && !manualDate)}
+                    isDateSelectable={(value) => isBookingDateSelectable(value, manualMinDate, manualMaxDate)}
+                    locale={props.locale}
+                    minDate={manualMinDate}
+                    value={manualDate}
+                    onChange={(value) => {
+                      setManualDate(value);
+                      setManualTime("");
+                      setLatestRebookingUrl(null);
+                      setCopyMessage(null);
+                    }}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor={`${instanceId}-manual-time`} className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                    {copy.fields.time}
+                  </label>
+                  <Select
+                    id={`${instanceId}-manual-time`}
+                    disabled={!canUseManualSuggestion || !manualDate || isManualAvailabilityLoading || manualAvailableTimeSlots.length === 0}
+                    value={manualTime}
+                    onChange={(event) => {
+                      setManualTime(event.target.value);
+                      setLatestRebookingUrl(null);
+                      setCopyMessage(null);
+                    }}
+                  >
+                    <option value="">
+                      {!manualDate
+                        ? copy.placeholders.timeSelectDateFirst
+                        : isManualAvailabilityLoading
+                          ? props.dictionary.booking.availability.loadingTimes
+                          : manualAvailabilityError || !canUseManualSuggestion
+                            ? copy.manualUnavailable
+                            : manualAvailableTimeSlots.length === 0
+                              ? copy.noAvailableTimes
+                              : props.dictionary.booking.fields.time.placeholder}
+                    </option>
+                    {manualAvailableTimeSlots.map((time) => (
+                      <option key={time} value={time}>
+                        {time}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+
+                {!canUseManualSuggestion || manualAvailabilityError ? (
+                  <p className="text-sm leading-6 text-muted-foreground sm:col-span-2">{copy.manualUnavailable}</p>
+                ) : manualDate && !isManualAvailabilityLoading && manualAvailableTimeSlots.length === 0 ? (
+                  <p className="text-sm leading-6 text-muted-foreground sm:col-span-2">{copy.noAvailableTimes}</p>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
         ) : null}
 
         {messageType === "rebooking" ? (
