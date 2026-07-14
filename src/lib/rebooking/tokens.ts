@@ -6,7 +6,11 @@ import { siteUrl } from "@/config/seo";
 import { isLocale, type Locale } from "@/i18n/config";
 import { type DashboardUser } from "@/lib/dashboard/auth";
 import { DashboardForbiddenError } from "@/lib/dashboard/bookings";
-import { getSuggestedRebookingForClient, type SuggestedRebooking } from "@/lib/rebooking/suggestions";
+import {
+  getSuggestedRebookingForClient,
+  resolveStoredManualRebookingSuggestion,
+  type SuggestedRebooking
+} from "@/lib/rebooking/suggestions";
 import { createSupabaseAdminClient, hasSupabaseAdminEnv } from "@/lib/supabase/admin";
 import { createSupabasePublicClient } from "@/lib/supabase/client";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -28,6 +32,18 @@ export type RebookingPrefill = {
   preferredLocale: Locale | null;
   suggestedBooking: SuggestedRebooking | null;
 };
+
+export type StoredRebookingSuggestion =
+  | {
+      mode: "automatic";
+    }
+  | {
+      mode: "manual";
+      serviceId: string;
+      therapistId: string;
+      date: string;
+      time: string;
+    };
 
 const rebookingTokenBytes = 32;
 const rebookingTokenExpiryDays = 180;
@@ -98,8 +114,83 @@ export function toRebookingTokenMetadata(row: {
   };
 }
 
-export async function createClientRebookingLink(user: DashboardUser, input: { clientId: string; locale: Locale }) {
+async function createClientRebookingLinkWithAdmin(input: {
+  clientId: string;
+  locale: Locale;
+  createdBy: string | null;
+  suggestion?: StoredRebookingSuggestion;
+}) {
+  const rawToken = createRawRebookingToken();
+  const tokenHash = hashRebookingToken(rawToken);
+  const expiresAt = getExpiryDate().toISOString();
+  const supabase = createSupabaseAdminClient();
+  const now = new Date().toISOString();
+
+  const { data: client, error: clientError } = await supabase
+    .from("clients")
+    .select("id")
+    .eq("id", input.clientId)
+    .maybeSingle();
+
+  if (clientError || !client) {
+    throw new Error("Client not found.");
+  }
+
+  const { error: revokeError } = await supabase
+    .from("client_rebooking_tokens")
+    .update({
+      revoked_at: now,
+      updated_at: now
+    })
+    .eq("client_id", input.clientId)
+    .is("revoked_at", null)
+    .gt("expires_at", now);
+
+  if (revokeError) {
+    throw new Error(revokeError.message);
+  }
+
+  const suggestion = input.suggestion ?? { mode: "automatic" as const };
+  const { data, error } = await supabase
+    .from("client_rebooking_tokens")
+    .insert({
+      client_id: input.clientId,
+      token_hash: tokenHash,
+      expires_at: expiresAt,
+      created_by: input.createdBy,
+      suggestion_mode: suggestion.mode,
+      suggested_service_id: suggestion.mode === "manual" ? suggestion.serviceId : null,
+      suggested_therapist_id: suggestion.mode === "manual" ? suggestion.therapistId : null,
+      suggested_date: suggestion.mode === "manual" ? suggestion.date : null,
+      suggested_time: suggestion.mode === "manual" ? suggestion.time : null
+    })
+    .select("id, expires_at, revoked_at, last_used_at, use_count")
+    .maybeSingle();
+
+  if (error || !data) {
+    throw new Error(error?.message ?? "Rebooking token could not be created.");
+  }
+
+  return {
+    url: buildRebookingUrl(input.locale, rawToken),
+    token: toRebookingTokenMetadata(data)
+  };
+}
+
+export async function createClientRebookingLink(
+  user: DashboardUser,
+  input: { clientId: string; locale: Locale; suggestion?: StoredRebookingSuggestion }
+) {
   assertAdmin(user);
+
+  if (input.suggestion?.mode === "manual") {
+    return createClientRebookingLinkWithAdmin({
+      clientId: input.clientId,
+      locale: input.locale,
+      createdBy: user.id,
+      suggestion: input.suggestion
+    });
+  }
 
   const rawToken = createRawRebookingToken();
   const tokenHash = hashRebookingToken(rawToken);
@@ -140,56 +231,9 @@ export async function createClientRebookingLinkForAuthorizedBooking(input: {
   clientId: string;
   locale: Locale;
   createdBy: string;
+  suggestion?: StoredRebookingSuggestion;
 }) {
-  const rawToken = createRawRebookingToken();
-  const tokenHash = hashRebookingToken(rawToken);
-  const expiresAt = getExpiryDate().toISOString();
-  const supabase = createSupabaseAdminClient();
-  const now = new Date().toISOString();
-
-  const { data: client, error: clientError } = await supabase
-    .from("clients")
-    .select("id")
-    .eq("id", input.clientId)
-    .maybeSingle();
-
-  if (clientError || !client) {
-    throw new Error("Client not found.");
-  }
-
-  const { error: revokeError } = await supabase
-    .from("client_rebooking_tokens")
-    .update({
-      revoked_at: now,
-      updated_at: now
-    })
-    .eq("client_id", input.clientId)
-    .is("revoked_at", null)
-    .gt("expires_at", now);
-
-  if (revokeError) {
-    throw new Error(revokeError.message);
-  }
-
-  const { data, error } = await supabase
-    .from("client_rebooking_tokens")
-    .insert({
-      client_id: input.clientId,
-      token_hash: tokenHash,
-      expires_at: expiresAt,
-      created_by: input.createdBy
-    })
-    .select("id, expires_at, revoked_at, last_used_at, use_count")
-    .maybeSingle();
-
-  if (error || !data) {
-    throw new Error(error?.message ?? "Rebooking token could not be created.");
-  }
-
-  return {
-    url: buildRebookingUrl(input.locale, rawToken),
-    token: toRebookingTokenMetadata(data)
-  };
+  return createClientRebookingLinkWithAdmin(input);
 }
 
 export async function revokeClientRebookingLinkForAuthorizedBooking(clientId: string) {
@@ -230,7 +274,7 @@ async function resolveClientRebookingTokenWithAdmin(rawToken: string): Promise<R
   const supabase = createSupabaseAdminClient();
   const { data: token, error: tokenError } = await supabase
     .from("client_rebooking_tokens")
-    .select("id, client_id, use_count")
+    .select("id, client_id, use_count, suggestion_mode, suggested_service_id, suggested_therapist_id, suggested_date, suggested_time")
     .eq("token_hash", hashRebookingToken(rawToken))
     .is("revoked_at", null)
     .gt("expires_at", new Date().toISOString())
@@ -255,7 +299,14 @@ async function resolveClientRebookingTokenWithAdmin(rawToken: string): Promise<R
     return null;
   }
 
-  const suggestedBooking = await getSuggestedRebookingForClient(supabase, token.client_id);
+  const suggestedBooking = token.suggestion_mode === "manual"
+    ? await resolveStoredManualRebookingSuggestion(supabase, {
+        serviceId: token.suggested_service_id,
+        therapistId: token.suggested_therapist_id,
+        date: token.suggested_date,
+        time: token.suggested_time
+      })
+    : await getSuggestedRebookingForClient(supabase, token.client_id);
 
   await supabase
     .from("client_rebooking_tokens")

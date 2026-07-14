@@ -165,6 +165,9 @@ Admin users can generate personalized rebooking links for clients from the Clien
 - Suggested booking data is derived from the client's own most recent completed visit, or most recent past confirmed visit when no completed visit exists. Cancelled, pending, future, unrelated, comments, internal notes, source/channel history, promotion history, booking ids, and client ids are not exposed.
 - Suggested service and therapist are revalidated against active public services, active therapists, and active `therapist_services` before they are returned.
 - Suggested date/time are calculated server-side from the same safe public availability projections used by the public booking flow, including pending/confirmed bookings, schedule blocks, duration rounding, 30-minute break, and the 10:00-19:00 start window.
+- Staff may optionally store a manual rebooking suggestion on the token row. Manual suggestions store service id, therapist id, date, and time server-side only; the public URL still contains only the opaque token.
+- Manual suggestions are validated before token creation: the server resolves the eligible previous client booking or opened booking, validates active/bookable service, active therapist, active `therapist_services` relation, booking window, and current availability. The browser is not trusted for service, therapist, booking ownership, or slot validity.
+- Manual suggestions do not reserve a slot and do not create a booking. When the token is resolved, the stored slot is checked again. If the exact time is no longer available, the resolver picks the nearest available time on the same date, preferring later times on equal distance. If no same-date time remains, the date can still prefill and time remains empty.
 - Invalid, expired, revoked, malformed, or missing tokens return the same generic public error shape.
 - The public booking form removes a valid token from the visible URL after successful resolution and does not auto-submit.
 - Raw tokens and phone numbers must not be logged.
@@ -192,6 +195,7 @@ The booking details notification block reuses the same manual generator in a boo
 - Admin users can generate messages for any booking they are allowed to view.
 - Therapist users can generate messages only for bookings selected through the therapist-scoped dashboard query.
 - Rebooking generation sends only `bookingId` and selected message locale to the server action. The server re-fetches the booking with the authenticated dashboard user, verifies admin/therapist access, and resolves `client_id` from the database.
+- Booking-context manual rebooking generation sends only `bookingId`, selected locale, and requested manual date/time. The server resolves service, therapist, and linked client from the authorized booking.
 - Client ids supplied by the browser are not trusted for booking-context rebooking generation.
 - If a booking has no linked `client_id`, the UI shows a localized explanation and no personalized link is created from snapshot name/phone data.
 - Booking-context rebooking token creation uses the server-only Supabase secret client after the booking access check. The secret key is never imported into client components and is never exposed with a `NEXT_PUBLIC_` prefix.

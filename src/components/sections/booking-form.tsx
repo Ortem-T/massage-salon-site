@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { type Locale } from "@/i18n/config";
 import { type Dictionary } from "@/i18n/dictionaries";
 import { getTodayValue, isBookingDateSelectable, parseDateValue, toDateValue } from "@/lib/booking/booking-availability";
+import { defaultBookingAvailability } from "@/lib/booking/booking-options";
 import { type BookingFormValues, createBookingFormSchema } from "@/lib/booking/booking-schema";
 import { BookingRequestError, createBookingRequest } from "@/lib/booking/create-booking-request";
 import {
@@ -120,7 +121,7 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
   const [isSuccess, setIsSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const today = useMemo(() => getTodayValue(), []);
-  const maxBookingDate = useMemo(() => addDaysValue(today, 60), [today]);
+  const maxBookingDate = useMemo(() => addDaysValue(today, defaultBookingAvailability.maxAdvanceBookingDays), [today]);
   const [visibleMonth, setVisibleMonth] = useState(() => getMonthStartValue(today));
   const [availabilityByDate, setAvailabilityByDate] = useState<Record<string, AvailabilityDay>>({});
   const [isAvailabilityLoading, setIsAvailabilityLoading] = useState(false);
@@ -134,6 +135,7 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
   const autoSelectionServiceRef = useRef("");
   const appliedRebookingTokenRef = useRef<string | null>(null);
   const suppressAutoTherapistForServiceRef = useRef<string | null>(null);
+  const allowUnavailableSuggestedDateRef = useRef("");
   const availabilityRange = useMemo(() => getCalendarRange(visibleMonth), [visibleMonth]);
   const schema = useMemo(
     () =>
@@ -546,7 +548,8 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
       canLoadAvailability &&
       !isAvailabilityLoading &&
       availabilityByDate[selectedDate] &&
-      !availabilityByDate[selectedDate].available
+      !availabilityByDate[selectedDate].available &&
+      allowUnavailableSuggestedDateRef.current !== selectedDate
     ) {
       setValue("preferredDate", "", { shouldDirty: true, shouldValidate: true });
       setValue("preferredTime", "", { shouldDirty: true, shouldValidate: true });
@@ -597,6 +600,17 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
     }
 
     if (!suggestedDay.available) {
+      allowUnavailableSuggestedDateRef.current = pendingRebookingSuggestion.date;
+      setValue("preferredDate", pendingRebookingSuggestion.date, {
+        shouldDirty: false,
+        shouldTouch: false,
+        shouldValidate: true
+      });
+      setValue("preferredTime", "", {
+        shouldDirty: false,
+        shouldTouch: false,
+        shouldValidate: true
+      });
       setPendingRebookingSuggestion(null);
       setRebookingPrefillStep("idle");
       return;
@@ -640,6 +654,7 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
   ]);
 
   function selectDate(value: string) {
+    allowUnavailableSuggestedDateRef.current = "";
     setValue("preferredDate", value, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
   }
 

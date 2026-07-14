@@ -8,6 +8,7 @@ import {
   assignTherapistToBooking,
   createManualBooking,
   type CreateManualBookingInput,
+  type DashboardBooking,
   DashboardBlockedTimeError,
   DashboardForbiddenError,
   DashboardServiceRestrictionError,
@@ -33,9 +34,16 @@ import {
   createClientRebookingLink,
   revokeClientRebookingLinkForAuthorizedBooking,
   revokeClientRebookingLink,
+  type StoredRebookingSuggestion,
   type RebookingTokenMetadata
 } from "@/lib/rebooking/tokens";
 import { type BookingStatus } from "@/lib/booking/booking-schema";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import {
+  getRebookingTemplateForBooking,
+  getRebookingTemplateForClient,
+  validateManualRebookingSuggestion
+} from "@/lib/rebooking/suggestions";
 
 export type DashboardActionResult = {
   ok: boolean;
@@ -50,12 +58,25 @@ export type RebookingLinkActionResult =
     }
   | {
       ok: false;
-      reason: "forbidden" | "error" | "missing_client";
+      reason: "forbidden" | "error" | "missing_client" | "manual_required" | "manual_unavailable" | "slot_unavailable";
     };
 
 type BookingActionInput = {
   bookingId: string;
 };
+
+type RebookingSuggestionActionInput =
+  | {
+      suggestionMode?: "automatic";
+      manualSuggestion?: never;
+    }
+  | {
+      suggestionMode: "manual";
+      manualSuggestion: {
+        date: string;
+        time: string;
+      };
+    };
 
 function toActionResult(error: unknown): DashboardActionResult {
   if (error instanceof DashboardForbiddenError) {
@@ -234,13 +255,19 @@ export async function saveClientAction(
 
 export async function generateClientRebookingLinkAction(
   locale: Locale,
-  input: { clientId: string; messageLocale: Locale }
+  input: { clientId: string; messageLocale: Locale } & RebookingSuggestionActionInput
 ): Promise<RebookingLinkActionResult> {
   try {
     const user = await requireDashboardUser(locale);
+    if (user.role !== "admin") {
+      throw new DashboardForbiddenError();
+    }
+
+    const suggestion = await resolveClientRebookingSuggestionInput(input);
     const result = await createClientRebookingLink(user, {
       clientId: input.clientId,
-      locale: input.messageLocale
+      locale: input.messageLocale,
+      suggestion
     });
     return {
       ok: true,
@@ -248,16 +275,75 @@ export async function generateClientRebookingLinkAction(
       token: result.token
     };
   } catch (error) {
-    if (error instanceof DashboardForbiddenError) {
-      return { ok: false, reason: "forbidden" };
-    }
-
-    if (process.env.NODE_ENV !== "production") {
-      console.error("[rebooking link action failed]", error);
-    }
-
-    return { ok: false, reason: "error" };
+    return toRebookingActionError(error);
   }
+}
+
+async function resolveClientRebookingSuggestionInput(input: {
+  clientId: string;
+  suggestionMode?: "automatic" | "manual";
+  manualSuggestion?: { date: string; time: string };
+}): Promise<StoredRebookingSuggestion | undefined> {
+  if (input.suggestionMode !== "manual") {
+    return undefined;
+  }
+
+  if (!input.manualSuggestion?.date || !input.manualSuggestion.time) {
+    throw new RebookingManualRequiredError();
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const template = await getRebookingTemplateForClient(supabase, input.clientId);
+
+  if (!template) {
+    throw new RebookingManualUnavailableError();
+  }
+
+  const validated = await validateManualRebookingSuggestion(supabase, {
+    template,
+    date: input.manualSuggestion.date,
+    time: input.manualSuggestion.time
+  });
+
+  if (!validated?.therapistId || !validated.date || !validated.time) {
+    throw new RebookingSlotUnavailableError();
+  }
+
+  return {
+    mode: "manual",
+    serviceId: template.serviceRecordId,
+    therapistId: validated.therapistId,
+    date: validated.date,
+    time: validated.time
+  };
+}
+
+class RebookingManualRequiredError extends Error {}
+class RebookingManualUnavailableError extends Error {}
+class RebookingSlotUnavailableError extends Error {}
+
+function toRebookingActionError(error: unknown): RebookingLinkActionResult {
+  if (error instanceof DashboardForbiddenError) {
+    return { ok: false, reason: "forbidden" };
+  }
+
+  if (error instanceof RebookingManualRequiredError) {
+    return { ok: false, reason: "manual_required" };
+  }
+
+  if (error instanceof RebookingManualUnavailableError) {
+    return { ok: false, reason: "manual_unavailable" };
+  }
+
+  if (error instanceof RebookingSlotUnavailableError) {
+    return { ok: false, reason: "slot_unavailable" };
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    console.error("[rebooking link action failed]", error);
+  }
+
+  return { ok: false, reason: "error" };
 }
 
 export async function revokeClientRebookingLinkAction(
@@ -300,19 +386,22 @@ async function getAuthorizedBookingClientId(locale: Locale, bookingId: string) {
 
 export async function generateBookingRebookingLinkAction(
   locale: Locale,
-  input: { bookingId: string; messageLocale: Locale }
+  input: { bookingId: string; messageLocale: Locale } & RebookingSuggestionActionInput
 ): Promise<RebookingLinkActionResult> {
   try {
-    const { user, clientId } = await getAuthorizedBookingClientId(locale, input.bookingId);
+    const { user, booking } = await getAuthorizedBookingForRebooking(locale, input.bookingId);
+    const clientId = booking.clientId;
 
     if (!clientId) {
       return { ok: false, reason: "missing_client" };
     }
 
+    const suggestion = await resolveBookingRebookingSuggestionInput(booking, input);
     const result = await createClientRebookingLinkForAuthorizedBooking({
       clientId,
       locale: input.messageLocale,
-      createdBy: user.id
+      createdBy: user.id,
+      suggestion
     });
 
     return {
@@ -321,16 +410,67 @@ export async function generateBookingRebookingLinkAction(
       token: result.token
     };
   } catch (error) {
-    if (error instanceof DashboardForbiddenError) {
-      return { ok: false, reason: "forbidden" };
-    }
-
-    if (process.env.NODE_ENV !== "production") {
-      console.error("[booking rebooking link action failed]", error);
-    }
-
-    return { ok: false, reason: "error" };
+    return toRebookingActionError(error);
   }
+}
+
+async function getAuthorizedBookingForRebooking(locale: Locale, bookingId: string) {
+  const user = await requireDashboardUser(locale);
+  const booking = await getBookingById(user, bookingId);
+
+  if (!booking) {
+    throw new DashboardForbiddenError();
+  }
+
+  return {
+    user,
+    booking
+  };
+}
+
+async function resolveBookingRebookingSuggestionInput(
+  booking: DashboardBooking,
+  input: {
+    suggestionMode?: "automatic" | "manual";
+    manualSuggestion?: { date: string; time: string };
+  }
+): Promise<StoredRebookingSuggestion | undefined> {
+  if (input.suggestionMode !== "manual") {
+    return undefined;
+  }
+
+  if (!input.manualSuggestion?.date || !input.manualSuggestion.time) {
+    throw new RebookingManualRequiredError();
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const template = await getRebookingTemplateForBooking(supabase, {
+    serviceSlug: booking.service,
+    therapistId: booking.therapistId,
+    previousTime: booking.preferredTime
+  });
+
+  if (!template) {
+    throw new RebookingManualUnavailableError();
+  }
+
+  const validated = await validateManualRebookingSuggestion(supabase, {
+    template,
+    date: input.manualSuggestion.date,
+    time: input.manualSuggestion.time
+  });
+
+  if (!validated?.therapistId || !validated.date || !validated.time) {
+    throw new RebookingSlotUnavailableError();
+  }
+
+  return {
+    mode: "manual",
+    serviceId: template.serviceRecordId,
+    therapistId: validated.therapistId,
+    date: validated.date,
+    time: validated.time
+  };
 }
 
 export async function revokeBookingRebookingLinkAction(

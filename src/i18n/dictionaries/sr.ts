@@ -414,6 +414,11 @@ const sr = {
         bookingRequired: "Za ovu poruku je potreban budući potvrđen termin ili termin na čekanju.",
         bookingDataRequired: "Ovom terminu nedostaju datum, vreme ili tretman.",
         linkedClientRequired: "Za ovaj termin nije pronađen povezani klijent. Nije moguće kreirati personalizovani link za ponovno zakazivanje.",
+        automaticDateTime: "Automatski izaberi datum i vreme",
+        manualRequired: "Izaberite datum i vreme za ponovno zakazivanje.",
+        manualUnavailable: "Ručno biranje datuma i vremena nije dostupno za ovo ponovno zakazivanje.",
+        noAvailableTimes: "Za izabrani datum nema slobodnih termina.",
+        slotUnavailable: "Izabrano vreme više nije dostupno. Izaberite drugo vreme.",
         rebookingNote: "Lični link bezbedno popunjava ime i telefon klijenta. Podaci ostaju izmenjivi pre slanja zahteva.",
         tokenStatus: {
           none: "Link nije kreiran",
@@ -436,10 +441,13 @@ const sr = {
           language: "Jezik poruke",
           type: "Tip poruke",
           booking: "Termin",
+          date: "Datum",
+          time: "Vreme",
           preview: "Pregled poruke"
         },
         placeholders: {
-          booking: "Izaberite termin"
+          booking: "Izaberite termin",
+          timeSelectDateFirst: "Prvo izaberite datum"
         },
         languages: {
           sr: "Srpski",

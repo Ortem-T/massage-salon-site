@@ -413,6 +413,11 @@ const en = {
         bookingRequired: "This message needs a future confirmed or pending booking.",
         bookingDataRequired: "This booking is missing a date, time, or treatment.",
         linkedClientRequired: "No linked client was found for this booking. A personalized rebooking link cannot be created.",
+        automaticDateTime: "Automatically select date and time",
+        manualRequired: "Select a date and time for the rebooking link.",
+        manualUnavailable: "Manual date and time selection is unavailable for this rebooking link.",
+        noAvailableTimes: "There are no available times for the selected date.",
+        slotUnavailable: "The selected time is no longer available. Choose another time.",
         rebookingNote: "The personal link safely fills the client's name and phone. The details remain editable before the request is sent.",
         tokenStatus: {
           none: "No link created",
@@ -435,10 +440,13 @@ const en = {
           language: "Message language",
           type: "Message type",
           booking: "Booking",
+          date: "Date",
+          time: "Time",
           preview: "Message preview"
         },
         placeholders: {
-          booking: "Select booking"
+          booking: "Select booking",
+          timeSelectDateFirst: "Select a date first"
         },
         languages: {
           sr: "Serbian",

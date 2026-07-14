@@ -18,6 +18,8 @@ The admin-only Clients CRM page is now implemented at `/[locale]/dashboard/clien
 
 The manual notification generator is now reusable across Clients CRM and booking details. Admins and therapists can generate booking confirmation, reminder, rebooking, and Google review messages directly from a visible booking details modal. Booking-context messages use the opened booking only, omit the booking selector, localize service names by selected message language, and create personalized rebooking links only when the server confirms the booking has a linked client.
 
+Personalized rebooking link generation now supports optional manual date/time suggestions from the shared Notifications block. Automatic mode remains the default and keeps the existing nearest-available-slot behavior. Manual mode stores the selected future service/therapist/date/time suggestion server-side on the token row after validating service, therapist, therapist-service eligibility, booking window, and current availability. The public URL remains opaque and the selected slot is not reserved.
+
 ## Completed Tasks
 
 - Created Next.js 15 project structure with App Router.
@@ -81,6 +83,7 @@ The manual notification generator is now reusable across Clients CRM and booking
 - Added the local SEO foundation for `https://raine.rs`: localized production titles/descriptions, absolute canonical and hreflang URLs, sitemap and robots using the production domain, Open Graph locale metadata, LocalBusiness/HealthAndBeautyBusiness JSON-LD, noindex metadata for login/dashboard routes, and `docs/SEO_CHECKLIST.md` for Search Console and Google Business Profile follow-up.
 - Switched the contact section Google Maps embed from address/API-key lookup to the real Raine Massage Salon Google Maps listing embed, and updated the external Google Maps link and JSON-LD `hasMap` value to the same listing.
 - Refactored the Clients CRM notification block into a reusable dashboard notification generator and added it to booking details for admin and therapist dashboards. Booking-context generation uses the opened booking directly, supports date-aware reminders, keeps Google review and rebooking templates aligned with the CRM generator, and resolves rebooking clients server-side from `bookingId`.
+- Added optional manual date/time suggestions to personalized rebooking links from both client cards and booking details. The shared notification generator now shows automatic/manual controls only for `rebooking`, reuses the branded date picker and availability API, validates manual slots server-side before token creation, and stores suggestion metadata in `client_rebooking_tokens` through `20260714120000_rebooking_manual_suggestions.sql`.
 - Added therapist-service eligibility through the new `public.therapist_services` migration, updated and split body services into the new production price list, deactivated deprecated combined body service slugs without deleting historical bookings, and made public booking plus dashboard manual booking filter/validate therapists by selected service.
 - Added two body services for device-based lymphatic drainage: one-zone session and a 12-treatment course, both bookable online, 30 minutes, available to Sergey and Ekaterina through `therapist_services`, with the course treated as a regular first-appointment booking for the MVP.
 - Renamed the `taping-application` service translations to show the shorter public name "Taping" / "Tejping" / "Тейпирование" while keeping the one-application detail in the localized short descriptions.
@@ -156,6 +159,7 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Apply `20260630120000_enable_dashboard_realtime.sql` to add `public.bookings` and `public.schedule_blocks` to the Supabase Realtime publication for authenticated dashboard live refresh.
 - Apply `20260713120000_client_rebooking_tokens.sql` to add hash-only client rebooking tokens, admin generate/revoke RPCs, and the public minimal resolver RPC.
 - Apply `20260713123000_fix_client_rebooking_token_rpc.sql` if the first rebooking-token migration was already applied before the RPC ambiguity fix.
+- Apply `20260714120000_rebooking_manual_suggestions.sql` after the rebooking token migration to store optional manual rebooking date/time suggestions on token rows.
 - Test admin status changes, therapist assignment, therapist status changes, and internal notes updates against hosted Supabase RLS.
 - Test manual booking creation for admin assigned, admin unassigned, therapist own, and therapist direct-request attempts against hosted Supabase RLS.
 
@@ -231,6 +235,10 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Confirm rebooking generation is disabled with a localized explanation when an old booking has no linked `client_id`.
 - Confirm reminder messages say "today" only for appointments dated today in `Europe/Belgrade`; other dates include the explicit appointment date.
 - Confirm message language selection uses localized service names, including Serbian messages for Serbian dashboard/client language.
+- Confirm Rebooking notifications show automatic date/time selection enabled by default.
+- Confirm disabling automatic mode shows the branded date picker and available time selector in both Clients CRM and booking details.
+- Confirm manual rebooking generation requires date and time, rejects stale unavailable slots, and does not reserve a booking.
+- Confirm public manual rebooking links prefill name, phone, service, therapist, date, and the selected or nearest same-date time while keeping all fields editable.
 - Confirm notification language defaults to client locale when available, otherwise the current dashboard locale.
 - Confirm booking confirmation and reminder require a future confirmed or pending booking and default to the nearest suitable booking.
 - Confirm generated notifications use localized service names, locale-aware dates, 24-hour time, duration, and never include internal notes.

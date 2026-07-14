@@ -106,6 +106,11 @@ export type Database = {
           revoked_at: string | null;
           last_used_at: string | null;
           created_by: string | null;
+          suggestion_mode: "automatic" | "manual";
+          suggested_service_id: string | null;
+          suggested_therapist_id: string | null;
+          suggested_date: string | null;
+          suggested_time: string | null;
           use_count: number;
           created_at: string;
           updated_at: string;
@@ -118,6 +123,11 @@ export type Database = {
           revoked_at?: string | null;
           last_used_at?: string | null;
           created_by?: string | null;
+          suggestion_mode?: "automatic" | "manual";
+          suggested_service_id?: string | null;
+          suggested_therapist_id?: string | null;
+          suggested_date?: string | null;
+          suggested_time?: string | null;
           use_count?: number;
           created_at?: string;
           updated_at?: string;
