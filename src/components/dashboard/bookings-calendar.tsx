@@ -1632,6 +1632,7 @@ export function BookingsCalendar({
           {visibleDays.map((day) => {
             const dayEvents = visibleEvents.filter((event) => event.date === day);
             const isCompactView = view !== "day";
+            const isDesktopToday = isCompactView && day === todayKey();
 
             return (
               <article
@@ -1641,7 +1642,8 @@ export function BookingsCalendar({
                   "rounded-2xl border border-border/70 bg-background/45 p-3",
                   view === "day" && "min-h-64",
                   view === "week" && "min-h-40 cursor-pointer overflow-hidden transition hover:border-primary/25 hover:bg-background/70",
-                  view === "month" && "min-h-32 cursor-pointer overflow-hidden transition hover:border-primary/25 hover:bg-background/70"
+                  view === "month" && "min-h-32 cursor-pointer overflow-hidden transition hover:border-primary/25 hover:bg-background/70",
+                  isDesktopToday && "md:border-accent/45 md:bg-secondary/60 md:ring-1 md:ring-accent/25"
                 )}
               >
                 <div className="flex items-baseline justify-between gap-2">
@@ -1653,7 +1655,11 @@ export function BookingsCalendar({
                           event.stopPropagation();
                           openDay(day);
                         }}
-                        className="focus-ring rounded-md text-left transition hover:text-accent"
+                        aria-current={isDesktopToday ? "date" : undefined}
+                        className={cn(
+                          "focus-ring rounded-md text-left transition hover:text-accent",
+                          isDesktopToday && "rounded-full bg-accent/12 px-2 py-1 text-primary ring-1 ring-accent/30"
+                        )}
                       >
                         {`${formatCompactWeekday(day, locale)} ${formatDate(day, locale, { day: "numeric" })}`}
                       </button>

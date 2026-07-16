@@ -1,6 +1,6 @@
 # Development Log
 
-Last updated: 2026-07-14
+Last updated: 2026-07-16
 
 This log is shared context for human and AI-assisted development. Update it after every major development stage so future Codex, `web-coder`, and `grill-me` sessions can continue without rediscovering project history.
 
@@ -19,6 +19,8 @@ The admin-only Clients CRM page is now implemented at `/[locale]/dashboard/clien
 The manual notification generator is now reusable across Clients CRM and booking details. Admins and therapists can generate booking confirmation, reminder, rebooking, and Google review messages directly from a visible booking details modal. Booking-context messages use the opened booking only, omit the booking selector, localize service names by selected message language, and create personalized rebooking links only when the server confirms the booking has a linked client.
 
 Personalized rebooking link generation now supports optional manual date/time suggestions from the shared Notifications block. Automatic mode remains the default and keeps the existing nearest-available-slot behavior. Manual mode stores the selected future service/therapist/date/time suggestion server-side on the token row after validating service, therapist, therapist-service eligibility, booking window, and current availability. The public URL remains opaque and the selected slot is not reserved.
+
+Dashboard calendar polish now highlights today's date on desktop Month and Week views using the same calm accent treatment as the existing mobile calendar language. Booking status changes to `completed` still update Supabase, dashboard state, Realtime, and history, but no longer send a Telegram status-change notification.
 
 ## Completed Tasks
 
@@ -84,6 +86,7 @@ Personalized rebooking link generation now supports optional manual date/time su
 - Switched the contact section Google Maps embed from address/API-key lookup to the real Raine Massage Salon Google Maps listing embed, and updated the external Google Maps link and JSON-LD `hasMap` value to the same listing.
 - Refactored the Clients CRM notification block into a reusable dashboard notification generator and added it to booking details for admin and therapist dashboards. Booking-context generation uses the opened booking directly, supports date-aware reminders, keeps Google review and rebooking templates aligned with the CRM generator, and resolves rebooking clients server-side from `bookingId`.
 - Added optional manual date/time suggestions to personalized rebooking links from both client cards and booking details. The shared notification generator now shows automatic/manual controls only for `rebooking`, reuses the branded date picker and availability API, validates manual slots server-side before token creation, and stores suggestion metadata in `client_rebooking_tokens` through `20260714120000_rebooking_manual_suggestions.sql`.
+- Highlighted today's date in desktop dashboard Month and Week calendar views without changing mobile Month behavior, and suppressed Telegram notifications only for status changes to `completed`.
 - Added therapist-service eligibility through the new `public.therapist_services` migration, updated and split body services into the new production price list, deactivated deprecated combined body service slugs without deleting historical bookings, and made public booking plus dashboard manual booking filter/validate therapists by selected service.
 - Added two body services for device-based lymphatic drainage: one-zone session and a 12-treatment course, both bookable online, 30 minutes, available to Sergey and Ekaterina through `therapist_services`, with the course treated as a regular first-appointment booking for the MVP.
 - Renamed the `taping-application` service translations to show the shorter public name "Taping" / "Tejping" / "Тейпирование" while keeping the one-application detail in the localized short descriptions.
