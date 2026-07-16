@@ -955,6 +955,10 @@ export async function updateBookingStatus(user: DashboardUser, bookingId: string
     assertUpdatedBooking(data, error);
   }
 
+  if (status === "completed") {
+    return;
+  }
+
   await notifyTelegramSafely(async () => {
     await notifyTelegramBookingStatusChange({
       booking: await toTelegramBookingDetails({ ...existingBooking, status }),
