@@ -5,6 +5,7 @@ import {
   type AvailabilityScheduleBlock
 } from "@/lib/booking/booking-availability";
 import { defaultBookingAvailability, getDefaultBookingStartWindow } from "@/lib/booking/booking-options";
+import { getAvailableRoomsForAvailability } from "@/lib/booking/room-settings";
 import { bookingStatuses, type BookingStatus } from "@/lib/booking/booking-schema";
 import {
   contactValueRequired,
@@ -239,6 +240,15 @@ type PublicAvailabilityRow = {
   status: AvailabilityBooking["status"];
 };
 
+type DashboardAvailabilityBookingRow = {
+  id: string;
+  preferred_date: string;
+  preferred_time: string;
+  therapist_id: string | null;
+  duration_minutes: number | null;
+  status: AvailabilityBooking["status"];
+};
+
 type PublicScheduleBlockRow = {
   block_date: string;
   therapist_id: string | null;
@@ -287,6 +297,16 @@ function normalizeRequiredText(value: string | null | undefined) {
 function toAvailabilityBooking(row: PublicAvailabilityRow): AvailabilityBooking {
   return {
     bookingDate: row.booking_date,
+    preferredTime: row.preferred_time,
+    therapistId: row.therapist_id,
+    durationMinutes: row.duration_minutes,
+    status: row.status
+  };
+}
+
+function toDashboardAvailabilityBooking(row: DashboardAvailabilityBookingRow): AvailabilityBooking {
+  return {
+    bookingDate: row.preferred_date,
     preferredTime: row.preferred_time,
     therapistId: row.therapist_id,
     durationMinutes: row.duration_minutes,
@@ -377,6 +397,8 @@ async function isManualBookingSlotAvailable(input: {
     throw new Error(blocksError.message);
   }
 
+  const availableRooms = await getAvailableRoomsForAvailability();
+
   return isSlotAvailableBeforeSubmit({
     therapistId: input.therapistId,
     serviceDurationMinutes: input.serviceDurationMinutes,
@@ -385,7 +407,53 @@ async function isManualBookingSlotAvailable(input: {
     bookings: ((availabilityRows ?? []) as PublicAvailabilityRow[]).map(toAvailabilityBooking),
     scheduleBlocks: ((blockRows ?? []) as PublicScheduleBlockRow[]).map(toAvailabilityScheduleBlock),
     bookingWindow: getDefaultBookingStartWindow(),
-    breakMinutes: defaultBookingAvailability.breakMinutes
+    breakMinutes: defaultBookingAvailability.breakMinutes,
+    availableRooms
+  });
+}
+
+async function isDashboardBookingSlotAvailable(input: {
+  therapistId: string;
+  serviceDurationMinutes: number;
+  date: string;
+  preferredTime: string;
+  excludeBookingId?: string;
+}) {
+  const supabase = await createSupabaseServerClient();
+  const { data: bookingRows, error: bookingsError } = await supabase
+    .from("bookings")
+    .select("id, preferred_date, preferred_time, therapist_id, duration_minutes, status")
+    .eq("preferred_date", input.date);
+
+  if (bookingsError) {
+    throw new Error(bookingsError.message);
+  }
+
+  const publicSupabase = createSupabaseBrowserClient();
+  const { data: blockRows, error: blocksError } = await publicSupabase
+    .from("public_schedule_block_availability")
+    .select("block_date, therapist_id, block_type, block_scope, start_time, end_time")
+    .eq("block_date", input.date);
+
+  if (blocksError) {
+    throw new Error(blocksError.message);
+  }
+
+  const availableRooms = await getAvailableRoomsForAvailability();
+  const bookings = ((bookingRows ?? []) as DashboardAvailabilityBookingRow[])
+    .filter((booking) => booking.id !== input.excludeBookingId)
+    .map(toDashboardAvailabilityBooking);
+
+  return isSlotAvailableBeforeSubmit({
+    therapistId: input.therapistId,
+    serviceDurationMinutes: input.serviceDurationMinutes,
+    date: input.date,
+    preferredTime: input.preferredTime,
+    bookings,
+    scheduleBlocks: ((blockRows ?? []) as PublicScheduleBlockRow[]).map(toAvailabilityScheduleBlock),
+    bookingWindow: getDefaultBookingStartWindow(),
+    breakMinutes: defaultBookingAvailability.breakMinutes,
+    availableRooms
   });
 }
 
@@ -1024,6 +1092,18 @@ export async function assignTherapistToBooking(user: DashboardUser, bookingId: s
 
     if (!service || !(await isTherapistAllowedForService(service.id, nextTherapistId))) {
       throw new DashboardServiceRestrictionError();
+    }
+
+    const isAvailable = await isDashboardBookingSlotAvailable({
+      therapistId: nextTherapistId,
+      serviceDurationMinutes: existingBooking.durationMinutes ?? service.duration_minutes,
+      date: existingBooking.preferredDate,
+      preferredTime: existingBooking.preferredTime,
+      excludeBookingId: existingBooking.id
+    });
+
+    if (!isAvailable) {
+      throw new DashboardBlockedTimeError();
     }
   }
 

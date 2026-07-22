@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useCallback, useMemo, useState, useTransition } from "react";
+import { type FormEvent, useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { BookingDatePicker } from "@/components/booking/booking-date-picker";
@@ -16,10 +16,12 @@ import {
   createScheduleBlockAction,
   deleteScheduleBlockAction,
   type DashboardActionResult,
+  updateAvailableRoomsAction,
   updateScheduleBlockAction
 } from "@/lib/dashboard/actions";
 import { type DashboardRole } from "@/lib/dashboard/auth";
 import { type DashboardTherapist } from "@/lib/dashboard/bookings";
+import { type DashboardOperationSettings } from "@/lib/dashboard/settings";
 import {
   type DashboardScheduleBlock
 } from "@/lib/dashboard/schedule-blocks";
@@ -30,6 +32,7 @@ type ScheduleBlocksManagerProps = {
   dataError: boolean;
   dictionary: Dictionary;
   locale: Locale;
+  operationSettings: DashboardOperationSettings;
   role: DashboardRole;
   therapists: DashboardTherapist[];
 };
@@ -53,6 +56,7 @@ const dateLocales: Record<Locale, string> = {
   en: "en-GB"
 };
 const scheduleBlocksRealtimeTables = ["schedule_blocks"] as const;
+const settingsRealtimeTables = ["app_settings"] as const;
 
 function getTimeOptions() {
   const start = timeToMinutes(defaultBookingAvailability.firstBookingStart) ?? 600;
@@ -84,6 +88,7 @@ export function ScheduleBlocksManager({
   dataError,
   dictionary,
   locale,
+  operationSettings,
   role,
   therapists
 }: ScheduleBlocksManagerProps) {
@@ -106,6 +111,7 @@ export function ScheduleBlocksManager({
   }));
   const [errors, setErrors] = useState<ScheduleBlockFormErrors>({});
   const [message, setMessage] = useState<string | null>(null);
+  const [availableRooms, setAvailableRooms] = useState(operationSettings.availableRooms);
   const [isPending, startTransition] = useTransition();
   const refreshScheduleData = useCallback(() => {
     router.refresh();
@@ -116,6 +122,16 @@ export function ScheduleBlocksManager({
     onRefresh: refreshScheduleData,
     tables: scheduleBlocksRealtimeTables
   });
+
+  useDashboardRealtimeRefresh({
+    channelName: "dashboard-operation-settings",
+    onRefresh: refreshScheduleData,
+    tables: settingsRealtimeTables
+  });
+
+  useEffect(() => {
+    setAvailableRooms(operationSettings.availableRooms);
+  }, [operationSettings.availableRooms]);
 
   const therapistNames = useMemo(
     () => new Map(therapists.map((therapist) => [therapist.id, therapist.displayName])),
@@ -250,6 +266,29 @@ export function ScheduleBlocksManager({
     return schedule.messages.error;
   }
 
+  function updateAvailableRooms(nextAvailableRooms: number) {
+    if (nextAvailableRooms === availableRooms) {
+      return;
+    }
+
+    const previousAvailableRooms = availableRooms;
+    setAvailableRooms(nextAvailableRooms);
+    setMessage(null);
+
+    startTransition(async () => {
+      const result = await updateAvailableRoomsAction(locale, { availableRooms: nextAvailableRooms });
+
+      if (result.ok) {
+        setMessage(schedule.operationMode.messages.saved);
+        refreshScheduleData();
+        return;
+      }
+
+      setAvailableRooms(previousAvailableRooms);
+      setMessage(result.reason === "forbidden" ? schedule.operationMode.messages.forbidden : schedule.operationMode.messages.error);
+    });
+  }
+
   function submitBlock(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -353,6 +392,66 @@ export function ScheduleBlocksManager({
 
         {message ? <p className="mt-5 rounded-2xl border border-primary/15 bg-secondary/60 px-4 py-3 text-sm font-semibold text-primary">{message}</p> : null}
       </div>
+
+      {role === "admin" ? (
+        <div className="rounded-3xl border border-border/70 bg-card/82 p-4 shadow-soft sm:p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="max-w-2xl">
+              <div className="flex flex-wrap items-center gap-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
+                  {schedule.operationMode.eyebrow}
+                </p>
+                {availableRooms === 1 ? (
+                  <span className="rounded-full border border-primary/15 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                    {schedule.operationMode.badgeOneRoom}
+                  </span>
+                ) : null}
+              </div>
+              <h2 className="mt-2 font-serif text-2xl font-semibold leading-tight text-primary">
+                {schedule.operationMode.title}
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">{schedule.operationMode.description}</p>
+            </div>
+
+            <div className="w-full lg:max-w-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                {schedule.operationMode.availableRooms}
+              </p>
+              <div
+                aria-label={schedule.operationMode.availableRooms}
+                className="mt-3 grid grid-cols-2 gap-2 rounded-2xl border border-border/70 bg-background/55 p-1.5"
+                role="radiogroup"
+              >
+                {[1, 2].map((roomCount) => {
+                  const isSelected = availableRooms === roomCount;
+
+                  return (
+                    <button
+                      key={roomCount}
+                      type="button"
+                      aria-checked={isSelected}
+                      className={[
+                        "focus-ring rounded-xl px-3 py-3 text-sm font-semibold transition",
+                        isSelected
+                          ? "bg-primary text-primary-foreground shadow-[0_12px_30px_rgb(20_61_42/0.18)]"
+                          : "text-muted-foreground hover:bg-secondary/70 hover:text-primary"
+                      ].join(" ")}
+                      disabled={isPending}
+                      role="radio"
+                      onClick={() => updateAvailableRooms(roomCount)}
+                    >
+                      {roomCount === 1 ? schedule.operationMode.oneRoom : schedule.operationMode.twoRooms}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-3 text-xs leading-5 text-muted-foreground">
+                {isPending ? schedule.operationMode.saving : schedule.operationMode.hint}
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         <div className="rounded-3xl border border-border/70 bg-card/78 p-4 shadow-soft sm:p-5">

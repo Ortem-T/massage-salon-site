@@ -30,6 +30,7 @@ export default async function DashboardSchedulePage({ params }: DashboardSchedul
       dataError={data.error}
       dictionary={dictionary}
       locale={locale}
+      operationSettings={data.operationSettings}
       role={user.role}
       therapists={data.therapists}
     />

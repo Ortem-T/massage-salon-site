@@ -716,6 +716,7 @@ const en = {
         saved: "Saved.",
         forbidden: "This action is not available for your role.",
         serviceRestriction: "The selected therapist does not provide this service.",
+        blocked: "This time is no longer available.",
         confirmCancel: "Cancel this booking?",
         error: "Could not save changes."
       }
@@ -735,6 +736,22 @@ const en = {
       noBlocks: "No schedule blocks for this date.",
       confirmDelete: "Are you sure you want to delete this block?",
       ownTherapistFallback: "Your therapist profile is not connected yet.",
+      operationMode: {
+        eyebrow: "Salon operation mode",
+        title: "Available treatment rooms",
+        availableRooms: "Room count",
+        oneRoom: "1 room",
+        twoRooms: "2 rooms",
+        badgeOneRoom: "1 room",
+        description: "When only one treatment room is available, only one appointment may exist at the same time regardless of therapist.",
+        hint: "This setting immediately affects public booking, manual bookings, and rebooking links.",
+        saving: "Saving mode...",
+        messages: {
+          saved: "Salon operation mode updated.",
+          forbidden: "Only admins can change salon operation mode.",
+          error: "Could not save salon operation mode."
+        }
+      },
       fields: {
         date: "Date",
         blockType: "Block type",

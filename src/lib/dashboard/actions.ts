@@ -30,6 +30,11 @@ import {
 } from "@/lib/dashboard/promotions";
 import { saveClient, type SaveClientInput } from "@/lib/dashboard/clients";
 import {
+  DashboardSettingsForbiddenError,
+  DashboardSettingsValidationError,
+  updateAvailableRoomsSetting
+} from "@/lib/dashboard/settings";
+import {
   createClientRebookingLinkForAuthorizedBooking,
   createClientRebookingLink,
   revokeClientRebookingLinkForAuthorizedBooking,
@@ -93,6 +98,14 @@ function toActionResult(error: unknown): DashboardActionResult {
 
   if (error instanceof DashboardServiceRestrictionError) {
     return { ok: false, reason: "service_restriction" };
+  }
+
+  if (error instanceof DashboardSettingsForbiddenError) {
+    return { ok: false, reason: "forbidden" };
+  }
+
+  if (error instanceof DashboardSettingsValidationError) {
+    return { ok: false, reason: "invalid" };
   }
 
   if (process.env.NODE_ENV !== "production") {
@@ -204,6 +217,20 @@ export async function deleteScheduleBlockAction(
   try {
     const user = await requireDashboardUser(locale);
     await deleteScheduleBlock(user, id);
+    revalidateDashboard(locale);
+    return { ok: true };
+  } catch (error) {
+    return toActionResult(error);
+  }
+}
+
+export async function updateAvailableRoomsAction(
+  locale: Locale,
+  input: { availableRooms: number }
+): Promise<DashboardActionResult> {
+  try {
+    const user = await requireDashboardUser(locale);
+    await updateAvailableRoomsSetting(user, input.availableRooms);
     revalidateDashboard(locale);
     return { ok: true };
   } catch (error) {

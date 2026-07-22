@@ -22,6 +22,8 @@ Personalized rebooking link generation now supports optional manual date/time su
 
 Dashboard calendar polish now highlights today's date on desktop Month and Week views using the same calm accent treatment as the existing mobile calendar language. Booking status changes to `completed` still update Supabase, dashboard state, Realtime, and history, but no longer send a Telegram status-change notification.
 
+Booking availability now supports a temporary salon capacity setting through `public.app_settings` key `available_rooms`. The default remains `2`, while admin users can switch the Schedule page to `1` available treatment room during hot weather. Public booking, dashboard manual booking, therapist assignment checks, automatic/manual rebooking suggestions, and the shared availability API all use the same room-capacity-aware availability engine.
+
 ## Completed Tasks
 
 - Created Next.js 15 project structure with App Router.
@@ -107,6 +109,7 @@ Dashboard calendar polish now highlights today's date on desktop Month and Week 
 - Updated the dashboard bookings calendar to open in Month view by default, persist the selected calendar view in browser storage, and display read-only `schedule_blocks` alongside bookings as explicit `schedule_block` calendar events. Admin therapist filters now apply to both bookings and schedule blocks while booking status filters remain booking-only; Schedule remains the canonical place to create, edit, and delete unavailable time.
 - Activated the homepage client reviews section with three real manually maintained Google reviews, keeping review text in the original Russian, Serbian, and English only. Review UI labels are localized through dictionaries, fake placeholder review data remains removed, Google Maps uses the existing contact URL, and no Google API or review structured data was added.
 - Added immediate dashboard calendar refresh and Supabase Realtime synchronization for bookings and schedule blocks. Local dashboard actions still refetch directly with `router.refresh()` after server success, while authenticated Realtime subscriptions debounce external `bookings` and `schedule_blocks` changes from public bookings, other dashboard users, or other browser tabs. A safe migration adds both tables to the `supabase_realtime` publication without changing RLS.
+- Added the temporary `available_rooms` salon operation setting. Admins can manage it from Schedule, authenticated dashboard sessions receive Realtime refresh signals for settings changes, and availability now counts overlapping pending/confirmed bookings across all therapists up to the configured room capacity while still enforcing therapist-specific conflicts and schedule blocks.
 - Moved the dashboard bookings calendar Day/Week/Month control out of the upper filters and into the calendar header as an accessible segmented button group. The shared calendar component now uses the same control for admin and therapist dashboards, keeping Month fallback and browser persistence while leaving booking/status/therapist filters unchanged.
 - Simplified compact dashboard calendar events in Month and Week views: bookings now show only start time in Month and time range in Week, schedule blocks show only their blocked range or localized all-day label, native `title` tooltips were removed, and a Raine-styled hover/focus tooltip now provides booking or schedule-block details without changing click-to-open modals.
 - Added a compact mobile Month view for the dashboard bookings calendar. Desktop/tablet Month still shows compact event cards and custom tooltips, while mobile Month now renders a 7-column date grid with localized weekday headings, selected/today states, booking and schedule-block indicators, accessible count labels, and Month-to-Day navigation on date tap.
@@ -163,6 +166,7 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Apply `20260713120000_client_rebooking_tokens.sql` to add hash-only client rebooking tokens, admin generate/revoke RPCs, and the public minimal resolver RPC.
 - Apply `20260713123000_fix_client_rebooking_token_rpc.sql` if the first rebooking-token migration was already applied before the RPC ambiguity fix.
 - Apply `20260714120000_rebooking_manual_suggestions.sql` after the rebooking token migration to store optional manual rebooking date/time suggestions on token rows.
+- Apply `20260722120000_app_settings_available_rooms.sql` to create generic `app_settings`, seed `available_rooms = 2`, protect settings with RLS, and add `app_settings` to Supabase Realtime for dashboard refresh signals.
 - Test admin status changes, therapist assignment, therapist status changes, and internal notes updates against hosted Supabase RLS.
 - Test manual booking creation for admin assigned, admin unassigned, therapist own, and therapist direct-request attempts against hosted Supabase RLS.
 
@@ -208,7 +212,11 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Open and use the custom date picker with mouse and keyboard, including Tab, Arrow keys, Home/End, PageUp/PageDown, Enter/Space, and Escape.
 - Confirm the booking calendar is disabled until service and therapist are selected.
 - Confirm unavailable dates cannot be selected for the selected therapist/service.
-- Confirm bookings for therapist A do not block therapist B.
+- Confirm bookings for therapist A do not block therapist B when the salon is in the default two-room mode.
+- With `available_rooms = 2`, confirm one booking for therapist A does not block the same time for therapist B.
+- With `available_rooms = 1`, confirm one pending/confirmed booking blocks the same overlapping time for every therapist in public booking, dashboard manual booking, and rebooking suggestions.
+- Confirm cancelled and completed bookings do not count against available room capacity.
+- Confirm changing `available_rooms` from Schedule updates dashboard/manual availability without a server restart.
 - Confirm a subtle info dot appears only when another therapist has bookings on a date and the selected therapist has none.
 - Confirm time slots update when service, therapist, or date changes.
 - Confirm selected time clears if it becomes unavailable.

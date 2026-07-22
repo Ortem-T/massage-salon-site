@@ -39,6 +39,7 @@ type CalculateAvailableTimeSlotsInput = {
   date: string;
   bookingWindow?: BookingStartWindow;
   breakMinutes?: number;
+  availableRooms?: number;
   bookings?: AvailabilityBooking[];
   scheduleBlocks?: AvailabilityScheduleBlock[];
 };
@@ -213,6 +214,7 @@ export function calculateAvailableTimeSlots({
   date,
   bookingWindow = getDefaultBookingStartWindow(),
   breakMinutes = defaultBookingAvailability.breakMinutes,
+  availableRooms = defaultBookingAvailability.availableRooms,
   bookings = [],
   scheduleBlocks = []
 }: CalculateAvailableTimeSlotsInput) {
@@ -228,15 +230,18 @@ export function calculateAvailableTimeSlots({
   }
 
   const slotDuration = roundServiceDurationForScheduling(serviceDurationMinutes) + breakMinutes;
+  const parsedRoomCount = Math.floor(availableRooms);
+  const roomCount = Number.isFinite(parsedRoomCount)
+    ? Math.max(1, parsedRoomCount)
+    : defaultBookingAvailability.availableRooms;
+  const allBookingIntervals = calculateBlockedIntervals(getAllBookingsByDate(date, bookings), { breakMinutes });
   const therapistBookings = getTherapistBookingsByDate(therapistId, date, bookings);
-  const blockedIntervals = [
-    ...calculateBlockedIntervals(therapistBookings, { breakMinutes }),
-    ...calculateBlockedIntervalsFromScheduleBlocks(scheduleBlocks, {
-      date,
-      therapistId,
-      bookingWindow
-    })
-  ].sort((a, b) => a.startMinutes - b.startMinutes);
+  const therapistBookingIntervals = calculateBlockedIntervals(therapistBookings, { breakMinutes });
+  const scheduleBlockIntervals = calculateBlockedIntervalsFromScheduleBlocks(scheduleBlocks, {
+    date,
+    therapistId,
+    bookingWindow
+  });
   const slots: string[] = [];
 
   for (
@@ -248,8 +253,11 @@ export function calculateAvailableTimeSlots({
       startMinutes,
       endMinutes: startMinutes + slotDuration
     };
+    const therapistHasConflict = therapistBookingIntervals.some((interval) => intervalsOverlap(candidate, interval));
+    const scheduleHasConflict = scheduleBlockIntervals.some((interval) => intervalsOverlap(candidate, interval));
+    const overlappingRoomBookings = allBookingIntervals.filter((interval) => intervalsOverlap(candidate, interval)).length;
 
-    if (!blockedIntervals.some((interval) => intervalsOverlap(candidate, interval))) {
+    if (!therapistHasConflict && !scheduleHasConflict && overlappingRoomBookings < roomCount) {
       slots.push(minutesToTime(startMinutes));
     }
   }

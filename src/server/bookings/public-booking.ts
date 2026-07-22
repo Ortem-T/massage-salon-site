@@ -8,6 +8,7 @@ import {
 } from "@/lib/booking/booking-availability";
 import { bookingRequestPayloadSchema } from "@/lib/booking/booking-request-payload";
 import { defaultBookingAvailability, getDefaultBookingStartWindow } from "@/lib/booking/booking-options";
+import { getAvailableRoomsForAvailability } from "@/lib/booking/room-settings";
 import { getActivePromotionForPlacement } from "@/lib/promotions/public";
 import { createSupabasePublicClient } from "@/lib/supabase/client";
 import { notifyTelegramNewBooking } from "@/server/telegram/bookingNotifications";
@@ -230,6 +231,7 @@ export async function handlePublicBookingPost(request: Request) {
     return jsonError("availability_check_failed", "Booking availability could not be checked.", 500);
   }
 
+  const availableRooms = await getAvailableRoomsForAvailability();
   const isAvailable = isSlotAvailableBeforeSubmit({
     therapistId: therapist.id,
     serviceDurationMinutes: service.duration_minutes,
@@ -238,7 +240,8 @@ export async function handlePublicBookingPost(request: Request) {
     bookings: ((availabilityRows ?? []) as PublicAvailabilityRow[]).map(toAvailabilityBooking),
     scheduleBlocks: ((blockRows ?? []) as PublicScheduleBlockRow[]).map(toAvailabilityScheduleBlock),
     bookingWindow: getDefaultBookingStartWindow(),
-    breakMinutes: defaultBookingAvailability.breakMinutes
+    breakMinutes: defaultBookingAvailability.breakMinutes,
+    availableRooms
   });
 
   if (!isAvailable) {
