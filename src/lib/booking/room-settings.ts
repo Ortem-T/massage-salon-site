@@ -2,6 +2,7 @@ import "server-only";
 
 import { defaultBookingAvailability } from "@/lib/booking/booking-options";
 import { createSupabaseAdminClient, hasSupabaseAdminEnv } from "@/lib/supabase/admin";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const AVAILABLE_ROOMS_SETTING_KEY = "available_rooms";
 export const MIN_AVAILABLE_ROOMS = 1;
@@ -25,24 +26,39 @@ export function normalizeAvailableRooms(value: unknown) {
   return numberValue;
 }
 
+async function readAvailableRooms(
+  supabase: Pick<ReturnType<typeof createSupabaseAdminClient>, "from">
+) {
+  const { data, error } = await supabase
+    .from("app_settings")
+    .select("value")
+    .eq("key", AVAILABLE_ROOMS_SETTING_KEY)
+    .maybeSingle();
+
+  if (error) {
+    return null;
+  }
+
+  return normalizeAvailableRooms(data?.value);
+}
+
 export async function getAvailableRoomsForAvailability() {
   if (!hasSupabaseAdminEnv()) {
-    return defaultBookingAvailability.availableRooms;
+    try {
+      const supabase = await createSupabaseServerClient();
+      const availableRooms = await readAvailableRooms(supabase);
+
+      return availableRooms ?? defaultBookingAvailability.availableRooms;
+    } catch {
+      return defaultBookingAvailability.availableRooms;
+    }
   }
 
   try {
     const supabase = createSupabaseAdminClient();
-    const { data, error } = await supabase
-      .from("app_settings")
-      .select("value")
-      .eq("key", AVAILABLE_ROOMS_SETTING_KEY)
-      .maybeSingle();
+    const availableRooms = await readAvailableRooms(supabase);
 
-    if (error) {
-      return defaultBookingAvailability.availableRooms;
-    }
-
-    return normalizeAvailableRooms(data?.value);
+    return availableRooms ?? defaultBookingAvailability.availableRooms;
   } catch {
     return defaultBookingAvailability.availableRooms;
   }
