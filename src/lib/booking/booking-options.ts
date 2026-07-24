@@ -4,7 +4,8 @@ export const defaultBookingAvailability = {
   maxAdvanceBookingDays: 60,
   slotStepMinutes: 30,
   workingDays: [0, 1, 2, 3, 4, 5, 6],
-  breakMinutes: 30
+  breakMinutes: 30,
+  availableRooms: 2
 } as const;
 
 export type BookingWorkingDay = (typeof defaultBookingAvailability.workingDays)[number];

@@ -82,16 +82,27 @@ This bypass exists because direct database maintenance does not always carry the
 
 ## Dashboard Realtime
 
-Authenticated dashboard calendars use Supabase Realtime Postgres Changes as a refresh signal for `public.bookings` and `public.schedule_blocks`.
+Authenticated dashboard calendars use Supabase Realtime Postgres Changes as a refresh signal for `public.bookings`, `public.schedule_blocks`, and authenticated staff-only app setting changes.
 
 - Realtime is only initialized inside authenticated dashboard client components.
 - The browser uses the Supabase anon key plus the signed-in staff session cookies; no service-role key is exposed.
 - The Realtime payload is not treated as trusted calendar data. The UI debounces the event and refetches the existing dashboard Server Component data instead, preserving current view and filters.
 - Local dashboard actions still perform a direct `router.refresh()` after server success, so booking management does not depend on websocket delivery.
-- `20260630120000_enable_dashboard_realtime.sql` only adds `bookings` and `schedule_blocks` to the `supabase_realtime` publication. It does not grant public table access and does not disable RLS.
+- `20260630120000_enable_dashboard_realtime.sql` only adds `bookings` and `schedule_blocks` to the `supabase_realtime` publication. `20260722120000_app_settings_available_rooms.sql` adds `app_settings` for authenticated dashboard refresh signals. Neither migration grants public table access or disables RLS.
 - RLS remains the security boundary: admins receive rows they can select; therapists receive only rows allowed by existing booking and schedule-block SELECT policies; anon visitors do not subscribe to dashboard data.
 
 If a Realtime connection briefly drops, the initial dashboard fetch and local action refetch still work. On subscription recovery, the dashboard performs a current-range refetch.
+
+## App Settings And Room Capacity
+
+Salon operation settings are stored in `public.app_settings`. The current booking-capacity setting is `available_rooms`, defaulting to `2`.
+
+- Admin users can read and update app settings from the dashboard Schedule page.
+- Therapist users may read app settings as operational context but cannot modify them.
+- Anon/public users cannot read `app_settings`.
+- Public availability and public booking validation read `available_rooms` server-side only; the public API does not return the raw setting value.
+- `app_settings` Realtime is only an authenticated dashboard refresh signal. RLS still controls who can receive settings changes.
+- The shared availability engine uses `available_rooms` to count overlapping pending/confirmed bookings across all therapists while still enforcing therapist-specific conflicts and schedule blocks.
 
 ## Rate Limiting
 

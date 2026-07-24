@@ -7,6 +7,7 @@ import {
 } from "@/lib/booking/booking-availability";
 import { type DashboardUser } from "@/lib/dashboard/auth";
 import { type DashboardTherapist, DashboardForbiddenError } from "@/lib/dashboard/bookings";
+import { getDashboardOperationSettings, type DashboardOperationSettings } from "@/lib/dashboard/settings";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { type ScheduleBlockScope, type ScheduleBlockType } from "@/lib/supabase/database.types";
 
@@ -26,6 +27,7 @@ export type DashboardScheduleBlock = {
 
 export type DashboardScheduleData = {
   blocks: DashboardScheduleBlock[];
+  operationSettings: DashboardOperationSettings;
   therapists: DashboardTherapist[];
   error: boolean;
 };
@@ -341,13 +343,15 @@ export async function getScheduleBlocksForDashboard(user: DashboardUser): Promis
 
   const start = startDate.toISOString().split("T")[0];
   const end = endDate.toISOString().split("T")[0];
-  const [blocksResult, therapistsResult] = await Promise.all([
+  const [blocksResult, therapistsResult, operationSettings] = await Promise.all([
     getScheduleBlocksForRange(start, end),
-    getDashboardTherapists(user.role, user.id)
+    getDashboardTherapists(user.role, user.id),
+    getDashboardOperationSettings()
   ]);
 
   return {
     blocks: blocksResult.blocks,
+    operationSettings,
     therapists: therapistsResult.therapists,
     error: blocksResult.error || therapistsResult.error
   };

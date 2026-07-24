@@ -7,6 +7,7 @@ import {
   type AvailabilityScheduleBlock
 } from "@/lib/booking/booking-availability";
 import { defaultBookingAvailability, getDefaultBookingStartWindow } from "@/lib/booking/booking-options";
+import { getAvailableRoomsForAvailability } from "@/lib/booking/room-settings";
 import { type BookingStatus } from "@/lib/booking/booking-schema";
 import { type Database } from "@/lib/supabase/database.types";
 
@@ -189,6 +190,7 @@ async function findNearestAvailableSlot(
     return null;
   }
 
+  const availableRooms = await getAvailableRoomsForAvailability();
   const bookings = ((availabilityRows ?? []) as PublicAvailabilityRow[]).map(toAvailabilityBooking);
   const scheduleBlocks = ((blockRows ?? []) as PublicScheduleBlockRow[]).map(toAvailabilityScheduleBlock);
 
@@ -200,7 +202,8 @@ async function findNearestAvailableSlot(
       bookings,
       scheduleBlocks,
       bookingWindow: getDefaultBookingStartWindow(),
-      breakMinutes: defaultBookingAvailability.breakMinutes
+      breakMinutes: defaultBookingAvailability.breakMinutes,
+      availableRooms
     });
 
     if (date === now.date) {
@@ -247,6 +250,7 @@ async function getAvailableSlotsForDate(
     return null;
   }
 
+  const availableRooms = await getAvailableRoomsForAvailability();
   let slots = calculateAvailableTimeSlots({
     therapistId: input.therapistId,
     serviceDurationMinutes: input.serviceDurationMinutes,
@@ -254,7 +258,8 @@ async function getAvailableSlotsForDate(
     bookings: ((availabilityRows ?? []) as PublicAvailabilityRow[]).map(toAvailabilityBooking),
     scheduleBlocks: ((blockRows ?? []) as PublicScheduleBlockRow[]).map(toAvailabilityScheduleBlock),
     bookingWindow: getDefaultBookingStartWindow(),
-    breakMinutes: defaultBookingAvailability.breakMinutes
+    breakMinutes: defaultBookingAvailability.breakMinutes,
+    availableRooms
   });
 
   if (input.date === now.date) {

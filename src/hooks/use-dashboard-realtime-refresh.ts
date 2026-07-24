@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 
 import { createSupabaseRealtimeBrowserClient } from "@/lib/supabase/browser";
 
-type DashboardRealtimeTable = "bookings" | "schedule_blocks";
+type DashboardRealtimeTable = "bookings" | "schedule_blocks" | "app_settings";
 type DashboardRealtimeEvent = "INSERT" | "UPDATE" | "DELETE";
 
 type UseDashboardRealtimeRefreshOptions = {
@@ -30,7 +30,9 @@ export function useDashboardRealtimeRefresh({
   useEffect(() => {
     const realtimeTables = tablesKey
       .split(",")
-      .filter((table): table is DashboardRealtimeTable => table === "bookings" || table === "schedule_blocks");
+      .filter((table): table is DashboardRealtimeTable =>
+        table === "bookings" || table === "schedule_blocks" || table === "app_settings"
+      );
 
     if (!enabled || realtimeTables.length === 0) {
       return;

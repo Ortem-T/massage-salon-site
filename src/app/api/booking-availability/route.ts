@@ -6,6 +6,7 @@ import {
   type AvailabilityScheduleBlock
 } from "@/lib/booking/booking-availability";
 import { defaultBookingAvailability, getDefaultBookingStartWindow } from "@/lib/booking/booking-options";
+import { getAvailableRoomsForAvailability } from "@/lib/booking/room-settings";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export const dynamic = "force-dynamic";
@@ -138,6 +139,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Availability could not be loaded." }, { status: 500 });
   }
 
+  const availableRooms = await getAvailableRoomsForAvailability();
   const bookings = ((rows ?? []) as PublicAvailabilityRow[]).map(toAvailabilityBooking);
   const scheduleBlocks = ((blockRows ?? []) as PublicScheduleBlockRow[]).map(toAvailabilityScheduleBlock);
   const days = Object.fromEntries(
@@ -149,7 +151,8 @@ export async function GET(request: NextRequest) {
         bookings,
         scheduleBlocks,
         bookingWindow: getDefaultBookingStartWindow(),
-        breakMinutes: defaultBookingAvailability.breakMinutes
+        breakMinutes: defaultBookingAvailability.breakMinutes,
+        availableRooms
       });
 
       return [

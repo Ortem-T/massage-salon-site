@@ -164,7 +164,7 @@ const compactBookingStatusStyles: Record<BookingStatus, string> = {
 };
 const scheduleBlockEventStyle =
   "border-border/80 bg-[repeating-linear-gradient(135deg,rgb(236_231_220/0.64)_0,rgb(236_231_220/0.64)_6px,rgb(248_246_241/0.82)_6px,rgb(248_246_241/0.82)_12px)] text-primary";
-const dashboardCalendarRealtimeTables = ["bookings", "schedule_blocks"] as const;
+const dashboardCalendarRealtimeTables = ["bookings", "schedule_blocks", "app_settings"] as const;
 const salonTimeZone = "Europe/Belgrade";
 const dateLocales: Record<Locale, string> = {
   sr: "sr-Latn-RS",
@@ -442,11 +442,13 @@ export function BookingsCalendar({
   const [manualBookingErrors, setManualBookingErrors] = useState<ManualBookingFormErrors>({});
   const [manualAvailableTimeSlots, setManualAvailableTimeSlots] = useState<string[]>([]);
   const [isManualAvailabilityLoading, setIsManualAvailabilityLoading] = useState(false);
+  const [availabilityRefreshKey, setAvailabilityRefreshKey] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const dialogRef = useRef<HTMLElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const refreshCalendarData = useCallback(() => {
+    setAvailabilityRefreshKey((current) => current + 1);
     router.refresh();
   }, [router]);
 
@@ -978,7 +980,8 @@ export function BookingsCalendar({
     manualBookingForm.preferredDate,
     manualBookingForm.service,
     manualBookingForm.therapistId,
-    manualCanLoadAvailability
+    manualCanLoadAvailability,
+    availabilityRefreshKey
   ]);
 
   useEffect(() => {
@@ -1316,7 +1319,9 @@ export function BookingsCalendar({
         ? calendar.actions.forbidden
         : result.reason === "service_restriction"
           ? calendar.actions.serviceRestriction
-          : calendar.actions.error
+          : result.reason === "blocked"
+            ? calendar.actions.blocked
+            : calendar.actions.error
     );
   }
 

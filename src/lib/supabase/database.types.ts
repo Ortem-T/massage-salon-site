@@ -3,12 +3,29 @@ import { type BookingStatus } from "@/lib/booking/booking-schema";
 import { type ClientContactChannel } from "@/lib/clients/contact";
 import { type ManualBookingSourceChannel } from "@/lib/dashboard/constants";
 
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 export type ScheduleBlockType = "full_day" | "time_range";
 export type ScheduleBlockScope = "therapist" | "salon";
 
 export type Database = {
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          key: string;
+          value: Json;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          key: string;
+          value: Json;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["app_settings"]["Insert"]>;
+        Relationships: [];
+      };
       bookings: {
         Row: {
           id: string;

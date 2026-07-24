@@ -717,6 +717,7 @@ const sr = {
         saved: "Sačuvano.",
         forbidden: "Ova radnja nije dostupna za vašu ulogu.",
         serviceRestriction: "Izabrani terapeut ne radi ovu uslugu.",
+        blocked: "Ovo vreme više nije dostupno.",
         confirmCancel: "Otkazati ovaj termin?",
         error: "Izmene nije moguće sačuvati."
       }
@@ -736,6 +737,22 @@ const sr = {
       noBlocks: "Nema blokada rasporeda za ovaj datum.",
       confirmDelete: "Da li ste sigurni da želite da obrišete ovu blokadu?",
       ownTherapistFallback: "Vaš profil terapeuta još nije povezan.",
+      operationMode: {
+        eyebrow: "Režim rada salona",
+        title: "Dostupni kabineti",
+        availableRooms: "Broj kabineta",
+        oneRoom: "1 kabinet",
+        twoRooms: "2 kabineta",
+        badgeOneRoom: "1 kabinet",
+        description: "Kada je dostupan samo jedan kabinet, u isto vreme može postojati samo jedan termin bez obzira na izabranog terapeuta.",
+        hint: "Podešavanje odmah utiče na javnu formu, ručne termine i rebooking linkove.",
+        saving: "Čuvamo režim...",
+        messages: {
+          saved: "Režim rada salona je ažuriran.",
+          forbidden: "Samo admin može da menja režim rada salona.",
+          error: "Režim rada salona nije moguće sačuvati."
+        }
+      },
       fields: {
         date: "Datum",
         blockType: "Tip blokade",
