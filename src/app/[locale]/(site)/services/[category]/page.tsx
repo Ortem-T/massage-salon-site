@@ -107,7 +107,7 @@ export default async function ServiceCategoryPage({ params }: ServiceCategoryPag
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/35 to-transparent" />
         <div className="container-shell">
           <MotionReveal>
-            <Button asChild variant="ghost" className="mb-12 px-0 text-muted-foreground hover:text-primary">
+            <Button asChild variant="ghost" className="-ml-4 mb-12 px-4 text-muted-foreground hover:text-primary">
               <Link href={`/${locale}#services`}>
                 <ArrowLeft aria-hidden="true" className="mr-2 size-4" />
                 {dictionary.services.backToServices}
