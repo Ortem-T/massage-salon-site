@@ -27,6 +27,8 @@ import { bookingServiceQueryParam, bookingServiceSelectEvent } from "@/lib/booki
 import {
   getAllowedTherapistIdsForService,
   isTherapistAllowedForService,
+  serviceCategories,
+  type ServiceCategory,
   type ServiceCatalogItem
 } from "@/lib/services/catalog";
 import { type TherapistCatalogItem } from "@/lib/therapists/catalog";
@@ -129,6 +131,7 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
   const [availabilityRefreshKey, setAvailabilityRefreshKey] = useState(0);
   const [hasReturningClient, setHasReturningClient] = useState(false);
   const [rebookingLinkError, setRebookingLinkError] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<ServiceCategory | "">("");
   const [pendingRebookingSuggestion, setPendingRebookingSuggestion] = useState<RebookingSuggestedBooking | null>(null);
   const [rebookingPrefillStep, setRebookingPrefillStep] = useState<RebookingPrefillStep>("idle");
   const previousSelectionRef = useRef({ service: "", therapist: "" });
@@ -177,6 +180,20 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
   const selectedServiceItem = useMemo(
     () => serviceCatalog.find((service) => service.slug === selectedService) ?? null,
     [selectedService, serviceCatalog]
+  );
+  const availableCategories = useMemo(
+    () =>
+      serviceCategories.filter((category) =>
+        serviceCatalog.some((service) => service.category === category && service.active && service.bookableOnline)
+      ),
+    [serviceCatalog]
+  );
+  const filteredServiceCatalog = useMemo(
+    () =>
+      selectedCategory
+        ? serviceCatalog.filter((service) => service.category === selectedCategory)
+        : serviceCatalog,
+    [selectedCategory, serviceCatalog]
   );
   const allowedTherapistIds = useMemo(
     () => (selectedService ? getAllowedTherapistIdsForService(serviceCatalog, selectedService) : []),
@@ -245,6 +262,7 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
 
       setPendingRebookingSuggestion(suggestion);
       setRebookingPrefillStep("therapist");
+      setSelectedCategory(serviceCatalog.find((service) => service.slug === suggestion.serviceId)?.category ?? "");
       setValue("service", suggestion.serviceId, { shouldDirty: false, shouldTouch: false, shouldValidate: true });
     }
 
@@ -340,6 +358,8 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
         return;
       }
 
+      const service = serviceCatalog.find((item) => item.slug === requestedService);
+      setSelectedCategory(service?.category ?? "");
       setValue("service", requestedService, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
     }
 
@@ -362,6 +382,29 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
       window.removeEventListener("popstate", applyPreselectedServiceFromUrl);
     };
   }, [getValues, serviceCatalog, setValue]);
+
+  useEffect(() => {
+    if (!selectedServiceItem) {
+      return;
+    }
+
+    setSelectedCategory((current) => (current === selectedServiceItem.category ? current : selectedServiceItem.category));
+  }, [selectedServiceItem]);
+
+  function updateSelectedCategory(category: string) {
+    const nextCategory = serviceCategories.includes(category as ServiceCategory) ? (category as ServiceCategory) : "";
+    setSelectedCategory(nextCategory);
+
+    const currentService = getValues("service");
+    const currentServiceItem = serviceCatalog.find((service) => service.slug === currentService);
+
+    if (currentServiceItem && nextCategory && currentServiceItem.category !== nextCategory) {
+      setValue("service", "", { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+      setValue("specialist", "", { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+      setValue("preferredDate", "", { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+      setValue("preferredTime", "", { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+    }
+  }
 
   useEffect(() => {
     const previous = previousSelectionRef.current;
@@ -762,7 +805,27 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
             />
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-2 lg:gap-5">
+          <div className="grid gap-4 lg:grid-cols-3 lg:gap-5">
+            <div className="group grid gap-2.5">
+              <Label htmlFor="booking-category">{booking.fields.category.label}</Label>
+              <div className="relative">
+                <Select
+                  id="booking-category"
+                  value={selectedCategory}
+                  onChange={(event) => updateSelectedCategory(event.target.value)}
+                >
+                  <option value="">{booking.fields.category.placeholder}</option>
+                  {availableCategories.map((category) => (
+                    <option key={category} value={category}>
+                      {dictionary.services.categories[category]}
+                    </option>
+                  ))}
+                </Select>
+                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
+              </div>
+              <FieldError id="booking-category-note" tone="muted" message={selectedCategory ? undefined : booking.fields.category.helper} />
+            </div>
+
             <div className="group grid gap-2.5">
               <Label htmlFor="booking-service">{booking.fields.service.label}</Label>
               <div className="relative">
@@ -773,7 +836,7 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
                   {...register("service")}
                 >
                   <option value="">{booking.fields.service.placeholder}</option>
-                  {serviceCatalog.map((service) => (
+                  {filteredServiceCatalog.map((service) => (
                     <option key={service.slug} value={service.slug}>
                       {service.name}
                     </option>

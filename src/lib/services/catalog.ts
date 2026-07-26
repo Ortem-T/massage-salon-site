@@ -1,15 +1,16 @@
 import { defaultLocale, type Locale } from "@/i18n/config";
+import { isServiceCategory, serviceCategories, type ServiceCategory } from "@/lib/services/categories";
 import { createSupabasePublicClient } from "@/lib/supabase/client";
 
-export const serviceCategories = ["face", "body"] as const;
-
-export type ServiceCategory = (typeof serviceCategories)[number];
+export { serviceCategories, isServiceCategory };
+export type { ServiceCategory };
 
 export type ServiceCatalogItem = {
   id: string;
   slug: string;
   category: ServiceCategory;
   durationMinutes: number;
+  showDurationPublicly: boolean;
   priceRsd: number | null;
   active: boolean;
   bookableOnline: boolean;
@@ -25,6 +26,7 @@ type ServiceRow = {
   slug: string;
   category: string | null;
   duration_minutes: number;
+  show_duration_publicly?: boolean | null;
   price_rsd: number | null;
   active: boolean;
   bookable_online?: boolean | null;
@@ -48,6 +50,7 @@ type TherapistServiceRow = {
 type ServiceCatalogOptions = {
   activeOnly?: boolean;
   bookableOnlineOnly?: boolean;
+  requireTherapistAssignment?: boolean;
 };
 
 export type ServiceCatalogResult = {
@@ -60,10 +63,6 @@ const fallbackLocales = {
   ru: ["ru", "sr", "en"],
   en: ["en", "sr", "ru"]
 } satisfies Record<Locale, Locale[]>;
-
-function isServiceCategory(value: string | null): value is ServiceCategory {
-  return serviceCategories.includes(value as ServiceCategory);
-}
 
 function humanizeSlug(slug: string) {
   return slug
@@ -98,6 +97,10 @@ export function formatServiceDuration(durationMinutes: number | null | undefined
   }
 
   return `${durationMinutes} ${locale === "ru" ? "мин" : "min"}`;
+}
+
+export function formatPublicServiceDuration(service: Pick<ServiceCatalogItem, "durationMinutes" | "showDurationPublicly">, locale: Locale) {
+  return service.showDurationPublicly ? formatServiceDuration(service.durationMinutes, locale) : "";
 }
 
 export function formatServicePrice(priceRsd: number | null | undefined) {
@@ -136,7 +139,7 @@ export async function getServiceCatalogData(
     const supabase = createSupabasePublicClient();
     const query = supabase
       .from("services")
-      .select("id, slug, category, duration_minutes, price_rsd, active, bookable_online, sort_order")
+      .select("id, slug, category, duration_minutes, show_duration_publicly, price_rsd, active, bookable_online, sort_order")
       .order("sort_order", { ascending: true })
       .order("slug", { ascending: true });
 
@@ -192,8 +195,15 @@ export async function getServiceCatalogData(
       });
     }
 
+    const requireTherapistAssignment = options.requireTherapistAssignment ?? (options.bookableOnlineOnly ?? true);
     const catalog = serviceRows.flatMap((service) => {
       if (!isServiceCategory(service.category)) {
+        return [];
+      }
+
+      const allowedTherapistIds = allowedTherapistsByServiceId.get(service.id) ?? [];
+
+      if (requireTherapistAssignment && allowedTherapistIds.length === 0) {
         return [];
       }
 
@@ -205,11 +215,12 @@ export async function getServiceCatalogData(
           slug: service.slug,
           category: service.category,
           durationMinutes: service.duration_minutes,
+          showDurationPublicly: service.show_duration_publicly ?? true,
           priceRsd: service.price_rsd,
           active: service.active,
           bookableOnline: service.bookable_online ?? true,
           sortOrder: service.sort_order ?? 0,
-          allowedTherapistIds: allowedTherapistsByServiceId.get(service.id) ?? [],
+          allowedTherapistIds,
           ...translation
         }
       ];

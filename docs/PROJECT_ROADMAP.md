@@ -148,10 +148,19 @@ Do not build CRM/admin too early. Future admin can include:
 - basic analytics
 - notification history
 
+Service catalog direction:
+
+- categories are stable keys: `massage`, `face_care`, `brows_lashes`, `permanent_makeup`
+- localized category names, descriptions, and SEO copy live in dictionary files
+- service display data lives in `public.service_translations`
+- `services.show_duration_publicly` controls whether duration appears in public service cards/pages
+- booking flows may filter by category in the UI, but bookings must not store category snapshots
+- services without active therapist assignments must not appear as selectable public booking options
+
 Minimum future data model:
 
 - `bookings`: service id, specialist id, preferred date, preferred time, client name, phone, comment, site locale, status, timestamps
-- `services`: stable id, localized display data, duration, price range, active flag
+- `services`: stable id/slug, category key, localized display data, duration, `show_duration_publicly`, price, active flag, online booking flag
 - `specialists`: stable id, public name, active flag, service capabilities
 - `booking_statuses`: pending, confirmed, cancelled, completed
 - `admin_users`: authenticated staff allowed to manage bookings
@@ -205,6 +214,8 @@ Later:
 - do not break i18n
 - do not change `/sr` `/ru` `/en` routing
 - do not hardcode translations
+- do not reintroduce legacy `face` / `body` service categories
+- do not store service category on booking rows
 - do not rewrite architecture unnecessarily
 - do not push directly to main
 - do not commit `.env`, `node_modules`, `.next`

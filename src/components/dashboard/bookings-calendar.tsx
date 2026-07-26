@@ -50,6 +50,8 @@ import {
   formatServicePrice,
   getAllowedTherapistIdsForService,
   isTherapistAllowedForService,
+  serviceCategories,
+  type ServiceCategory,
   type ServiceCatalogItem
 } from "@/lib/services/catalog";
 import { cn } from "@/lib/utils";
@@ -91,6 +93,7 @@ type ManualBookingFormState = {
   clientMode: ClientMode;
   selectedClientId: string;
   clientSearch: string;
+  serviceCategory: ServiceCategory | "all";
   service: string;
   preferredDate: string;
   preferredTime: string;
@@ -424,6 +427,7 @@ export function BookingsCalendar({
     clientMode: "new",
     selectedClientId: "",
     clientSearch: "",
+    serviceCategory: "all",
     service: "",
     preferredDate: todayKey(),
     preferredTime: "",
@@ -509,8 +513,19 @@ export function BookingsCalendar({
     () =>
       role === "therapist"
         ? activeServiceCatalog.filter((service) => service.allowedTherapistIds.includes(ownTherapistId))
-        : activeServiceCatalog,
+        : activeServiceCatalog.filter((service) => service.allowedTherapistIds.length > 0),
     [activeServiceCatalog, ownTherapistId, role]
+  );
+  const manualServiceCategories = useMemo(
+    () => serviceCategories.filter((category) => manualServiceCatalog.some((service) => service.category === category)),
+    [manualServiceCatalog]
+  );
+  const filteredManualServiceCatalog = useMemo(
+    () =>
+      manualBookingForm.serviceCategory === "all"
+        ? manualServiceCatalog
+        : manualServiceCatalog.filter((service) => service.category === manualBookingForm.serviceCategory),
+    [manualBookingForm.serviceCategory, manualServiceCatalog]
   );
   const selectedManualService = manualBookingForm.service ? (servicesBySlug.get(manualBookingForm.service) ?? null) : null;
   const manualAllowedTherapistIds = useMemo(
@@ -631,6 +646,24 @@ export function BookingsCalendar({
     return [service.name, formatServiceDuration(service.durationMinutes, locale), formatServicePrice(service.priceRsd)]
       .filter(Boolean)
       .join(" - ");
+  }
+
+  function updateManualBookingServiceCategory(category: string) {
+    const nextCategory = serviceCategories.includes(category as ServiceCategory) ? (category as ServiceCategory) : "all";
+
+    setManualBookingForm((current) => {
+      const currentService = current.service ? servicesBySlug.get(current.service) : null;
+      const shouldClearService = currentService && nextCategory !== "all" && currentService.category !== nextCategory;
+
+      return {
+        ...current,
+        serviceCategory: nextCategory,
+        service: shouldClearService ? "" : current.service,
+        therapistId: shouldClearService ? (role === "therapist" ? ownTherapistId : "") : current.therapistId,
+        durationMinutes: shouldClearService ? "" : current.durationMinutes,
+        preferredTime: shouldClearService ? "" : current.preferredTime
+      };
+    });
   }
 
   function getBookingServiceMeta(booking: DashboardBooking) {
@@ -1060,6 +1093,7 @@ export function BookingsCalendar({
       clientMode: clients.length > 0 ? "existing" : "new",
       selectedClientId: "",
       clientSearch: "",
+      serviceCategory: "all",
       service: "",
       preferredDate: defaultDate,
       preferredTime: "",
@@ -1200,6 +1234,7 @@ export function BookingsCalendar({
 
   function updateManualBookingService(service: string) {
     const allowedTherapistIds = getAllowedTherapistIdsForService(serviceCatalog, service);
+    const serviceItem = servicesBySlug.get(service) ?? null;
     const nextTherapistId =
       role === "therapist"
         ? (allowedTherapistIds.includes(ownTherapistId) ? ownTherapistId : "")
@@ -1212,6 +1247,7 @@ export function BookingsCalendar({
     setManualBookingForm((current) => ({
       ...current,
       service,
+      serviceCategory: serviceItem?.category ?? current.serviceCategory,
       therapistId: nextTherapistId,
       durationMinutes: serviceDurations.get(service) ?? current.durationMinutes,
       preferredTime: ""
@@ -1844,6 +1880,26 @@ export function BookingsCalendar({
             <form className="mt-6 space-y-5" onSubmit={submitManualBooking}>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
+                  <label htmlFor="manual-service-category" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                    {calendar.create.fields.serviceCategory}
+                  </label>
+                  <Select
+                    id="manual-service-category"
+                    value={manualBookingForm.serviceCategory}
+                    onChange={(event) => updateManualBookingServiceCategory(event.target.value)}
+                    disabled={serviceCatalogError || manualServiceCategories.length === 0}
+                  >
+                    <option value="all">{calendar.create.placeholders.allServices}</option>
+                    {manualServiceCategories.map((category) => (
+                      <option key={category} value={category}>
+                        {dictionary.services.categories[category]}
+                      </option>
+                    ))}
+                  </Select>
+                  <ManualFieldError />
+                </div>
+
+                <div className="space-y-2">
                   <label htmlFor="manual-service" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                     {calendar.create.fields.service}
                   </label>
@@ -1852,10 +1908,10 @@ export function BookingsCalendar({
                     value={manualBookingForm.service}
                     onChange={(event) => updateManualBookingService(event.target.value)}
                     aria-invalid={Boolean(manualBookingErrors.service)}
-                    disabled={serviceCatalogError || manualServiceCatalog.length === 0}
+                    disabled={serviceCatalogError || filteredManualServiceCatalog.length === 0}
                   >
                     <option value="">{calendar.create.placeholders.service}</option>
-                    {manualServiceCatalog.map((service) => (
+                    {filteredManualServiceCatalog.map((service) => (
                       <option key={service.slug} value={service.slug}>
                         {getServiceOptionLabel(service)}
                       </option>
@@ -1863,7 +1919,7 @@ export function BookingsCalendar({
                   </Select>
                   {serviceCatalogError ? (
                     <p className="text-sm leading-5 text-accent">{calendar.create.servicesLoadError}</p>
-                  ) : manualServiceCatalog.length === 0 ? (
+                  ) : filteredManualServiceCatalog.length === 0 ? (
                     <p className="text-sm leading-5 text-muted-foreground">{calendar.create.noServicesAvailable}</p>
                   ) : null}
                   <ManualFieldError message={manualBookingErrors.service} />

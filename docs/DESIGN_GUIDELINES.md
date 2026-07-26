@@ -146,6 +146,8 @@ Cards:
 - Use soft shadows with green or warm neutral undertones.
 - Avoid harsh white cards on warm backgrounds.
 - Avoid making service cards too tall or too uniform when editorial rhythm would be better.
+- Present the public service catalog as calm category cards plus editorial lists, not as one long dashboard-like grid.
+- Show service duration publicly only when `services.show_duration_publicly` allows it; some beauty services use duration only for scheduling.
 
 ## Navbar Behavior
 

@@ -17,16 +17,18 @@ export const languageNames = {
   en: "English"
 } satisfies Record<Locale, string>;
 
-export function getLocalizedUrl(locale: Locale) {
-  return `${siteUrl}/${locale}`;
+export function getLocalizedUrl(locale: Locale, path = "") {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+  return `${siteUrl}/${locale}${path ? normalizedPath : ""}`;
 }
 
-export function getLocalizedUrls() {
-  return Object.fromEntries(locales.map((locale) => [locale, getLocalizedUrl(locale)])) as Record<Locale, string>;
+export function getLocalizedUrls(path = "") {
+  return Object.fromEntries(locales.map((locale) => [locale, getLocalizedUrl(locale, path)])) as Record<Locale, string>;
 }
 
-export function getDefaultLocalizedUrl() {
-  return getLocalizedUrl(defaultLocale);
+export function getDefaultLocalizedUrl(path = "") {
+  return getLocalizedUrl(defaultLocale, path);
 }
 
 export function getLocalBusinessJsonLd() {
