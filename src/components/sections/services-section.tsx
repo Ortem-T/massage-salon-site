@@ -75,11 +75,11 @@ export function ServicesSection({ dictionary, locale, serviceCatalog }: Services
                           <ArrowUpRight aria-hidden="true" className="size-4" />
                         </span>
                       </span>
-                      <span className="mt-7 flex flex-1 flex-col">
+                      <span className="mt-7 flex flex-col">
                         <span className="block max-w-xl text-sm leading-7 text-muted-foreground sm:text-base">
                           {services.categoryCards[category]}
                         </span>
-                        <span className="mt-auto flex items-center justify-between gap-4 pt-6 text-sm font-semibold text-primary">
+                        <span className="mt-6 flex items-center justify-between gap-4 text-sm font-semibold text-primary">
                           <span>{price || services.categoryComingSoon}</span>
                           <span className="text-accent">{services.viewCategory}</span>
                         </span>
