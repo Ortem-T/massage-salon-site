@@ -4,6 +4,9 @@
 alter table public.services
   add column if not exists show_duration_publicly boolean not null default true;
 
+alter table public.services
+  drop constraint if exists services_category_check;
+
 update public.services
 set category = case
     when category = 'face' then 'face_care'
@@ -12,13 +15,6 @@ set category = case
   end,
   updated_at = now()
 where category in ('face', 'body');
-
-alter table public.services
-  drop constraint if exists services_category_check;
-
-alter table public.services
-  add constraint services_category_check
-  check (category in ('massage', 'face_care', 'brows_lashes', 'permanent_makeup'));
 
 update public.services
 set category = 'face_care',
@@ -51,6 +47,10 @@ where slug in (
   'device-lymphatic-drainage-course-12',
   'taping-application'
 );
+
+alter table public.services
+  add constraint services_category_check
+  check (category in ('massage', 'face_care', 'brows_lashes', 'permanent_makeup'));
 
 update public.services
 set active = false,
