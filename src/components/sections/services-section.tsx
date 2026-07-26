@@ -57,10 +57,10 @@ export function ServicesSection({ dictionary, locale, serviceCatalog }: Services
                 const price = getCategoryPrice(category);
 
                 return (
-                  <MotionReveal key={category}>
+                  <MotionReveal key={category} className="h-full">
                     <Link
                       href={`/${locale}/services/${category}`}
-                      className="group flex h-[22rem] flex-col overflow-hidden rounded-3xl border border-border/70 bg-card/74 p-7 shadow-[0_22px_70px_rgb(27_54_39/0.08)] transition duration-300 hover:-translate-y-1 hover:border-accent/35 hover:bg-background/86 hover:shadow-[0_28px_90px_rgb(27_54_39/0.13)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 sm:h-[23rem] sm:p-8 lg:h-[24rem]"
+                      className="group flex h-full min-h-[18.5rem] flex-col rounded-3xl border border-border/70 bg-card/74 p-7 shadow-[0_22px_70px_rgb(27_54_39/0.08)] transition duration-300 hover:-translate-y-1 hover:border-accent/35 hover:bg-background/86 hover:shadow-[0_28px_90px_rgb(27_54_39/0.13)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 sm:min-h-[19.5rem] sm:p-8 lg:min-h-[20.5rem]"
                     >
                       <span className="flex items-start justify-between gap-5">
                         <span>
