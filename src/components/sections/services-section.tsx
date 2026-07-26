@@ -60,7 +60,7 @@ export function ServicesSection({ dictionary, locale, serviceCatalog }: Services
                   <MotionReveal key={category}>
                     <Link
                       href={`/${locale}/services/${category}`}
-                      className="group flex min-h-72 flex-col justify-between rounded-3xl border border-border/70 bg-card/74 p-7 shadow-[0_22px_70px_rgb(27_54_39/0.08)] transition duration-300 hover:-translate-y-1 hover:border-accent/35 hover:bg-background/86 hover:shadow-[0_28px_90px_rgb(27_54_39/0.13)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 sm:p-8"
+                      className="group grid h-[23rem] grid-rows-[auto_1fr] overflow-hidden rounded-3xl border border-border/70 bg-card/74 p-7 shadow-[0_22px_70px_rgb(27_54_39/0.08)] transition duration-300 hover:-translate-y-1 hover:border-accent/35 hover:bg-background/86 hover:shadow-[0_28px_90px_rgb(27_54_39/0.13)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 sm:h-[24rem] sm:p-8 lg:h-[25rem]"
                     >
                       <span className="flex items-start justify-between gap-5">
                         <span>
@@ -75,8 +75,8 @@ export function ServicesSection({ dictionary, locale, serviceCatalog }: Services
                           <ArrowUpRight aria-hidden="true" className="size-4" />
                         </span>
                       </span>
-                      <span className="mt-12 block">
-                        <span className="block max-w-xl text-base leading-8 text-muted-foreground">
+                      <span className="mt-10 flex min-h-0 flex-col justify-end">
+                        <span className="block max-w-xl text-sm leading-7 text-muted-foreground sm:text-base">
                           {services.categoryCards[category]}
                         </span>
                         <span className="mt-6 flex items-center justify-between gap-4 text-sm font-semibold text-primary">

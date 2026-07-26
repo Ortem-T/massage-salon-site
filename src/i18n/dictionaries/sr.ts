@@ -169,22 +169,25 @@ const sr = {
       category: {
         label: "Kategorija",
         placeholder: "Sve kategorije",
-        helper: "Možete prvo izabrati kategoriju"
+        helper: "Sužava listu usluga"
       },
       service: {
         label: "Usluga",
-        placeholder: "Izaberite uslugu"
+        placeholder: "Usluga",
+        helper: "Specijalisti se prikazuju nakon izbora"
       },
       specialist: {
         label: "Specijalista",
-        placeholder: "Izaberite specijalistu"
+        placeholder: "Specijalista",
+        helper: "Dostupan za izabranu uslugu"
       },
       date: {
         label: "Željeni datum"
       },
       time: {
         label: "Željeno vreme",
-        placeholder: "Izaberite vreme"
+        placeholder: "Vreme",
+        helper: "Slobodni termini zavise od datuma"
       },
       name: {
         label: "Ime klijenta",
@@ -196,7 +199,8 @@ const sr = {
       },
       comment: {
         label: "Komentar",
-        placeholder: "Šta treba da znamo? Pritisak, fokus zone, detalji rasporeda..."
+        placeholder: "Napomene za tretman",
+        helper: "Zone fokusa, pritisak, detalji rasporeda"
       }
     },
     validation: {
@@ -217,14 +221,14 @@ const sr = {
       unavailable: "Datum nije dostupan"
     },
     availability: {
-      selectTherapistFirst: "Prvo izaberite terapeuta",
-      selectServiceFirst: "Prvo izaberite uslugu",
-      selectSpecialistForService: "Izaberite specijalistu za ovu uslugu",
-      noSpecialistsForService: "Nema dostupnih specijalista za ovu uslugu",
+      selectTherapistFirst: "Izaberite specijalistu",
+      selectServiceFirst: "Izaberite uslugu",
+      selectSpecialistForService: "Izaberite specijalistu",
+      noSpecialistsForService: "Nema specijalista",
       specialistAutoSelected: "Specijalista je automatski izabran",
       selectDateFirst: "Prvo izaberite datum",
-      loadingTimes: "Učitavamo dostupna vremena",
-      noAvailableTimes: "Nema slobodnih termina za ovaj datum",
+      loadingTimes: "Učitavanje...",
+      noAvailableTimes: "Nema slobodnih termina",
       otherTherapistBookings: "Drugi terapeut ima termine tog dana",
       calendarAfterTherapist: "Izaberite uslugu i terapeuta.",
       availableTimes: "Dostupna vremena za termin"

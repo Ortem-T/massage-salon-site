@@ -167,24 +167,27 @@ const ru = {
     },
     fields: {
       category: {
-        label: "Направление",
-        placeholder: "Все направления",
-        helper: "Можно сначала выбрать направление"
+        label: "Категория",
+        placeholder: "Все категории",
+        helper: "Можно сузить список услуг"
       },
       service: {
         label: "Услуга",
-        placeholder: "Выберите услугу"
+        placeholder: "Услуга",
+        helper: "После выбора покажем специалистов"
       },
       specialist: {
         label: "Специалист",
-        placeholder: "Выберите специалиста"
+        placeholder: "Специалист",
+        helper: "Доступен по выбранной услуге"
       },
       date: {
         label: "Желаемая дата"
       },
       time: {
         label: "Желаемое время",
-        placeholder: "Выберите время"
+        placeholder: "Время",
+        helper: "Свободные слоты зависят от даты"
       },
       name: {
         label: "Имя клиента",
@@ -196,7 +199,8 @@ const ru = {
       },
       comment: {
         label: "Комментарий",
-        placeholder: "Что важно учесть? Давление, зоны фокуса, детали расписания..."
+        placeholder: "Пожелания к сеансу",
+        helper: "Например: зоны фокуса, давление, детали расписания"
       }
     },
     validation: {
@@ -217,14 +221,14 @@ const ru = {
       unavailable: "Дата недоступна"
     },
     availability: {
-      selectTherapistFirst: "Сначала выберите массажиста",
-      selectServiceFirst: "Сначала выберите услугу",
-      selectSpecialistForService: "Выберите специалиста для этой услуги",
-      noSpecialistsForService: "Для этой услуги нет доступных специалистов",
+      selectTherapistFirst: "Выберите специалиста",
+      selectServiceFirst: "Выберите услугу",
+      selectSpecialistForService: "Выберите специалиста",
+      noSpecialistsForService: "Нет специалистов",
       specialistAutoSelected: "Специалист выбран автоматически",
       selectDateFirst: "Сначала выберите дату",
-      loadingTimes: "Загружаем доступное время",
-      noAvailableTimes: "На эту дату нет свободного времени",
+      loadingTimes: "Загрузка...",
+      noAvailableTimes: "Нет свободного времени",
       otherTherapistBookings: "У другого массажиста есть записи в этот день",
       calendarAfterTherapist: "Выберите услугу и массажиста.",
       availableTimes: "Доступное время для записи"

@@ -812,6 +812,7 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
                 <Select
                   id="booking-category"
                   value={selectedCategory}
+                  aria-describedby="booking-category-note"
                   onChange={(event) => updateSelectedCategory(event.target.value)}
                 >
                   <option value="">{booking.fields.category.placeholder}</option>
@@ -832,7 +833,7 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
                 <Select
                   id="booking-service"
                   aria-invalid={!!errors.service}
-                  aria-describedby={errors.service ? "booking-service-error" : undefined}
+                  aria-describedby="booking-service-error"
                   {...register("service")}
                 >
                   <option value="">{booking.fields.service.placeholder}</option>
@@ -844,7 +845,11 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
                 </Select>
                 <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
               </div>
-              <FieldError id="booking-service-error" message={errors.service?.message} />
+              <FieldError
+                id="booking-service-error"
+                tone={errors.service ? "error" : "muted"}
+                message={errors.service?.message ?? booking.fields.service.helper}
+              />
             </div>
 
             <div className="group grid gap-2.5">
@@ -853,7 +858,7 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
                 <Select
                   id="booking-specialist"
                   aria-invalid={!!errors.specialist}
-                  aria-describedby={errors.specialist || (selectedService && availableTherapists.length === 0) ? "booking-specialist-error" : undefined}
+                  aria-describedby="booking-specialist-error"
                   disabled={!selectedService || availableTherapists.length === 0}
                   {...register("specialist")}
                 >
@@ -875,7 +880,7 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
                     ? booking.availability.noSpecialistsForService
                     : isSpecialistAutoSelected
                       ? booking.availability.specialistAutoSelected
-                      : undefined)
+                      : booking.fields.specialist.helper)
                 }
               />
             </div>
@@ -922,7 +927,7 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
                 <Select
                   id="booking-time"
                   aria-invalid={!!errors.preferredTime}
-                  aria-describedby={errors.preferredTime ? "booking-time-error" : undefined}
+                  aria-describedby="booking-time-error"
                   disabled={isTimeDisabled}
                   {...register("preferredTime")}
                 >
@@ -935,7 +940,11 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
                 </Select>
                 <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
               </div>
-              <FieldError id="booking-time-error" message={errors.preferredTime?.message} />
+              <FieldError
+                id="booking-time-error"
+                tone={errors.preferredTime ? "error" : "muted"}
+                message={errors.preferredTime?.message ?? booking.fields.time.helper}
+              />
             </div>
           </div>
 
@@ -985,10 +994,14 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
               id="booking-comment"
               placeholder={booking.fields.comment.placeholder}
               aria-invalid={!!errors.comment}
-              aria-describedby={errors.comment ? "booking-comment-error" : undefined}
+              aria-describedby="booking-comment-error"
               {...register("comment")}
             />
-            <FieldError id="booking-comment-error" message={errors.comment?.message} />
+            <FieldError
+              id="booking-comment-error"
+              tone={errors.comment ? "error" : "muted"}
+              message={errors.comment?.message ?? booking.fields.comment.helper}
+            />
           </div>
 
           <div className="flex flex-col gap-5 border-t border-border/60 pt-6 sm:flex-row sm:items-center sm:justify-between">

@@ -26,6 +26,8 @@ Booking availability now supports a temporary salon capacity setting through `pu
 
 The service catalog is being upgraded from the original `face` / `body` split into four stable multilingual categories: `massage`, `face_care`, `brows_lashes`, and `permanent_makeup`. Public homepage services now use category cards and localized category pages, while public and dashboard booking forms use category filters only as UI state. Booking records do not store category; category is derived from the linked service slug/catalog row. New brow/lash and permanent makeup services are active catalog entries but not online-bookable until a specialist is explicitly assigned.
 
+Brow/lash and permanent makeup services are now planned for Ekaterina. A follow-up migration enables those services for online booking and creates active `therapist_services` assignments for Ekaterina. The booking form category selector was polished with shorter placeholders and consistent helper rows, and homepage category cards now use fixed heights for stable multilingual layouts.
+
 ## Completed Tasks
 
 - Created Next.js 15 project structure with App Router.
@@ -84,6 +86,7 @@ The service catalog is being upgraded from the original `face` / `body` split in
 - Replaced the long homepage services list with four localized category cards plus a concise popular services list. Added localized service category pages with SEO metadata, hreflang, sitemap entries, permanent makeup grouping, and booking CTAs only for services that are actually bookable with an assigned specialist.
 - Added category filters to public booking and dashboard manual booking forms. The category selection is UI-only and is not stored on bookings.
 - Replaced the admin Services dashboard placeholder with a localized read-only catalog overview showing category, price, duration, active/online status, duration visibility, and therapist assignments.
+- Enabled brow/lash and permanent makeup services for Ekaterina through an idempotent follow-up migration, and fixed category-card and booking-form layout polish issues found in local QA.
 - Temporarily hid the homepage testimonials section behind a feature flag and removed placeholder review items from public dictionaries until real client reviews are available.
 - Updated the homepage About salon copy and stats in Serbian, Russian, and English to use clearer salon positioning and real specialist/procedure counts.
 - Updated two homepage benefits card texts in Serbian, Russian, and English to mention cozy atmosphere, music, coffee, natural oils, and gentle aromas.
@@ -314,6 +317,7 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Therapist-service restrictions require applying `20260518120000_service_catalog_restrictions.sql` in the hosted Supabase project.
 - Device lymphatic drainage services require applying `20260518130000_device_lymphatic_services.sql` after therapist-service restrictions.
 - Structured service catalog categories and new brow/lash/permanent makeup services require applying `20260726143000_structured_multilingual_service_catalog.sql`. New beauty services remain hidden from booking until therapist assignments are explicitly added.
+- Ekaterina brow/lash and permanent makeup online booking requires applying `20260726152000_enable_ekaterina_beauty_services.sql` after the structured catalog migration.
 - The shortened Taping service name requires applying `20260518131000_update_taping_translation.sql` after the device lymphatic drainage migration.
 - The hosted Supabase project has `20260513140000_real_service_catalog.sql` applied; local or restored environments still need that migration before public service reads work.
 - The hosted Supabase project has `20260513160000_public_booking_availability_view.sql` applied; local or restored environments need it before real public availability works.

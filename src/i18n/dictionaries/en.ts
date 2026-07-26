@@ -169,22 +169,25 @@ const en = {
       category: {
         label: "Category",
         placeholder: "All categories",
-        helper: "You can choose a category first"
+        helper: "Use it to narrow the service list"
       },
       service: {
         label: "Service",
-        placeholder: "Choose a service"
+        placeholder: "Service",
+        helper: "Specialists appear after selection"
       },
       specialist: {
         label: "Specialist",
-        placeholder: "Choose a specialist"
+        placeholder: "Specialist",
+        helper: "Available for the selected service"
       },
       date: {
         label: "Preferred date"
       },
       time: {
         label: "Preferred time",
-        placeholder: "Choose a time"
+        placeholder: "Time",
+        helper: "Available slots depend on the date"
       },
       name: {
         label: "Client name",
@@ -196,7 +199,8 @@ const en = {
       },
       comment: {
         label: "Comment",
-        placeholder: "Anything we should know? Pressure preference, focus areas, schedule details..."
+        placeholder: "Session notes",
+        helper: "Focus areas, pressure preference, schedule details"
       }
     },
     validation: {
@@ -217,14 +221,14 @@ const en = {
       unavailable: "Date is unavailable"
     },
     availability: {
-      selectTherapistFirst: "Select a therapist first",
-      selectServiceFirst: "Select a service first",
-      selectSpecialistForService: "Select a specialist for this service",
-      noSpecialistsForService: "No specialists are available for this service",
+      selectTherapistFirst: "Choose specialist",
+      selectServiceFirst: "Choose service",
+      selectSpecialistForService: "Choose specialist",
+      noSpecialistsForService: "No specialists",
       specialistAutoSelected: "Specialist selected automatically",
       selectDateFirst: "Select a date first",
-      loadingTimes: "Loading available times",
-      noAvailableTimes: "No available times for this date",
+      loadingTimes: "Loading...",
+      noAvailableTimes: "No available times",
       otherTherapistBookings: "Another therapist has bookings on this date",
       calendarAfterTherapist: "Choose a service and therapist.",
       availableTimes: "Available booking times"
