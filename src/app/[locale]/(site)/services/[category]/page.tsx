@@ -129,14 +129,6 @@ export default async function ServiceCategoryPage({ params }: ServiceCategoryPag
             </div>
           </MotionReveal>
 
-          {isPermanentMakeup ? (
-            <MotionReveal>
-              <p className="mt-10 max-w-3xl rounded-3xl border border-accent/20 bg-secondary/50 p-6 text-sm leading-7 text-muted-foreground">
-                {dictionary.services.permanentMakeupGroups.note}
-              </p>
-            </MotionReveal>
-          ) : null}
-
           <div className="mt-16 space-y-14">
             {groups.map(({ group, services }, groupIndex) =>
               services.length > 0 ? (

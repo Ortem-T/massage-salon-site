@@ -28,6 +28,8 @@ The service catalog is being upgraded from the original `face` / `body` split in
 
 Brow/lash and permanent makeup services are now planned for Ekaterina. A follow-up migration enables those services for online booking and creates active `therapist_services` assignments for Ekaterina. The booking form category selector was polished with shorter placeholders and consistent helper rows, and homepage category cards now use fixed heights for stable multilingual layouts.
 
+Service category UI polish continued after local QA: homepage category cards keep fixed height but no longer push descriptions far from headings, the first booking form row no longer shows helper captions under Category/Service/Specialist, category-page booking CTAs fall back to normal navigation when the homepage booking form is not mounted, and the permanent makeup consultation note card was removed.
+
 ## Completed Tasks
 
 - Created Next.js 15 project structure with App Router.
@@ -87,6 +89,7 @@ Brow/lash and permanent makeup services are now planned for Ekaterina. A follow-
 - Added category filters to public booking and dashboard manual booking forms. The category selection is UI-only and is not stored on bookings.
 - Replaced the admin Services dashboard placeholder with a localized read-only catalog overview showing category, price, duration, active/online status, duration visibility, and therapist assignments.
 - Enabled brow/lash and permanent makeup services for Ekaterina through an idempotent follow-up migration, and fixed category-card and booking-form layout polish issues found in local QA.
+- Fixed service category page booking CTAs so they navigate back to the localized homepage booking form with service preselection, and removed the permanent makeup note card from the category page.
 - Temporarily hid the homepage testimonials section behind a feature flag and removed placeholder review items from public dictionaries until real client reviews are available.
 - Updated the homepage About salon copy and stats in Serbian, Russian, and English to use clearer salon positioning and real specialist/procedure counts.
 - Updated two homepage benefits card texts in Serbian, Russian, and English to mention cozy atmosphere, music, coffee, natural oils, and gentle aromas.

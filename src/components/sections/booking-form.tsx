@@ -215,12 +215,6 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
     : availableTherapists.length === 0
       ? booking.availability.noSpecialistsForService
       : booking.availability.selectSpecialistForService;
-  const isSpecialistAutoSelected = Boolean(
-    selectedService &&
-      availableTherapists.length === 1 &&
-      selectedTherapist &&
-      selectedTherapist === availableTherapists[0]?.id
-  );
   const isDateSelectable = useCallback(
     (value: string) => {
       if (!canLoadAvailability) {
@@ -812,7 +806,6 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
                 <Select
                   id="booking-category"
                   value={selectedCategory}
-                  aria-describedby="booking-category-note"
                   onChange={(event) => updateSelectedCategory(event.target.value)}
                 >
                   <option value="">{booking.fields.category.placeholder}</option>
@@ -824,7 +817,7 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
                 </Select>
                 <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
               </div>
-              <FieldError id="booking-category-note" tone="muted" message={selectedCategory ? undefined : booking.fields.category.helper} />
+              <FieldError id="booking-category-note" />
             </div>
 
             <div className="group grid gap-2.5">
@@ -847,8 +840,7 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
               </div>
               <FieldError
                 id="booking-service-error"
-                tone={errors.service ? "error" : "muted"}
-                message={errors.service?.message ?? booking.fields.service.helper}
+                message={errors.service?.message}
               />
             </div>
 
@@ -873,15 +865,7 @@ export function BookingForm({ locale, dictionary, serviceCatalog, therapistCatal
               </div>
               <FieldError
                 id="booking-specialist-error"
-                tone={errors.specialist || (selectedService && availableTherapists.length === 0) ? "error" : "muted"}
-                message={
-                  errors.specialist?.message ??
-                  (selectedService && availableTherapists.length === 0
-                    ? booking.availability.noSpecialistsForService
-                    : isSpecialistAutoSelected
-                      ? booking.availability.specialistAutoSelected
-                      : booking.fields.specialist.helper)
-                }
+                message={errors.specialist?.message}
               />
             </div>
           </div>
