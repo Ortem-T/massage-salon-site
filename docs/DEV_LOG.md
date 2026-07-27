@@ -1,6 +1,6 @@
 # Development Log
 
-Last updated: 2026-07-16
+Last updated: 2026-07-26
 
 This log is shared context for human and AI-assisted development. Update it after every major development stage so future Codex, `web-coder`, and `grill-me` sessions can continue without rediscovering project history.
 
@@ -23,6 +23,12 @@ Personalized rebooking link generation now supports optional manual date/time su
 Dashboard calendar polish now highlights today's date on desktop Month and Week views using the same calm accent treatment as the existing mobile calendar language. Booking status changes to `completed` still update Supabase, dashboard state, Realtime, and history, but no longer send a Telegram status-change notification.
 
 Booking availability now supports a temporary salon capacity setting through `public.app_settings` key `available_rooms`. The default remains `2`, while admin users can switch the Schedule page to `1` available treatment room during hot weather. Public booking, dashboard manual booking, therapist assignment checks, automatic/manual rebooking suggestions, and the shared availability API all use the same room-capacity-aware availability engine.
+
+The service catalog is being upgraded from the original `face` / `body` split into four stable multilingual categories: `massage`, `face_care`, `brows_lashes`, and `permanent_makeup`. Public homepage services now use category cards and localized category pages, while public and dashboard booking forms use category filters only as UI state. Booking records do not store category; category is derived from the linked service slug/catalog row. New brow/lash and permanent makeup services are active catalog entries but not online-bookable until a specialist is explicitly assigned.
+
+Brow/lash and permanent makeup services are now planned for Ekaterina. A follow-up migration enables those services for online booking and creates active `therapist_services` assignments for Ekaterina. The booking form category selector was polished with shorter placeholders and consistent helper rows, and homepage category cards now use fixed heights for stable multilingual layouts.
+
+Service category UI polish continued after local QA: homepage category cards keep fixed height but no longer push descriptions far from headings, the first booking form row no longer shows helper captions under Category/Service/Specialist, category-page booking CTAs fall back to normal navigation when the homepage booking form is not mounted, and the permanent makeup consultation note card was removed.
 
 ## Completed Tasks
 
@@ -78,6 +84,12 @@ Booking availability now supports a temporary salon capacity setting through `pu
 - Updated the homepage services intro copy in Serbian, Russian, and English to describe personalized treatments more clearly.
 - Updated the homepage benefits section title and first benefit item in Serbian, Russian, and English to emphasize calm atmosphere and professional care.
 - Updated the homepage booking section copy in Serbian, Russian, and English to make the booking flow clearer and remove the no-payment/no-registration form note.
+- Added a structured multilingual service catalog migration with four stable category keys, `show_duration_publicly`, localized brow/lash and permanent makeup services, renamed the microcurrent course while preserving its slug/id, and deactivated two old services without deleting history.
+- Replaced the long homepage services list with four localized category cards plus a concise popular services list. Added localized service category pages with SEO metadata, hreflang, sitemap entries, permanent makeup grouping, and booking CTAs only for services that are actually bookable with an assigned specialist.
+- Added category filters to public booking and dashboard manual booking forms. The category selection is UI-only and is not stored on bookings.
+- Replaced the admin Services dashboard placeholder with a localized read-only catalog overview showing category, price, duration, active/online status, duration visibility, and therapist assignments.
+- Enabled brow/lash and permanent makeup services for Ekaterina through an idempotent follow-up migration, and fixed category-card and booking-form layout polish issues found in local QA.
+- Fixed service category page booking CTAs so they navigate back to the localized homepage booking form with service preselection, and removed the permanent makeup note card from the category page.
 - Temporarily hid the homepage testimonials section behind a feature flag and removed placeholder review items from public dictionaries until real client reviews are available.
 - Updated the homepage About salon copy and stats in Serbian, Russian, and English to use clearer salon positioning and real specialist/procedure counts.
 - Updated two homepage benefits card texts in Serbian, Russian, and English to mention cozy atmosphere, music, coffee, natural oils, and gentle aromas.
@@ -307,6 +319,8 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Manual booking creation requires applying `20260513130000_dashboard_manual_bookings.sql` in the hosted Supabase project.
 - Therapist-service restrictions require applying `20260518120000_service_catalog_restrictions.sql` in the hosted Supabase project.
 - Device lymphatic drainage services require applying `20260518130000_device_lymphatic_services.sql` after therapist-service restrictions.
+- Structured service catalog categories and new brow/lash/permanent makeup services require applying `20260726143000_structured_multilingual_service_catalog.sql`. New beauty services remain hidden from booking until therapist assignments are explicitly added.
+- Ekaterina brow/lash and permanent makeup online booking requires applying `20260726152000_enable_ekaterina_beauty_services.sql` after the structured catalog migration.
 - The shortened Taping service name requires applying `20260518131000_update_taping_translation.sql` after the device lymphatic drainage migration.
 - The hosted Supabase project has `20260513140000_real_service_catalog.sql` applied; local or restored environments still need that migration before public service reads work.
 - The hosted Supabase project has `20260513160000_public_booking_availability_view.sql` applied; local or restored environments need it before real public availability works.
@@ -331,6 +345,8 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Keep dashboard booking actions role-aware in the service layer and rely on Supabase RLS as the real data boundary.
 - Keep manual booking creation as dashboard-only staff workflow with `source = 'dashboard'` and a captured `source_channel`; public booking remains `source = 'website'`.
 - Store service catalog entries in `public.services` by stable slug, with public text in `public.service_translations`; booking rows continue to store the selected service slug in `bookings.service` for compatibility with existing data.
+- Store service categories as stable values in `services.category`: `massage`, `face_care`, `brows_lashes`, and `permanent_makeup`. Do not duplicate category on `bookings`; derive it from the service catalog when rendering.
+- Use `services.show_duration_publicly` to hide operational duration on public service presentation for services where duration is only needed internally for scheduling.
 - Store therapist-service eligibility in `public.therapist_services`; public booking, manual dashboard booking, availability checks, and dashboard reassignment must validate the selected therapist against the selected service from this relationship.
 - Treat the 6-treatment face course and 12-treatment device lymphatic drainage course as normal first-appointment bookings in the MVP; do not add package tracking until a later workflow is designed.
 - Keep public availability data behind `public.public_booking_availability`, a `security_invoker` view with column-level booking grants and RLS that exposes only date, time, therapist id, service slug, duration, and blocking status. Full booking rows remain unavailable to anon users.

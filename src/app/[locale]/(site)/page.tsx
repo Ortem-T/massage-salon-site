@@ -27,9 +27,10 @@ export function generateStaticParams() {
 export default async function HomePage({ params }: HomePageProps) {
   const { locale: rawLocale } = await params;
   const locale: Locale = isLocale(rawLocale) ? rawLocale : "sr";
-  const [dictionary, serviceCatalog, therapistCatalog, bookingSectionPromotion] = await Promise.all([
+  const [dictionary, publicServiceCatalog, bookingServiceCatalog, therapistCatalog, bookingSectionPromotion] = await Promise.all([
     getDictionary(locale),
-    getServiceCatalog(locale, { bookableOnlineOnly: true }),
+    getServiceCatalog(locale, { bookableOnlineOnly: false, requireTherapistAssignment: false }),
+    getServiceCatalog(locale, { bookableOnlineOnly: true, requireTherapistAssignment: true }),
     getTherapistCatalog(locale),
     getActivePromotionForPlacement(locale, "booking_section_card")
   ]);
@@ -37,7 +38,7 @@ export default async function HomePage({ params }: HomePageProps) {
   return (
     <main>
       <HeroSection locale={locale} dictionary={dictionary} />
-      <ServicesSection locale={locale} dictionary={dictionary} serviceCatalog={serviceCatalog} />
+      <ServicesSection locale={locale} dictionary={dictionary} serviceCatalog={publicServiceCatalog} />
       <SpecialistsSection dictionary={dictionary} />
       {homepageFeatures.showTestimonials && googleReviews.length > 0 ? (
         <TestimonialsSection dictionary={dictionary} reviews={googleReviews} />
@@ -46,7 +47,7 @@ export default async function HomePage({ params }: HomePageProps) {
         locale={locale}
         dictionary={dictionary}
         promotion={bookingSectionPromotion}
-        serviceCatalog={serviceCatalog}
+        serviceCatalog={bookingServiceCatalog}
         therapistCatalog={therapistCatalog}
       />
       <BenefitsSection dictionary={dictionary} />

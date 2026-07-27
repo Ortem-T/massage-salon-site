@@ -42,9 +42,55 @@ const en = {
     subtitle:
       "Every visit begins with a short consultation, so the intensity, pace and focus of the treatment match how you feel and what your body needs.",
     categories: {
-      face: "Face",
-      body: "Body"
+      massage: "Massage",
+      face_care: "Facial care",
+      brows_lashes: "Brows and lashes",
+      permanent_makeup: "Permanent makeup"
     },
+    categoryCards: {
+      massage: "Body treatments for relaxation, recovery and a softer feeling of lightness.",
+      face_care: "Delicate facial massage and microcurrent care in a calm, unhurried rhythm.",
+      brows_lashes: "Polished brow and lash treatments with a natural premium finish.",
+      permanent_makeup: "Permanent makeup with soft aesthetics, careful shaping and an individual plan."
+    },
+    categoryPages: {
+      massage: {
+        title: "Massage at Raine",
+        description: "Body treatments for recovery, relaxation and attentive work with tension.",
+        seoTitle: "Massage in Novi Sad | Raine",
+        seoDescription: "Raine massage treatments in Novi Sad: relax massage, sports massage, lymphatic drainage and body care."
+      },
+      face_care: {
+        title: "Facial care",
+        description: "Facial massage and device treatments for freshness, tone and calm care.",
+        seoTitle: "Facial care in Novi Sad | Raine",
+        seoDescription: "Facial care at Raine: face massage, microcurrents and treatment courses in Novi Sad."
+      },
+      brows_lashes: {
+        title: "Brows and lashes",
+        description: "Lamination, tinting and shaping for a neat, natural look.",
+        seoTitle: "Brows and lashes in Novi Sad | Raine",
+        seoDescription: "Brow and lash services at Raine: lamination, tinting and shaping in Novi Sad."
+      },
+      permanent_makeup: {
+        title: "Permanent makeup",
+        description: "Powder brows, lips and lash-line work with a soft premium approach.",
+        seoTitle: "Permanent makeup in Novi Sad | Raine",
+        seoDescription: "Permanent makeup at Raine in Novi Sad: powder brows, lips and lash-line treatments."
+      }
+    },
+    permanentMakeupGroups: {
+      brows: "Brows",
+      lips: "Lips",
+      lashLine: "Lash line",
+      note: "Correction and refresh timing are planned individually after consultation and pigment assessment."
+    },
+    popularEyebrow: "Popular choice",
+    popularTitle: "Most requested",
+    viewCategory: "View",
+    from: "from",
+    categoryComingSoon: "Coming soon for online booking",
+    backToServices: "Back to services",
     bookingCta: "Book a service",
     cardBookingCta: "Book appointment",
     durationUnit: "min",
@@ -120,20 +166,28 @@ const en = {
         "If you are not sure which treatment is best for you, leave a comment in the request — we will help you before confirming the appointment."
     },
     fields: {
+      category: {
+        label: "Category",
+        placeholder: "All categories",
+        helper: "Use it to narrow the service list"
+      },
       service: {
         label: "Service",
-        placeholder: "Choose a massage"
+        placeholder: "Service",
+        helper: "Specialists appear after selection"
       },
       specialist: {
         label: "Specialist",
-        placeholder: "Choose a specialist"
+        placeholder: "Specialist",
+        helper: "Available for the selected service"
       },
       date: {
         label: "Preferred date"
       },
       time: {
         label: "Preferred time",
-        placeholder: "Choose a time"
+        placeholder: "Time",
+        helper: "Available slots depend on the date"
       },
       name: {
         label: "Client name",
@@ -145,7 +199,8 @@ const en = {
       },
       comment: {
         label: "Comment",
-        placeholder: "Anything we should know? Pressure preference, focus areas, schedule details..."
+        placeholder: "Session notes",
+        helper: "Focus areas, pressure preference, schedule details"
       }
     },
     validation: {
@@ -166,14 +221,14 @@ const en = {
       unavailable: "Date is unavailable"
     },
     availability: {
-      selectTherapistFirst: "Select a therapist first",
-      selectServiceFirst: "Select a service first",
-      selectSpecialistForService: "Select a specialist for this service",
-      noSpecialistsForService: "No specialists are available for this service",
+      selectTherapistFirst: "Choose specialist",
+      selectServiceFirst: "Choose service",
+      selectSpecialistForService: "Choose specialist",
+      noSpecialistsForService: "No specialists",
       specialistAutoSelected: "Specialist selected automatically",
       selectDateFirst: "Select a date first",
-      loadingTimes: "Loading available times",
-      noAvailableTimes: "No available times for this date",
+      loadingTimes: "Loading...",
+      noAvailableTimes: "No available times",
       otherTherapistBookings: "Another therapist has bookings on this date",
       calendarAfterTherapist: "Choose a service and therapist.",
       availableTimes: "Available booking times"
@@ -340,6 +395,19 @@ const en = {
         title: "Therapist management",
         body: "Admin tools for staff profiles, availability, and service capabilities will live here."
       }
+    },
+    servicesCatalog: {
+      category: "Category",
+      servicesCount: "services",
+      slug: "Slug",
+      active: "Active",
+      inactive: "Inactive",
+      online: "Online booking",
+      hiddenOnline: "Hidden from booking",
+      durationVisible: "Duration visible",
+      durationHidden: "Duration hidden",
+      noTherapists: "No specialist assigned",
+      loadError: "Could not load the service catalog."
     },
     promotions: {
       eyebrow: "Promotions",
@@ -576,6 +644,7 @@ const en = {
         title: "Create booking",
         subtitle: "Add appointments that arrive through messages, calls, or walk-ins.",
         fields: {
+          serviceCategory: "Service category",
           service: "Service",
           sourceChannel: "Source channel",
           date: "Date",
@@ -594,6 +663,7 @@ const en = {
           internalNotes: "Internal notes"
         },
         placeholders: {
+          allServices: "All services",
           service: "Choose service",
           therapist: "Choose therapist",
           therapistForService: "Choose a service first",

@@ -17,6 +17,13 @@ export function ServiceBookingButton({ label, locale, serviceSlug }: ServiceBook
   const href = `/${locale}?${bookingServiceQueryParam}=${encodeURIComponent(serviceSlug)}#booking`;
 
   function handleClick(event: MouseEvent<HTMLAnchorElement>) {
+    const bookingSection = document.getElementById("booking");
+    const currentPath = window.location.pathname.replace(/\/$/, "");
+
+    if (currentPath !== `/${locale}` || !bookingSection) {
+      return;
+    }
+
     event.preventDefault();
 
     const nextUrl = new URL(window.location.href);
@@ -31,7 +38,7 @@ export function ServiceBookingButton({ label, locale, serviceSlug }: ServiceBook
       })
     );
 
-    document.getElementById("booking")?.scrollIntoView({
+    bookingSection.scrollIntoView({
       behavior: "smooth",
       block: "start"
     });

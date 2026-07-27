@@ -222,8 +222,9 @@ export type Database = {
         Row: {
           id: string;
           slug: string;
-          category: "face" | "body";
+          category: "massage" | "face_care" | "brows_lashes" | "permanent_makeup";
           duration_minutes: number;
+          show_duration_publicly: boolean;
           price_rsd: number | null;
           active: boolean;
           bookable_online: boolean;
@@ -234,8 +235,9 @@ export type Database = {
         Insert: {
           id?: string;
           slug: string;
-          category?: "face" | "body";
+          category?: "massage" | "face_care" | "brows_lashes" | "permanent_makeup";
           duration_minutes: number;
+          show_duration_publicly?: boolean;
           price_rsd?: number | null;
           active?: boolean;
           bookable_online?: boolean;

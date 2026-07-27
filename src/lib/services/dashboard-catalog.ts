@@ -1,12 +1,14 @@
 import { defaultLocale, type Locale } from "@/i18n/config";
+import { isServiceCategory } from "@/lib/services/categories";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { serviceCategories, type ServiceCatalogItem, type ServiceCategory, type ServiceCatalogResult } from "@/lib/services/catalog";
+import { type ServiceCatalogItem, type ServiceCatalogResult } from "@/lib/services/catalog";
 
 type ServiceRow = {
   id: string;
   slug: string;
   category: string | null;
   duration_minutes: number;
+  show_duration_publicly?: boolean | null;
   price_rsd: number | null;
   active: boolean;
   bookable_online?: boolean | null;
@@ -30,6 +32,7 @@ type TherapistServiceRow = {
 type DashboardServiceCatalogOptions = {
   activeOnly?: boolean;
   bookableOnlineOnly?: boolean;
+  requireTherapistAssignment?: boolean;
 };
 
 const fallbackLocales = {
@@ -37,10 +40,6 @@ const fallbackLocales = {
   ru: ["ru", "sr", "en"],
   en: ["en", "sr", "ru"]
 } satisfies Record<Locale, Locale[]>;
-
-function isServiceCategory(value: string | null): value is ServiceCategory {
-  return serviceCategories.includes(value as ServiceCategory);
-}
 
 function humanizeSlug(slug: string) {
   return slug
@@ -77,7 +76,7 @@ export async function getDashboardServiceCatalogData(
     const supabase = await createSupabaseServerClient();
     const query = supabase
       .from("services")
-      .select("id, slug, category, duration_minutes, price_rsd, active, bookable_online, sort_order")
+      .select("id, slug, category, duration_minutes, show_duration_publicly, price_rsd, active, bookable_online, sort_order")
       .order("sort_order", { ascending: true })
       .order("slug", { ascending: true });
 
@@ -132,8 +131,15 @@ export async function getDashboardServiceCatalogData(
       });
     }
 
+    const requireTherapistAssignment = options.requireTherapistAssignment ?? false;
     const catalog: ServiceCatalogItem[] = serviceRows.flatMap((service) => {
       if (!isServiceCategory(service.category)) {
+        return [];
+      }
+
+      const allowedTherapistIds = allowedTherapistsByServiceId.get(service.id) ?? [];
+
+      if (requireTherapistAssignment && allowedTherapistIds.length === 0) {
         return [];
       }
 
@@ -145,11 +151,12 @@ export async function getDashboardServiceCatalogData(
           slug: service.slug,
           category: service.category,
           durationMinutes: service.duration_minutes,
+          showDurationPublicly: service.show_duration_publicly ?? true,
           priceRsd: service.price_rsd,
           active: service.active,
           bookableOnline: service.bookable_online ?? true,
           sortOrder: service.sort_order ?? 0,
-          allowedTherapistIds: allowedTherapistsByServiceId.get(service.id) ?? [],
+          allowedTherapistIds,
           ...translation
         }
       ];

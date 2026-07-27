@@ -42,9 +42,55 @@ const sr = {
     subtitle:
       "Svaki dolazak počinje kratkom konsultacijom, kako bi intenzitet, tempo i fokus tretmana odgovarali vašem stanju i osećaju.",
     categories: {
-      face: "Lice",
-      body: "Telo"
+      massage: "Masaže",
+      face_care: "Nega lica",
+      brows_lashes: "Obrve i trepavice",
+      permanent_makeup: "Permanentni make-up"
     },
+    categoryCards: {
+      massage: "Tretmani tela za opuštanje, oporavak i nežan osećaj lakoće.",
+      face_care: "Delikatna masaža lica i mikrostrujna nega u mirnom, pažljivom ritmu.",
+      brows_lashes: "Uredni tretmani obrva i trepavica sa prirodnim premium rezultatom.",
+      permanent_makeup: "Permanentni make-up sa mekom estetikom, pažljivim oblikovanjem i individualnim planom."
+    },
+    categoryPages: {
+      massage: {
+        title: "Masaže u Raine salonu",
+        description: "Tretmani tela za oporavak, opuštanje i pažljiv rad sa napetošću.",
+        seoTitle: "Masaža u Novom Sadu | Raine",
+        seoDescription: "Raine masaže u Novom Sadu: relax masaža, sportska masaža, limfna drenaža i nega tela."
+      },
+      face_care: {
+        title: "Nega lica",
+        description: "Masaža lica i aparatni tretmani za svežinu, tonus i mirnu negu.",
+        seoTitle: "Nega lica u Novom Sadu | Raine",
+        seoDescription: "Nega lica u Raine salonu: masaža lica, mikrostruje i kursevi tretmana u Novom Sadu."
+      },
+      brows_lashes: {
+        title: "Obrve i trepavice",
+        description: "Laminacija, bojenje i oblikovanje za uredan i prirodan izgled.",
+        seoTitle: "Obrve i trepavice u Novom Sadu | Raine",
+        seoDescription: "Tretmani obrva i trepavica u Raine salonu: laminacija, bojenje i oblikovanje u Novom Sadu."
+      },
+      permanent_makeup: {
+        title: "Permanentni make-up",
+        description: "Puder obrve, usne i međutrepavična linija uz mekan premium pristup.",
+        seoTitle: "Permanentni make-up u Novom Sadu | Raine",
+        seoDescription: "Permanentni make-up u Raine salonu u Novom Sadu: puder obrve, usne i međutrepavična linija."
+      }
+    },
+    permanentMakeupGroups: {
+      brows: "Obrve",
+      lips: "Usne",
+      lashLine: "Međutrepavična linija",
+      note: "Korekcija i osvežavanje planiraju se individualno nakon konsultacije i procene pigmenta."
+    },
+    popularEyebrow: "Popularan izbor",
+    popularTitle: "Najčešće birano",
+    viewCategory: "Pogledaj",
+    from: "od",
+    categoryComingSoon: "Uskoro dostupno za online zakazivanje",
+    backToServices: "Nazad na usluge",
     bookingCta: "Zakaži uslugu",
     cardBookingCta: "Zakaži termin",
     durationUnit: "min",
@@ -120,20 +166,28 @@ const sr = {
         "Ako niste sigurni koji tretman je najbolji za vas, ostavite komentar u prijavi — pomoći ćemo vam pre potvrde termina."
     },
     fields: {
+      category: {
+        label: "Kategorija",
+        placeholder: "Sve kategorije",
+        helper: "Sužava listu usluga"
+      },
       service: {
         label: "Usluga",
-        placeholder: "Izaberite masažu"
+        placeholder: "Usluga",
+        helper: "Specijalisti se prikazuju nakon izbora"
       },
       specialist: {
         label: "Specijalista",
-        placeholder: "Izaberite specijalistu"
+        placeholder: "Specijalista",
+        helper: "Dostupan za izabranu uslugu"
       },
       date: {
         label: "Željeni datum"
       },
       time: {
         label: "Željeno vreme",
-        placeholder: "Izaberite vreme"
+        placeholder: "Vreme",
+        helper: "Slobodni termini zavise od datuma"
       },
       name: {
         label: "Ime klijenta",
@@ -145,7 +199,8 @@ const sr = {
       },
       comment: {
         label: "Komentar",
-        placeholder: "Šta treba da znamo? Pritisak, fokus zone, detalji rasporeda..."
+        placeholder: "Napomene za tretman",
+        helper: "Zone fokusa, pritisak, detalji rasporeda"
       }
     },
     validation: {
@@ -166,14 +221,14 @@ const sr = {
       unavailable: "Datum nije dostupan"
     },
     availability: {
-      selectTherapistFirst: "Prvo izaberite terapeuta",
-      selectServiceFirst: "Prvo izaberite uslugu",
-      selectSpecialistForService: "Izaberite specijalistu za ovu uslugu",
-      noSpecialistsForService: "Nema dostupnih specijalista za ovu uslugu",
+      selectTherapistFirst: "Izaberite specijalistu",
+      selectServiceFirst: "Izaberite uslugu",
+      selectSpecialistForService: "Izaberite specijalistu",
+      noSpecialistsForService: "Nema specijalista",
       specialistAutoSelected: "Specijalista je automatski izabran",
       selectDateFirst: "Prvo izaberite datum",
-      loadingTimes: "Učitavamo dostupna vremena",
-      noAvailableTimes: "Nema slobodnih termina za ovaj datum",
+      loadingTimes: "Učitavanje...",
+      noAvailableTimes: "Nema slobodnih termina",
       otherTherapistBookings: "Drugi terapeut ima termine tog dana",
       calendarAfterTherapist: "Izaberite uslugu i terapeuta.",
       availableTimes: "Dostupna vremena za termin"
@@ -341,6 +396,19 @@ const sr = {
         title: "Upravljanje terapeutima",
         body: "Admin alati za profile tima, dostupnost i usluge koje terapeut radi biće ovde."
       }
+    },
+    servicesCatalog: {
+      category: "Kategorija",
+      servicesCount: "usluga",
+      slug: "Slug",
+      active: "Aktivna",
+      inactive: "Isključena",
+      online: "Online zakazivanje",
+      hiddenOnline: "Skrivena iz zakazivanja",
+      durationVisible: "Trajanje vidljivo",
+      durationHidden: "Trajanje skriveno",
+      noTherapists: "Specijalista nije dodeljen",
+      loadError: "Katalog usluga nije moguće učitati."
     },
     promotions: {
       eyebrow: "Akcije",
@@ -577,6 +645,7 @@ const sr = {
         title: "Napravi termin",
         subtitle: "Dodajte termin kada se klijent javi porukom, pozivom ili dođe lično.",
         fields: {
+          serviceCategory: "Kategorija usluga",
           service: "Usluga",
           sourceChannel: "Izvor",
           date: "Datum",
@@ -595,6 +664,7 @@ const sr = {
           internalNotes: "Interne beleške"
         },
         placeholders: {
+          allServices: "Sve usluge",
           service: "Izaberite uslugu",
           therapist: "Izaberite terapeuta",
           therapistForService: "Prvo izaberite uslugu",
