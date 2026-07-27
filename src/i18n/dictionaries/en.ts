@@ -74,15 +74,15 @@ const en = {
       },
       permanent_makeup: {
         title: "Permanent makeup",
-        description: "Powder brows, lips and lash-line work with a soft premium approach.",
+        description: "Brows with the powder shading technique, lips and interlash-space work with a soft premium approach.",
         seoTitle: "Permanent makeup in Novi Sad | Raine",
-        seoDescription: "Permanent makeup at Raine in Novi Sad: powder brows, lips and lash-line treatments."
+        seoDescription: "Permanent makeup at Raine in Novi Sad: brows with the powder shading technique, lips and interlash-space treatments."
       }
     },
     permanentMakeupGroups: {
       brows: "Brows",
       lips: "Lips",
-      lashLine: "Lash line",
+      lashLine: "Interlash space",
       note: "Correction and refresh timing are planned individually after consultation and pigment assessment."
     },
     popularEyebrow: "Popular choice",

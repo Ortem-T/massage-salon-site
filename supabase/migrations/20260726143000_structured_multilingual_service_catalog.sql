@@ -58,7 +58,6 @@ set active = false,
     updated_at = now()
 where slug in (
   'anti-cellulite-massage-90',
-  'womens-full-body-sports-massage',
   'womens-full-body-sports-massage-120'
 );
 
@@ -154,15 +153,15 @@ with translation_rows(slug, locale, name, short_description, description) as (
     ('lash-tinting', 'sr', 'Bojenje trepavica', 'Bojenje trepavica za tamniji, naglašeniji izgled bez maskare.', null),
     ('lash-tinting', 'ru', 'Окрашивание ресниц', 'Окрашивание ресниц для более темного и выразительного вида без туши.', null),
     ('lash-tinting', 'en', 'Lash tinting', 'Lash tinting for a darker, more defined look without mascara.', null),
-    ('powder-brows-permanent-makeup-initial', 'sr', 'Puder obrve — permanentni make-up', 'Početni tretman puder obrva za meko definisan i prirodan izgled.', 'Korekcija i osvežavanje zakazuju se prema stanju pigmenta i individualnom planu.'),
-    ('powder-brows-permanent-makeup-initial', 'ru', 'Пудровые брови — перманентный макияж', 'Первичная процедура пудровых бровей для мягко оформленного и естественного результата.', 'Коррекция и обновление подбираются по состоянию пигмента и индивидуальному плану.'),
-    ('powder-brows-permanent-makeup-initial', 'en', 'Powder brows — permanent makeup', 'Initial powder brow treatment for softly defined, natural-looking brows.', 'Correction and refresh timing are planned according to pigment condition and individual needs.'),
-    ('powder-brows-permanent-makeup-correction', 'sr', 'Puder obrve — korekcija', 'Korekcija puder obrva nakon početnog tretmana prema individualnom planu.', null),
-    ('powder-brows-permanent-makeup-correction', 'ru', 'Пудровые брови — коррекция', 'Коррекция пудровых бровей после первичной процедуры по индивидуальному плану.', null),
-    ('powder-brows-permanent-makeup-correction', 'en', 'Powder brows — correction', 'Powder brow correction after the initial treatment, planned individually.', null),
-    ('powder-brows-permanent-makeup-refresh', 'sr', 'Puder obrve — osvežavanje', 'Osvežavanje puder obrva za obnovu boje i urednog izgleda.', null),
-    ('powder-brows-permanent-makeup-refresh', 'ru', 'Пудровые брови — обновление', 'Обновление пудровых бровей для восстановления цвета и аккуратного вида.', null),
-    ('powder-brows-permanent-makeup-refresh', 'en', 'Powder brows — refresh', 'Powder brow refresh to restore color and a polished look.', null),
+    ('powder-brows-permanent-makeup-initial', 'sr', 'Obrve — tehnika puder senčenja', 'Početni tretman obrva tehnikom puder senčenja za meko definisan i prirodan izgled.', 'Korekcija i refresh planiraju se prema stanju pigmenta i individualnom planu.'),
+    ('powder-brows-permanent-makeup-initial', 'ru', 'Брови (в технике пудровое напыление)', 'Первичная процедура для мягко оформленных бровей в технике пудрового напыления.', 'Коррекция и рефреш подбираются по состоянию пигмента и индивидуальному плану.'),
+    ('powder-brows-permanent-makeup-initial', 'en', 'Brows — powder shading technique', 'Initial brow treatment using the powder shading technique for a softly defined, natural look.', 'Correction and refresh timing are planned according to pigment condition and individual needs.'),
+    ('powder-brows-permanent-makeup-correction', 'sr', 'Obrve — korekcija puder senčenja', 'Korekcija obrva nakon početnog tretmana tehnikom puder senčenja.', null),
+    ('powder-brows-permanent-makeup-correction', 'ru', 'Брови (в технике пудровое напыление) — коррекция', 'Коррекция бровей после первичной процедуры в технике пудрового напыления.', null),
+    ('powder-brows-permanent-makeup-correction', 'en', 'Brows — powder shading technique — correction', 'Brow correction after the initial powder shading treatment.', null),
+    ('powder-brows-permanent-makeup-refresh', 'sr', 'Obrve — refresh puder senčenja', 'Refresh obrva za obnovu boje i urednog izgleda tehnikom puder senčenja.', null),
+    ('powder-brows-permanent-makeup-refresh', 'ru', 'Брови (в технике пудровое напыление) — рефреш', 'Рефреш бровей для обновления цвета и аккуратного вида в технике пудрового напыления.', null),
+    ('powder-brows-permanent-makeup-refresh', 'en', 'Brows — powder shading technique — refresh', 'Brow refresh to restore color and a polished look using the powder shading technique.', null),
     ('lip-permanent-makeup-initial', 'sr', 'Usne — permanentni make-up', 'Početni tretman permanentnog make-upa usana za nežniji ton i definisaniju konturu.', 'Korekcija i osvežavanje zakazuju se prema stanju pigmenta i individualnom planu.'),
     ('lip-permanent-makeup-initial', 'ru', 'Губы — перманентный макияж', 'Первичная процедура перманентного макияжа губ для мягкого тона и более четкого контура.', 'Коррекция и обновление подбираются по состоянию пигмента и индивидуальному плану.'),
     ('lip-permanent-makeup-initial', 'en', 'Lips — permanent makeup', 'Initial lip permanent makeup for softer color and more defined contours.', 'Correction and refresh timing are planned according to pigment condition and individual needs.'),
@@ -172,15 +171,15 @@ with translation_rows(slug, locale, name, short_description, description) as (
     ('lip-permanent-makeup-refresh', 'sr', 'Usne — osvežavanje', 'Osvežavanje permanentnog make-upa usana za obnovu tona i urednog izgleda.', null),
     ('lip-permanent-makeup-refresh', 'ru', 'Губы — обновление', 'Обновление перманентного макияжа губ для восстановления тона и аккуратного вида.', null),
     ('lip-permanent-makeup-refresh', 'en', 'Lips — refresh', 'Lip permanent makeup refresh to restore tone and a polished look.', null),
-    ('lash-line-permanent-makeup-initial', 'sr', 'Međutrepavična linija — permanentni make-up', 'Početni tretman međutrepavične linije za suptilno naglašen pogled.', 'Korekcija i osvežavanje zakazuju se prema stanju pigmenta i individualnom planu.'),
-    ('lash-line-permanent-makeup-initial', 'ru', 'Межресничная стрелка — перманентный макияж', 'Первичная процедура межресничной линии для деликатно подчеркнутого взгляда.', 'Коррекция и обновление подбираются по состоянию пигмента и индивидуальному плану.'),
-    ('lash-line-permanent-makeup-initial', 'en', 'Lash line — permanent makeup', 'Initial lash-line permanent makeup for a subtly defined look.', 'Correction and refresh timing are planned according to pigment condition and individual needs.'),
-    ('lash-line-permanent-makeup-correction', 'sr', 'Međutrepavična linija — korekcija', 'Korekcija međutrepavične linije nakon početnog tretmana.', null),
-    ('lash-line-permanent-makeup-correction', 'ru', 'Межресничная стрелка — коррекция', 'Коррекция межресничной линии после первичной процедуры.', null),
-    ('lash-line-permanent-makeup-correction', 'en', 'Lash line — correction', 'Lash-line correction after the initial permanent makeup treatment.', null),
-    ('lash-line-permanent-makeup-refresh', 'sr', 'Međutrepavična linija — osvežavanje', 'Osvežavanje međutrepavične linije za obnovu jasnoće i urednog izgleda.', null),
-    ('lash-line-permanent-makeup-refresh', 'ru', 'Межресничная стрелка — обновление', 'Обновление межресничной линии для восстановления четкости и аккуратного вида.', null),
-    ('lash-line-permanent-makeup-refresh', 'en', 'Lash line — refresh', 'Lash-line refresh to restore definition and a polished look.', null)
+    ('lash-line-permanent-makeup-initial', 'sr', 'Permanentni make-up međutrepavičnog prostora — prvi tretman', 'Početni tretman međutrepavičnog prostora za suptilno naglašen pogled uz rad samo između trepavica.', 'Korekcija i refresh planiraju se prema stanju pigmenta i individualnom planu.'),
+    ('lash-line-permanent-makeup-initial', 'ru', 'Перманентный макияж межресничного пространства', 'Первичная процедура для деликатного акцента по межресничному пространству без выхода за естественную линию ресниц.', 'Коррекция и рефреш подбираются по состоянию пигмента и индивидуальному плану.'),
+    ('lash-line-permanent-makeup-initial', 'en', 'Interlash-space permanent makeup — initial treatment', 'Initial interlash-space treatment for subtle definition, working only between the lashes.', 'Correction and refresh timing are planned according to pigment condition and individual needs.'),
+    ('lash-line-permanent-makeup-correction', 'sr', 'Permanentni make-up međutrepavičnog prostora — korekcija', 'Korekcija međutrepavičnog prostora nakon početnog tretmana.', null),
+    ('lash-line-permanent-makeup-correction', 'ru', 'Перманентный макияж межресничного пространства — коррекция', 'Коррекция межресничного пространства после первичной процедуры.', null),
+    ('lash-line-permanent-makeup-correction', 'en', 'Interlash-space permanent makeup — correction', 'Interlash-space correction after the initial treatment.', null),
+    ('lash-line-permanent-makeup-refresh', 'sr', 'Permanentni make-up međutrepavičnog prostora — refresh', 'Refresh međutrepavičnog prostora za obnovu jasnoće i urednog izgleda.', null),
+    ('lash-line-permanent-makeup-refresh', 'ru', 'Перманентный макияж межресничного пространства — рефреш', 'Рефреш межресничного пространства для обновления четкости и аккуратного вида.', null),
+    ('lash-line-permanent-makeup-refresh', 'en', 'Interlash-space permanent makeup — refresh', 'Interlash-space refresh to restore definition and a polished look.', null)
 ),
 target_services as (
   select id, slug

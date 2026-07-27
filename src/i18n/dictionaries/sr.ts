@@ -74,15 +74,15 @@ const sr = {
       },
       permanent_makeup: {
         title: "Permanentni make-up",
-        description: "Puder obrve, usne i međutrepavična linija uz mekan premium pristup.",
+        description: "Obrve tehnikom puder senčenja, usne i međutrepavični prostor uz mekan premium pristup.",
         seoTitle: "Permanentni make-up u Novom Sadu | Raine",
-        seoDescription: "Permanentni make-up u Raine salonu u Novom Sadu: puder obrve, usne i međutrepavična linija."
+        seoDescription: "Permanentni make-up u Raine salonu u Novom Sadu: obrve tehnikom puder senčenja, usne i međutrepavični prostor."
       }
     },
     permanentMakeupGroups: {
       brows: "Obrve",
       lips: "Usne",
-      lashLine: "Međutrepavična linija",
+      lashLine: "Međutrepavični prostor",
       note: "Korekcija i osvežavanje planiraju se individualno nakon konsultacije i procene pigmenta."
     },
     popularEyebrow: "Popularan izbor",
