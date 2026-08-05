@@ -80,7 +80,7 @@ export type DailyScheduleSendResult = {
 };
 
 const includedBookingStatuses = ["pending", "confirmed"] satisfies BookingStatus[];
-const sendWindowMinutes = 5;
+const sendWindowMinutes = 15;
 
 export function isValidTelegramDailyScheduleTime(value: string) {
   return /^([01]\d|2[0-3]):[0-5]\d$/.test(value);

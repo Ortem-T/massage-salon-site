@@ -459,6 +459,10 @@ export type Database = {
           preferred_locale: Locale | null;
         }[];
       };
+      plan_telegram_daily_schedule_cron: {
+        Args: Record<string, never>;
+        Returns: undefined;
+      };
       revoke_client_rebooking_token: {
         Args: {
           p_client_id: string;

@@ -7,6 +7,7 @@ import {
   normalizeAvailableRooms
 } from "@/lib/booking/room-settings";
 import { type DashboardUser } from "@/lib/dashboard/auth";
+import { createSupabaseAdminClient, hasSupabaseAdminEnv } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   isValidTelegramDailyScheduleTime,
@@ -46,6 +47,25 @@ export class DashboardSettingsValidationError extends Error {
   constructor() {
     super("Invalid dashboard setting.");
     this.name = "DashboardSettingsValidationError";
+  }
+}
+
+async function replanTelegramDailyScheduleSafely() {
+  if (!hasSupabaseAdminEnv()) {
+    return;
+  }
+
+  try {
+    const adminSupabase = createSupabaseAdminClient();
+    const { error } = await adminSupabase.rpc("plan_telegram_daily_schedule_cron", {});
+
+    if (error && process.env.NODE_ENV !== "production") {
+      console.warn("[telegram daily schedule] cron replanning failed", error.message);
+    }
+  } catch (error) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[telegram daily schedule] cron replanning unavailable", error);
+    }
   }
 }
 
@@ -166,6 +186,8 @@ export async function updateTelegramDailyScheduleSettings(
   if (error) {
     throw new Error(error.message);
   }
+
+  await replanTelegramDailyScheduleSafely();
 }
 
 export async function sendTelegramDailyScheduleTest(user: DashboardUser) {
