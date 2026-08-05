@@ -121,7 +121,14 @@ Secrets stay server-side:
 - `CRON_SECRET`
 - `SUPABASE_SECRET_KEY`
 
-The cron endpoint `GET/POST /api/cron/telegram-daily-schedule` requires `Authorization: Bearer ${CRON_SECRET}`. It reads current settings at execution time, calculates the current salon local date/time in `Europe/Belgrade`, and sends only inside the configured time window. Vercel Cron is configured to call the endpoint every 5 minutes so changing the send time does not require a deployment restart.
+The cron endpoint `GET/POST /api/cron/telegram-daily-schedule` requires `Authorization: Bearer ${CRON_SECRET}`. It reads current settings at execution time, calculates the current salon local date/time in `Europe/Belgrade`, and sends only inside the configured time window.
+
+Scheduling is handled by Supabase Cron, not Vercel Cron. The database job `raine-telegram-daily-schedule` runs every 5 minutes and calls the Next.js endpoint through `pg_net`. Callback configuration is stored in Supabase Vault:
+
+- `raine_site_url`: production site URL, for example `https://raine.rs`
+- `raine_cron_secret`: the same value as the server-side `CRON_SECRET`
+
+Changing the send time in Management still does not require a deployment restart because the Next.js endpoint reads `app_settings` on each cron invocation.
 
 The daily schedule message intentionally excludes client identity and sensitive details. It includes only pending/confirmed bookings, therapist name, Russian service name, appointment interval, room-rental blocks, therapist-specific blocks, and salon-wide blocks. It excludes cancelled/completed bookings, client names, phones, language, comments, internal notes, booking source, prices, and raw Telegram links.
 
