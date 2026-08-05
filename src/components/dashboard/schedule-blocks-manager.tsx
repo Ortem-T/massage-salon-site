@@ -857,40 +857,36 @@ export function ScheduleBlocksManager({
                         {block.reason ? <p className="mt-3 text-sm leading-6 text-foreground">{block.reason}</p> : null}
                       </div>
 
-                      <div className="flex flex-col gap-2 border-t border-border/60 pt-3 sm:flex-row sm:flex-wrap sm:justify-end">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="w-full whitespace-nowrap sm:w-auto"
-                          onClick={() => editBlock(block)}
-                        >
-                          {schedule.editBlock}
-                        </Button>
+                      <div className="flex flex-col gap-2 border-t border-border/60 pt-3">
                         {block.seriesId && role === "admin" ? (
-                          <div className="grid w-full grid-cols-2 gap-1 rounded-full border border-border/70 bg-card/70 p-1 sm:w-auto">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              aria-label={schedule.recurrence.deleteOccurrence}
-                              title={schedule.recurrence.deleteOccurrence}
-                              className="min-w-0 whitespace-nowrap rounded-full px-3 text-muted-foreground hover:bg-secondary/75 hover:text-primary"
-                              onClick={() => deleteBlock(block, "occurrence")}
-                            >
-                              {schedule.recurrence.deleteOccurrenceShort}
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              aria-label={schedule.recurrence.deleteSeries}
-                              title={schedule.recurrence.deleteSeries}
-                              className="min-w-0 whitespace-nowrap rounded-full px-3 text-muted-foreground hover:bg-secondary/75 hover:text-primary"
-                              onClick={() => deleteBlock(block, "series")}
-                            >
-                              {schedule.recurrence.deleteSeriesShort}
-                            </Button>
+                          <div className="rounded-2xl border border-border/70 bg-card/60 p-1.5">
+                            <p className="px-3 pb-1 pt-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                              {schedule.recurrence.deleteAction}
+                            </p>
+                            <div className="grid grid-cols-2 gap-1">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                aria-label={schedule.recurrence.deleteOccurrence}
+                                title={schedule.recurrence.deleteOccurrence}
+                                className="min-w-0 whitespace-nowrap rounded-xl px-3 text-muted-foreground hover:bg-secondary/75 hover:text-primary"
+                                onClick={() => deleteBlock(block, "occurrence")}
+                              >
+                                {schedule.recurrence.deleteOccurrenceShort}
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                aria-label={schedule.recurrence.deleteSeries}
+                                title={schedule.recurrence.deleteSeries}
+                                className="min-w-0 whitespace-nowrap rounded-xl px-3 text-muted-foreground hover:bg-secondary/75 hover:text-primary"
+                                onClick={() => deleteBlock(block, "series")}
+                              >
+                                {schedule.recurrence.deleteSeriesShort}
+                              </Button>
+                            </div>
                           </div>
                         ) : (
                           <Button
@@ -903,6 +899,15 @@ export function ScheduleBlocksManager({
                             {schedule.deleteBlock}
                           </Button>
                         )}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="w-full whitespace-nowrap"
+                          onClick={() => editBlock(block)}
+                        >
+                          {schedule.editBlock}
+                        </Button>
                       </div>
                     </div>
                   </article>

@@ -863,6 +863,7 @@ const sr = {
         endDate: "Datum završetka",
         monthlyHint: "Mesečno ponavljanje koristi isti dan u mesecu. Meseci bez tog datuma se preskaču.",
         recurring: "Ponavljajući događaj",
+        deleteAction: "Obriši",
         deleteOccurrence: "Obriši samo ovaj događaj",
         deleteOccurrenceShort: "Ovaj događaj",
         deleteSeriesShort: "Cela serija",

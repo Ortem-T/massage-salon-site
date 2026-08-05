@@ -862,6 +862,7 @@ const en = {
         endDate: "End date",
         monthlyHint: "Monthly recurrence uses the same day of the month. Months without that day are skipped.",
         recurring: "Recurring event",
+        deleteAction: "Delete",
         deleteOccurrence: "Delete this event only",
         deleteOccurrenceShort: "This event",
         deleteSeriesShort: "Series",
