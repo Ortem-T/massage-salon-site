@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useTransition, type FormEvent } from "react";
+import { ChevronDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { type Locale } from "@/i18n/config";
 import {
   sendTelegramDailyScheduleTestAction,
@@ -46,6 +47,29 @@ const localeDateFormats = {
   en: "en-US"
 } satisfies Record<Locale, string>;
 
+function timeToMinutes(value: string) {
+  const [hours, minutes] = value.split(":").map(Number);
+
+  return hours * 60 + minutes;
+}
+
+function minutesToTime(value: number) {
+  const hours = Math.floor(value / 60);
+  const minutes = value % 60;
+
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
+
+function getDailyScheduleTimeOptions(selectedTime: string) {
+  const baseOptions = Array.from({ length: 24 * 4 }, (_, index) => minutesToTime(index * 15));
+
+  if (!selectedTime || baseOptions.includes(selectedTime)) {
+    return baseOptions;
+  }
+
+  return [...baseOptions, selectedTime].sort((a, b) => timeToMinutes(a) - timeToMinutes(b));
+}
+
 export function ManagementTelegramSettingsForm({
   copy,
   initialSettings,
@@ -58,6 +82,7 @@ export function ManagementTelegramSettingsForm({
   const [isSaving, startSavingTransition] = useTransition();
   const [isTesting, startTestingTransition] = useTransition();
   const isPending = isSaving || isTesting;
+  const timeOptions = getDailyScheduleTimeOptions(sendTime);
   const lastSend = (() => {
     if (!initialSettings.lastSuccessfulSendAt) {
       return copy.neverSent;
@@ -130,16 +155,24 @@ export function ManagementTelegramSettingsForm({
         </label>
 
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-          <label className="block">
+          <label className="group block">
             <span className="text-sm font-semibold text-primary">{copy.sendTime}</span>
-            <Input
-              className="mt-2"
-              disabled={isPending}
-              onChange={(event) => setSendTime(event.target.value)}
-              required
-              type="time"
-              value={sendTime}
-            />
+            <span className="relative mt-2 block">
+              <Select
+                aria-label={copy.sendTime}
+                disabled={isPending}
+                onChange={(event) => setSendTime(event.target.value)}
+                required
+                value={sendTime}
+              >
+                {timeOptions.map((time) => (
+                  <option key={time} value={time}>
+                    {time}
+                  </option>
+                ))}
+              </Select>
+              <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary" />
+            </span>
           </label>
           <div className="rounded-2xl border border-border/70 bg-card/70 px-4 py-3 text-sm font-semibold text-muted-foreground">
             {initialSettings.dailyScheduleTimezone}
