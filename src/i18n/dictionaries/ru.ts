@@ -863,6 +863,8 @@ const ru = {
         monthlyHint: "Повтор будет создан в тот же день месяца. Месяцы без такой даты пропускаются.",
         recurring: "Повторяющееся событие",
         deleteOccurrence: "Удалить только это событие",
+        deleteOccurrenceShort: "Это событие",
+        deleteSeriesShort: "Вся серия",
         deleteSeries: "Удалить всю серию"
       },
       filters: {

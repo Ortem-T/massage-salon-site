@@ -844,33 +844,62 @@ export function ScheduleBlocksManager({
 
                 return (
                   <article key={block.id} className="rounded-2xl border border-border/70 bg-background/50 p-4">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div>
-                        <p className="text-sm font-semibold text-primary">
+                    <div className="space-y-4">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold leading-6 text-primary">
                           {block.blockType === "full_day" ? schedule.types.fullDay : schedule.types.timeRange}
                           {range ? ` · ${range}` : ""}
                         </p>
-                        <p className="mt-1 text-sm text-muted-foreground">
+                        <p className="mt-1 text-sm leading-6 text-muted-foreground">
                           {getBlockScopeLabel(block)}
                           {block.seriesId ? ` · ${schedule.recurrence.recurring}` : ""}
                         </p>
                         {block.reason ? <p className="mt-3 text-sm leading-6 text-foreground">{block.reason}</p> : null}
                       </div>
-                      <div className="flex gap-2">
-                        <Button type="button" variant="outline" size="sm" onClick={() => editBlock(block)}>
+
+                      <div className="flex flex-col gap-2 border-t border-border/60 pt-3 sm:flex-row sm:flex-wrap sm:justify-end">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="w-full whitespace-nowrap sm:w-auto"
+                          onClick={() => editBlock(block)}
+                        >
                           {schedule.editBlock}
                         </Button>
                         {block.seriesId && role === "admin" ? (
-                          <>
-                            <Button type="button" variant="ghost" size="sm" onClick={() => deleteBlock(block, "occurrence")}>
-                              {schedule.recurrence.deleteOccurrence}
+                          <div className="grid w-full grid-cols-2 gap-1 rounded-full border border-border/70 bg-card/70 p-1 sm:w-auto">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              aria-label={schedule.recurrence.deleteOccurrence}
+                              title={schedule.recurrence.deleteOccurrence}
+                              className="min-w-0 whitespace-nowrap rounded-full px-3 text-muted-foreground hover:bg-secondary/75 hover:text-primary"
+                              onClick={() => deleteBlock(block, "occurrence")}
+                            >
+                              {schedule.recurrence.deleteOccurrenceShort}
                             </Button>
-                            <Button type="button" variant="ghost" size="sm" onClick={() => deleteBlock(block, "series")}>
-                              {schedule.recurrence.deleteSeries}
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              aria-label={schedule.recurrence.deleteSeries}
+                              title={schedule.recurrence.deleteSeries}
+                              className="min-w-0 whitespace-nowrap rounded-full px-3 text-muted-foreground hover:bg-secondary/75 hover:text-primary"
+                              onClick={() => deleteBlock(block, "series")}
+                            >
+                              {schedule.recurrence.deleteSeriesShort}
                             </Button>
-                          </>
+                          </div>
                         ) : (
-                          <Button type="button" variant="ghost" size="sm" onClick={() => deleteBlock(block)}>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="w-full whitespace-nowrap text-muted-foreground hover:bg-secondary/75 hover:text-primary sm:w-auto"
+                            onClick={() => deleteBlock(block)}
+                          >
                             {schedule.deleteBlock}
                           </Button>
                         )}
