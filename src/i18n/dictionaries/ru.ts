@@ -633,9 +633,13 @@ const ru = {
         timeRange: "Интервал",
         blockReason: "Причина блокировки",
         salonWide: "Весь салон",
+        roomRental: "Аренда кабинета",
+        roomOccupied: "Кабинет занят",
         type: "Тип",
         date: "Дата",
         scope: "Область",
+        recurrence: "Повтор",
+        recurring: "Повторяется",
         noReason: "Причина не указана."
       },
       create: {
@@ -805,6 +809,8 @@ const ru = {
       existingBlockHint: "На эту дату есть блокировки",
       noBlocks: "На эту дату блокировок нет.",
       confirmDelete: "Удалить эту блокировку?",
+      confirmDeleteOccurrence: "Удалить только это событие?",
+      confirmDeleteSeries: "Удалить всю серию повторяющихся событий?",
       ownTherapistFallback: "Ваш профиль массажиста пока не подключен.",
       operationMode: {
         eyebrow: "Режим работы салона",
@@ -841,7 +847,23 @@ const ru = {
       },
       scope: {
         therapist: "Массажист",
-        salon: "Весь салон"
+        salon: "Весь салон",
+        roomRental: "Аренда кабинета"
+      },
+      recurrence: {
+        repeatEvent: "Повторять событие",
+        doesNotRepeat: "Не повторяется",
+        generatedOccurrences: "Будут созданы обычные блоки расписания для каждой даты.",
+        frequency: "Повтор",
+        weekly: "Каждую неделю",
+        monthly: "Каждый месяц",
+        repeatOn: "Повторять по",
+        startDate: "Дата начала",
+        endDate: "Дата окончания",
+        monthlyHint: "Повтор будет создан в тот же день месяца. Месяцы без такой даты пропускаются.",
+        recurring: "Повторяющееся событие",
+        deleteOccurrence: "Удалить только это событие",
+        deleteSeries: "Удалить всю серию"
       },
       filters: {
         therapist: "Фильтр массажиста",
@@ -859,6 +881,10 @@ const ru = {
         ownOnly: "Можно редактировать только свои блокировки расписания.",
         endAfterStart: "Время окончания должно быть позже начала.",
         overlap: "Этот блок пересекается с существующей блокировкой.",
+        noRecurrenceDates: "Не найдено дат для повторения.",
+        conflictingBookings: "Найдены записи, которые превысят доступное количество кабинетов.",
+        weekdayRequired: "Выберите хотя бы один день недели.",
+        endDateAfterStart: "Дата окончания должна быть не раньше даты начала.",
         blocked: "Это время заблокировано.",
         dayUnavailable: "Этот день недоступен."
       },

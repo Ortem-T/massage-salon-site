@@ -36,7 +36,7 @@ import {
 } from "@/server/telegram/bookingNotifications";
 
 type ScheduleBlockType = "full_day" | "time_range";
-type ScheduleBlockScope = "therapist" | "salon";
+type ScheduleBlockScope = "therapist" | "salon" | "room_rental";
 
 export type DashboardBooking = {
   id: string;
@@ -77,6 +77,8 @@ export type DashboardScheduleBlock = {
   date: string;
   startTime: string | null;
   endTime: string | null;
+  roomsOccupied: number;
+  seriesId: string | null;
   reason: string | null;
   createdAt: string;
   updatedAt: string;
@@ -221,6 +223,8 @@ type DashboardScheduleBlockRow = {
   date: string;
   start_time: string | null;
   end_time: string | null;
+  rooms_occupied: number | null;
+  series_id: string | null;
   reason: string | null;
   created_at: string;
   updated_at: string;
@@ -256,6 +260,7 @@ type PublicScheduleBlockRow = {
   block_scope: AvailabilityScheduleBlock["blockScope"];
   start_time: string | null;
   end_time: string | null;
+  rooms_occupied: number | null;
 };
 
 const fullBookingColumns =
@@ -265,7 +270,7 @@ const dashboardBookingColumns =
 const legacyBookingColumns =
   "id, created_at, service, specialist, preferred_date, preferred_time, client_name, client_phone, client_comment, locale, status, source";
 const dashboardScheduleBlockColumns =
-  "id, therapist_id, created_by, block_type, block_scope, date, start_time, end_time, reason, created_at, updated_at";
+  "id, therapist_id, created_by, block_type, block_scope, date, start_time, end_time, rooms_occupied, series_id, reason, created_at, updated_at";
 
 async function getTherapistIdsForUser(userId: string) {
   const supabase = await createSupabaseServerClient();
@@ -321,7 +326,8 @@ function toAvailabilityScheduleBlock(row: PublicScheduleBlockRow): AvailabilityS
     blockType: row.block_type,
     blockScope: row.block_scope,
     startTime: row.start_time,
-    endTime: row.end_time
+    endTime: row.end_time,
+    roomsOccupied: row.rooms_occupied
   };
 }
 
@@ -335,6 +341,8 @@ function toDashboardScheduleBlock(row: DashboardScheduleBlockRow): DashboardSche
     date: row.date,
     startTime: row.start_time,
     endTime: row.end_time,
+    roomsOccupied: row.rooms_occupied ?? 0,
+    seriesId: row.series_id,
     reason: row.reason,
     createdAt: row.created_at,
     updatedAt: row.updated_at
@@ -390,7 +398,7 @@ async function isManualBookingSlotAvailable(input: {
 
   const { data: blockRows, error: blocksError } = await publicSupabase
     .from("public_schedule_block_availability")
-    .select("block_date, therapist_id, block_type, block_scope, start_time, end_time")
+    .select("block_date, therapist_id, block_type, block_scope, start_time, end_time, rooms_occupied")
     .eq("block_date", input.date);
 
   if (blocksError) {
@@ -432,7 +440,7 @@ async function isDashboardBookingSlotAvailable(input: {
   const publicSupabase = createSupabaseBrowserClient();
   const { data: blockRows, error: blocksError } = await publicSupabase
     .from("public_schedule_block_availability")
-    .select("block_date, therapist_id, block_type, block_scope, start_time, end_time")
+    .select("block_date, therapist_id, block_type, block_scope, start_time, end_time, rooms_occupied")
     .eq("block_date", input.date);
 
   if (blocksError) {

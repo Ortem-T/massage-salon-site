@@ -143,6 +143,8 @@ Do not build CRM/admin too early. Future admin can include:
 - booking request list
 - status management
 - specialist schedule management
+- room-capacity-aware schedule blocks, including admin-only room-rental operational blocks
+- generated recurring schedule-block occurrences grouped by `series_id`
 - service catalog management
 - client notes
 - basic analytics
@@ -162,6 +164,7 @@ Minimum future data model:
 - `bookings`: service id, specialist id, preferred date, preferred time, client name, phone, comment, site locale, status, timestamps
 - `services`: stable id/slug, category key, localized display data, duration, `show_duration_publicly`, price, active flag, online booking flag
 - `specialists`: stable id, public name, active flag, service capabilities
+- `schedule_blocks`: therapist, salon-wide, and room-rental operational blocks; recurring blocks are generated as ordinary rows and grouped with `series_id`
 - `booking_statuses`: pending, confirmed, cancelled, completed
 - `admin_users`: authenticated staff allowed to manage bookings
 - access boundary: Supabase RLS must prevent public reads and restrict writes to intended booking inserts

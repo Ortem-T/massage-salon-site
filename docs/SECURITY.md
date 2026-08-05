@@ -104,6 +104,21 @@ Salon operation settings are stored in `public.app_settings`. The current bookin
 - `app_settings` Realtime is only an authenticated dashboard refresh signal. RLS still controls who can receive settings changes.
 - The shared availability engine uses `available_rooms` to count overlapping pending/confirmed bookings across all therapists while still enforcing therapist-specific conflicts and schedule blocks.
 
+## Room Rental Schedule Blocks
+
+Room rental is implemented as an extension of `public.schedule_blocks`, not as a therapist, client, booking, or rental CRM entity.
+
+- Admin users can create room-rental blocks from the Schedule page.
+- Room-rental rows use `block_scope = 'room_rental'`, `therapist_id = null`, and `rooms_occupied >= 1`.
+- The current UI writes `rooms_occupied = 1`; the schema allows future larger values with a bounded check.
+- Room-rental blocks consume shared treatment-room capacity together with pending/confirmed bookings.
+- Therapist-specific schedule blocks still affect only the selected therapist and do not consume shared room capacity.
+- Salon-wide blocks still close the selected period completely and do not rely on room-capacity counting.
+- Public availability reads only `public.public_schedule_block_availability`, which exposes date/time/scope and `rooms_occupied` but never internal `reason` text.
+- Therapists cannot create room-rental blocks, cannot create recurrence series, cannot update `rooms_occupied`, and cannot delete recurring series through server actions. RLS also restricts therapist schedule-block writes to own non-recurring therapist blocks with `rooms_occupied = 0`.
+- Admin recurring blocks are generated as ordinary `schedule_blocks` rows with a shared `series_id`; recurrence rules are not stored and no infinite recurrence parser is exposed.
+- Editing one recurring occurrence detaches it by clearing `series_id`, so the dashboard does not silently modify every occurrence in a series.
+
 ## Rate Limiting
 
 Stage 1 uses a lightweight in-memory server rate limiter:

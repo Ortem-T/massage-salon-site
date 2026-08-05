@@ -1,6 +1,6 @@
 # Development Log
 
-Last updated: 2026-07-27
+Last updated: 2026-08-05
 
 This log is shared context for human and AI-assisted development. Update it after every major development stage so future Codex, `web-coder`, and `grill-me` sessions can continue without rediscovering project history.
 
@@ -23,6 +23,8 @@ Personalized rebooking link generation now supports optional manual date/time su
 Dashboard calendar polish now highlights today's date on desktop Month and Week views using the same calm accent treatment as the existing mobile calendar language. Booking status changes to `completed` still update Supabase, dashboard state, Realtime, and history, but no longer send a Telegram status-change notification.
 
 Booking availability now supports a temporary salon capacity setting through `public.app_settings` key `available_rooms`. The default remains `2`, while admin users can switch the Schedule page to `1` available treatment room during hot weather. Public booking, dashboard manual booking, therapist assignment checks, automatic/manual rebooking suggestions, and the shared availability API all use the same room-capacity-aware availability engine.
+
+Schedule blocks now support admin-created room-rental operational blocks and generated recurring block occurrences. Room rentals use `block_scope = 'room_rental'`, `therapist_id = null`, and `rooms_occupied = 1`, so they consume shared room capacity without creating fake therapists, clients, services, or bookings. Weekly and monthly recurrence creates ordinary `schedule_blocks` rows grouped by `series_id`; deleting a single occurrence leaves the rest intact, while admins can delete the remaining series.
 
 The service catalog is being upgraded from the original `face` / `body` split into four stable multilingual categories: `massage`, `face_care`, `brows_lashes`, and `permanent_makeup`. Public homepage services now use category cards and localized category pages, while public and dashboard booking forms use category filters only as UI state. Booking records do not store category; category is derived from the linked service slug/catalog row. New brow/lash and permanent makeup services are active catalog entries but not online-bookable until a specialist is explicitly assigned.
 
@@ -93,6 +95,7 @@ Service catalog corrections are now captured in an idempotent follow-up migratio
 - Enabled brow/lash and permanent makeup services for Ekaterina through an idempotent follow-up migration, and fixed category-card and booking-form layout polish issues found in local QA.
 - Fixed service category page booking CTAs so they navigate back to the localized homepage booking form with service preselection, and removed the permanent makeup note card from the category page.
 - Added service catalog corrections for women's full-body sports massage, brow powder-shading public wording, and interlash-space permanent makeup wording while preserving existing service slugs, IDs, assignments, and booking history.
+- Extended schedule blocks with room-rental scope, `rooms_occupied`, generated recurring occurrences through `series_id`, admin-only room-rental/series controls, single-occurrence and whole-series deletion, and shared availability capacity checks across public booking, manual booking, and rebooking suggestions.
 - Temporarily hid the homepage testimonials section behind a feature flag and removed placeholder review items from public dictionaries until real client reviews are available.
 - Updated the homepage About salon copy and stats in Serbian, Russian, and English to use clearer salon positioning and real specialist/procedure counts.
 - Updated two homepage benefits card texts in Serbian, Russian, and English to mention cozy atmosphere, music, coffee, natural oils, and gentle aromas.
@@ -183,6 +186,7 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Apply `20260714120000_rebooking_manual_suggestions.sql` after the rebooking token migration to store optional manual rebooking date/time suggestions on token rows.
 - Apply `20260727100000_service_catalog_corrections.sql` after the structured service catalog migrations to restore women's full-body sports massage as 90 minutes / 5000 RSD and update current brow/interlash permanent makeup wording without duplicate services.
 - Apply `20260722120000_app_settings_available_rooms.sql` to create generic `app_settings`, seed `available_rooms = 2`, protect settings with RLS, and add `app_settings` to Supabase Realtime for dashboard refresh signals.
+- Apply `20260805120000_room_rental_recurring_schedule_blocks.sql` after schedule blocks and available rooms to enable `room_rental` blocks, `rooms_occupied`, `series_id`, updated safe availability projection, and tighter therapist RLS for schedule-block series.
 - Test admin status changes, therapist assignment, therapist status changes, and internal notes updates against hosted Supabase RLS.
 - Test manual booking creation for admin assigned, admin unassigned, therapist own, and therapist direct-request attempts against hosted Supabase RLS.
 

@@ -634,9 +634,13 @@ const sr = {
         timeRange: "Vremenski interval",
         blockReason: "Razlog blokade",
         salonWide: "Blokada za ceo salon",
+        roomRental: "Iznajmljivanje kabineta",
+        roomOccupied: "Kabinet je zauzet",
         type: "Tip",
         date: "Datum",
         scope: "Obuhvat",
+        recurrence: "Ponavljanje",
+        recurring: "Ponavlja se",
         noReason: "Razlog nije naveden."
       },
       create: {
@@ -806,6 +810,8 @@ const sr = {
       existingBlockHint: "Ovaj datum ima blokade",
       noBlocks: "Nema blokada rasporeda za ovaj datum.",
       confirmDelete: "Da li ste sigurni da želite da obrišete ovu blokadu?",
+      confirmDeleteOccurrence: "Obrisati samo ovaj događaj?",
+      confirmDeleteSeries: "Obrisati celu seriju ponavljajućih događaja?",
       ownTherapistFallback: "Vaš profil terapeuta još nije povezan.",
       operationMode: {
         eyebrow: "Režim rada salona",
@@ -842,7 +848,23 @@ const sr = {
       },
       scope: {
         therapist: "Terapeut",
-        salon: "Ceo salon"
+        salon: "Ceo salon",
+        roomRental: "Iznajmljivanje kabineta"
+      },
+      recurrence: {
+        repeatEvent: "Ponavljaj događaj",
+        doesNotRepeat: "Ne ponavlja se",
+        generatedOccurrences: "Obične blokade rasporeda biće napravljene za svaki generisani datum.",
+        frequency: "Ponavljanje",
+        weekly: "Nedeljno",
+        monthly: "Mesečno",
+        repeatOn: "Ponavljaj na",
+        startDate: "Datum početka",
+        endDate: "Datum završetka",
+        monthlyHint: "Mesečno ponavljanje koristi isti dan u mesecu. Meseci bez tog datuma se preskaču.",
+        recurring: "Ponavljajući događaj",
+        deleteOccurrence: "Obriši samo ovaj događaj",
+        deleteSeries: "Obriši celu seriju"
       },
       filters: {
         therapist: "Filter terapeuta",
@@ -860,6 +882,10 @@ const sr = {
         ownOnly: "Možete menjati samo svoje blokade rasporeda.",
         endAfterStart: "Vreme završetka mora biti posle početka.",
         overlap: "Vremenska blokada se preklapa sa postojećom blokadom.",
+        noRecurrenceDates: "Nema generisanih datuma za ponavljanje.",
+        conflictingBookings: "Postojeći termini bi premašili dostupan broj kabineta.",
+        weekdayRequired: "Izaberite bar jedan dan u nedelji.",
+        endDateAfterStart: "Datum završetka mora biti isti ili posle datuma početka.",
         blocked: "Ovo vreme je blokirano.",
         dayUnavailable: "Ovaj dan nije dostupan."
       },

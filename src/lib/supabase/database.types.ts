@@ -5,7 +5,7 @@ import { type ManualBookingSourceChannel } from "@/lib/dashboard/constants";
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 export type ScheduleBlockType = "full_day" | "time_range";
-export type ScheduleBlockScope = "therapist" | "salon";
+export type ScheduleBlockScope = "therapist" | "salon" | "room_rental";
 
 export type Database = {
   public: {
@@ -276,6 +276,8 @@ export type Database = {
           date: string;
           start_time: string | null;
           end_time: string | null;
+          rooms_occupied: number;
+          series_id: string | null;
           reason: string | null;
           created_at: string;
           updated_at: string;
@@ -289,6 +291,8 @@ export type Database = {
           date: string;
           start_time?: string | null;
           end_time?: string | null;
+          rooms_occupied?: number;
+          series_id?: string | null;
           reason?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -371,6 +375,7 @@ export type Database = {
           block_scope: ScheduleBlockScope;
           start_time: string | null;
           end_time: string | null;
+          rooms_occupied: number;
         };
         Insert: never;
         Update: never;

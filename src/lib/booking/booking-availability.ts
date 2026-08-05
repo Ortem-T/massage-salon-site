@@ -18,9 +18,10 @@ export type AvailabilityScheduleBlock = {
   blockDate: string;
   therapistId: string | null;
   blockType: "full_day" | "time_range";
-  blockScope: "therapist" | "salon";
+  blockScope: "therapist" | "salon" | "room_rental";
   startTime: string | null;
   endTime: string | null;
+  roomsOccupied?: number | null;
 };
 
 export type BlockedInterval = {
@@ -31,6 +32,10 @@ export type BlockedInterval = {
 type BookingStartWindow = {
   firstStart: string;
   lastStart: string;
+};
+
+type RoomRentalInterval = BlockedInterval & {
+  roomsOccupied: number;
 };
 
 type CalculateAvailableTimeSlotsInput = {
@@ -156,7 +161,9 @@ export function calculateBlockedIntervalsFromScheduleBlocks(
   return scheduleBlocks
     .filter((block) => {
       const matchesDate = block.blockDate === options.date;
-      const matchesScope = block.blockScope === "salon" || block.therapistId === options.therapistId;
+      const matchesScope =
+        block.blockScope === "salon" ||
+        (block.blockScope === "therapist" && block.therapistId === options.therapistId);
 
       return matchesDate && matchesScope;
     })
@@ -185,6 +192,72 @@ export function calculateBlockedIntervalsFromScheduleBlocks(
         {
           startMinutes: Math.max(startMinutes, firstBookingStart),
           endMinutes: Math.min(endMinutes, fullDayBlockEnd)
+        }
+      ];
+    })
+    .filter((interval) => interval.startMinutes < interval.endMinutes)
+    .sort((a, b) => a.startMinutes - b.startMinutes);
+}
+
+export function calculateRoomRentalIntervals(
+  scheduleBlocks: AvailabilityScheduleBlock[],
+  options: {
+    date: string;
+    bookingWindow?: BookingStartWindow;
+  }
+): RoomRentalInterval[] {
+  const bookingWindow = options.bookingWindow ?? getDefaultBookingStartWindow();
+  const firstBookingStart = timeToMinutes(bookingWindow.firstStart);
+  const lastBookingStart = timeToMinutes(bookingWindow.lastStart);
+  const fullDayBlockEnd = lastBookingStart === null
+    ? null
+    : lastBookingStart + defaultBookingAvailability.slotStepMinutes;
+
+  if (
+    firstBookingStart === null ||
+    lastBookingStart === null ||
+    fullDayBlockEnd === null ||
+    firstBookingStart > lastBookingStart
+  ) {
+    return [];
+  }
+
+  return scheduleBlocks
+    .filter((block) => block.blockDate === options.date && block.blockScope === "room_rental")
+    .flatMap((block) => {
+      const parsedRoomsOccupied = Math.floor(block.roomsOccupied ?? 0);
+      const roomsOccupied = Number.isFinite(parsedRoomsOccupied) ? Math.max(0, parsedRoomsOccupied) : 0;
+
+      if (roomsOccupied <= 0) {
+        return [];
+      }
+
+      if (block.blockType === "full_day") {
+        return [
+          {
+            startMinutes: firstBookingStart,
+            endMinutes: fullDayBlockEnd,
+            roomsOccupied
+          }
+        ];
+      }
+
+      if (!block.startTime || !block.endTime) {
+        return [];
+      }
+
+      const startMinutes = timeToMinutes(block.startTime);
+      const endMinutes = timeToMinutes(block.endTime);
+
+      if (startMinutes === null || endMinutes === null || startMinutes >= endMinutes) {
+        return [];
+      }
+
+      return [
+        {
+          startMinutes: Math.max(startMinutes, firstBookingStart),
+          endMinutes: Math.min(endMinutes, fullDayBlockEnd),
+          roomsOccupied
         }
       ];
     })
@@ -242,6 +315,10 @@ export function calculateAvailableTimeSlots({
     therapistId,
     bookingWindow
   });
+  const roomRentalIntervals = calculateRoomRentalIntervals(scheduleBlocks, {
+    date,
+    bookingWindow
+  });
   const slots: string[] = [];
 
   for (
@@ -256,8 +333,15 @@ export function calculateAvailableTimeSlots({
     const therapistHasConflict = therapistBookingIntervals.some((interval) => intervalsOverlap(candidate, interval));
     const scheduleHasConflict = scheduleBlockIntervals.some((interval) => intervalsOverlap(candidate, interval));
     const overlappingRoomBookings = allBookingIntervals.filter((interval) => intervalsOverlap(candidate, interval)).length;
+    const overlappingRoomRentalUsage = roomRentalIntervals
+      .filter((interval) => intervalsOverlap(candidate, interval))
+      .reduce((total, interval) => total + interval.roomsOccupied, 0);
 
-    if (!therapistHasConflict && !scheduleHasConflict && overlappingRoomBookings < roomCount) {
+    if (
+      !therapistHasConflict &&
+      !scheduleHasConflict &&
+      overlappingRoomBookings + overlappingRoomRentalUsage < roomCount
+    ) {
       slots.push(minutesToTime(startMinutes));
     }
   }
