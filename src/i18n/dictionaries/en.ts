@@ -361,7 +361,7 @@ const en = {
       therapist: "Therapist"
     },
     navigation: {
-      overview: "Overview",
+      management: "Management",
       bookings: "Bookings",
       schedule: "Schedule",
       promotions: "Promotions",
@@ -370,11 +370,6 @@ const en = {
       therapists: "Therapists"
     },
     pages: {
-      overview: {
-        eyebrow: "Dashboard",
-        title: "Calm operations start here",
-        body: "This protected area is ready for booking workflows, schedule views, and staff tools."
-      },
       bookings: {
         eyebrow: "Bookings",
         title: "Booking workspace",
@@ -394,6 +389,50 @@ const en = {
         eyebrow: "Therapists",
         title: "Therapist management",
         body: "Admin tools for staff profiles, availability, and service capabilities will live here."
+      }
+    },
+    management: {
+      eyebrow: "Management",
+      title: "Salon control center",
+      subtitle: "Global settings and administrative tools without duplicating the booking calendar.",
+      telegram: {
+        title: "Telegram notifications",
+        subtitle: "Configure the automatic daily team summary. The message includes schedule operations only, without client personal data.",
+        dailySchedule: "Daily schedule",
+        sendDailySchedule: "Send daily schedule",
+        sendTime: "Send time",
+        timezoneHelper: "The schedule is sent in the Europe/Belgrade time zone.",
+        enabled: "Enabled",
+        disabled: "Disabled",
+        save: "Save settings",
+        saving: "Saving...",
+        sendTestSummary: "Send test summary",
+        sendingTest: "Sending...",
+        lastSuccessfulSend: "Last successful send",
+        neverSent: "Never sent",
+        messages: {
+          saved: "Telegram settings saved.",
+          testSent: "Test summary sent.",
+          testFailed: "Failed to send test summary.",
+          error: "Could not save Telegram settings."
+        }
+      },
+      salonMode: {
+        eyebrow: "Salon mode",
+        title: "Current capacity",
+        availableRooms: "Available rooms",
+        helper: "Room count editing stays in Schedule, where the team manages availability."
+      },
+      scheduleStatus: {
+        eyebrow: "Schedule",
+        title: "Block status",
+        activeBlocks: "Future blocks",
+        helper: "Room rentals and recurring blocks are created and edited in Schedule."
+      },
+      future: {
+        eyebrow: "Next",
+        title: "Future settings",
+        body: "CRM preferences, notification rules, and other administrative controls can be added here incrementally."
       }
     },
     servicesCatalog: {

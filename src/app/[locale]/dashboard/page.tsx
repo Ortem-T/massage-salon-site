@@ -1,24 +1,39 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
-import { BookingsCalendar } from "@/components/dashboard/bookings-calendar";
-import { isLocale, locales, type Locale } from "@/i18n/config";
+import { ManagementControlCenter } from "@/components/dashboard/management-control-center";
+import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { requireDashboardUser } from "@/lib/dashboard/auth";
-import { getBookingsForDashboard } from "@/lib/dashboard/bookings";
-import { getDashboardServiceCatalogData } from "@/lib/services/dashboard-catalog";
+import {
+  getDashboardOperationSettings,
+  getDashboardTelegramSettings
+} from "@/lib/dashboard/settings";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type DashboardPageProps = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ date?: string | string[] }>;
 };
 
-function getDateSearchParam(searchParams: { date?: string | string[] }) {
-  return Array.isArray(searchParams.date) ? searchParams.date[0] : searchParams.date;
+async function getScheduleBlockSummaryCount() {
+  const supabase = await createSupabaseServerClient();
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Belgrade",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(new Date());
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((item) => item.type === type)?.value ?? "";
+  const today = `${part("year")}-${part("month")}-${part("day")}`;
+  const { count, error } = await supabase
+    .from("schedule_blocks")
+    .select("id", { count: "exact", head: true })
+    .gte("date", today);
+
+  return error ? 0 : count ?? 0;
 }
 
-export default async function DashboardPage({ params, searchParams }: DashboardPageProps) {
+export default async function DashboardPage({ params }: DashboardPageProps) {
   const { locale: rawLocale } = await params;
-  const initialDate = getDateSearchParam(await searchParams);
 
   if (!isLocale(rawLocale)) {
     notFound();
@@ -26,35 +41,25 @@ export default async function DashboardPage({ params, searchParams }: DashboardP
 
   const locale: Locale = rawLocale;
   const user = await requireDashboardUser(locale);
-  const [dictionary, data, serviceCatalogData, ...localizedServiceCatalogs] = await Promise.all([
+
+  if (user.role !== "admin") {
+    redirect(`/${locale}/dashboard/bookings`);
+  }
+
+  const [dictionary, operationSettings, telegramSettings, scheduleBlockCount] = await Promise.all([
     getDictionary(locale),
-    getBookingsForDashboard(user),
-    getDashboardServiceCatalogData(locale, { activeOnly: false, bookableOnlineOnly: false }),
-    ...locales.map((messageLocale) =>
-      getDashboardServiceCatalogData(messageLocale, { activeOnly: false, bookableOnlineOnly: false })
-    )
+    getDashboardOperationSettings(),
+    getDashboardTelegramSettings(user),
+    getScheduleBlockSummaryCount()
   ]);
-  const localizedServiceNames = Object.fromEntries(
-    locales.map((messageLocale, index) => [
-      messageLocale,
-      Object.fromEntries(localizedServiceCatalogs[index].services.map((service) => [service.slug, service.name]))
-    ])
-  ) as Record<Locale, Record<string, string>>;
 
   return (
-    <BookingsCalendar
-      bookings={data.bookings}
-      clients={data.clients}
-      dataError={data.error}
+    <ManagementControlCenter
       dictionary={dictionary}
-      initialDate={initialDate}
       locale={locale}
-      role={user.role}
-      scheduleBlocks={data.scheduleBlocks}
-      serviceCatalog={serviceCatalogData.services}
-      serviceCatalogError={serviceCatalogData.error}
-      localizedServiceNames={localizedServiceNames}
-      therapists={data.therapists}
+      operationSettings={operationSettings}
+      scheduleBlockCount={scheduleBlockCount}
+      telegramSettings={telegramSettings}
     />
   );
 }

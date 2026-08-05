@@ -98,11 +98,43 @@ If a Realtime connection briefly drops, the initial dashboard fetch and local ac
 Salon operation settings are stored in `public.app_settings`. The current booking-capacity setting is `available_rooms`, defaulting to `2`.
 
 - Admin users can read and update app settings from the dashboard Schedule page.
-- Therapist users may read app settings as operational context but cannot modify them.
+- Therapist users may read only operational non-sensitive settings such as `available_rooms`; Telegram daily-summary settings are admin-only.
 - Anon/public users cannot read `app_settings`.
 - Public availability and public booking validation read `available_rooms` server-side only; the public API does not return the raw setting value.
 - `app_settings` Realtime is only an authenticated dashboard refresh signal. RLS still controls who can receive settings changes.
 - The shared availability engine uses `available_rooms` to count overlapping pending/confirmed bookings across all therapists while still enforcing therapist-specific conflicts and schedule blocks.
+
+## Admin Management And Telegram Daily Schedule
+
+The duplicated dashboard Overview page has been replaced by an admin-only Management page. Admin users can configure the daily Telegram schedule summary there; therapist users do not see the Management navigation item and direct `/dashboard` access redirects to `/dashboard/bookings`.
+
+Telegram daily-summary configuration uses safe database settings only:
+
+- `telegram_daily_schedule_enabled`
+- `telegram_daily_schedule_time`
+- `telegram_daily_schedule_timezone = Europe/Belgrade`
+
+Secrets stay server-side:
+
+- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_CHAT_ID`
+- `CRON_SECRET`
+- `SUPABASE_SECRET_KEY`
+
+The cron endpoint `GET/POST /api/cron/telegram-daily-schedule` requires `Authorization: Bearer ${CRON_SECRET}`. It reads current settings at execution time, calculates the current salon local date/time in `Europe/Belgrade`, and sends only inside the configured time window.
+
+Scheduling is handled by Supabase Cron, not Vercel Cron. The database job `raine-telegram-daily-schedule-plan` runs once per day at `00:00 UTC` and plans a dedicated `raine-telegram-daily-schedule-send` job for the admin-configured send time in `Europe/Belgrade`. The send job calls the Next.js endpoint through `pg_net`. Callback configuration is stored in Supabase Vault:
+
+- `raine_site_url`: production site URL, for example `https://raine.rs`
+- `raine_cron_secret`: the same value as the server-side `CRON_SECRET`
+
+Changing the send time in Management still does not require a deployment restart. When the server-side Supabase secret is configured, the dashboard save action calls a service-role wrapper that re-plans the next send job immediately.
+
+The daily schedule message intentionally excludes client identity and sensitive details. It includes only pending/confirmed bookings, therapist name, Russian service name, appointment interval, room-rental blocks, therapist-specific blocks, and salon-wide blocks. It excludes cancelled/completed bookings, client names, phones, language, comments, internal notes, booking source, prices, and raw Telegram links.
+
+`public.notification_delivery_log` stores non-sensitive delivery status for idempotency and audit context. Scheduled summaries use `notification_type = 'telegram_daily_schedule'` and a uniqueness rule for `(notification_type, local_date, destination_key)`; test summaries use `telegram_daily_schedule_test` and do not consume scheduled idempotency. `destination_key` is a non-sensitive reference derived from a hashed Telegram chat id, not the raw chat id.
+
+Telegram send failures are logged as safe status/error codes and must not block booking operations, schedule blocks, dashboard loading, public booking, or CRM flows.
 
 ## Room Rental Schedule Blocks
 

@@ -362,7 +362,7 @@ const sr = {
       therapist: "Terapeut"
     },
     navigation: {
-      overview: "Pregled",
+      management: "Upravljanje",
       bookings: "Termini",
       schedule: "Raspored",
       promotions: "Akcije",
@@ -371,11 +371,6 @@ const sr = {
       therapists: "Terapeuti"
     },
     pages: {
-      overview: {
-        eyebrow: "Dashboard",
-        title: "Mirna operativa počinje ovde",
-        body: "Ova zaštićena zona je spremna za tokove termina, raspored i alate za tim."
-      },
       bookings: {
         eyebrow: "Termini",
         title: "Radni prostor za termine",
@@ -395,6 +390,50 @@ const sr = {
         eyebrow: "Terapeuti",
         title: "Upravljanje terapeutima",
         body: "Admin alati za profile tima, dostupnost i usluge koje terapeut radi biće ovde."
+      }
+    },
+    management: {
+      eyebrow: "Upravljanje",
+      title: "Kontrolni centar salona",
+      subtitle: "Globalna podešavanja i administrativni alati bez dupliranja kalendara termina.",
+      telegram: {
+        title: "Telegram obaveštenja",
+        subtitle: "Podesite automatski dnevni pregled za tim. Poruka sadrži samo raspored, bez ličnih podataka klijenata.",
+        dailySchedule: "Dnevni raspored",
+        sendDailySchedule: "Šalji dnevni raspored",
+        sendTime: "Vreme slanja",
+        timezoneHelper: "Raspored se šalje u vremenskoj zoni Europe/Belgrade.",
+        enabled: "Uključeno",
+        disabled: "Isključeno",
+        save: "Sačuvaj podešavanja",
+        saving: "Čuvamo...",
+        sendTestSummary: "Pošalji test raspored",
+        sendingTest: "Šaljemo...",
+        lastSuccessfulSend: "Poslednje uspešno slanje",
+        neverSent: "Još nije poslato",
+        messages: {
+          saved: "Telegram podešavanja su sačuvana.",
+          testSent: "Test raspored je poslat.",
+          testFailed: "Slanje test rasporeda nije uspelo.",
+          error: "Telegram podešavanja nije moguće sačuvati."
+        }
+      },
+      salonMode: {
+        eyebrow: "Režim salona",
+        title: "Trenutni kapacitet",
+        availableRooms: "Dostupni kabineti",
+        helper: "Izmena broja kabineta ostaje u Rasporedu, gde tim upravlja dostupnošću."
+      },
+      scheduleStatus: {
+        eyebrow: "Raspored",
+        title: "Status blokada",
+        activeBlocks: "Buduće blokade",
+        helper: "Iznajmljivanje kabineta i ponavljajuće blokade kreiraju se i uređuju u Rasporedu."
+      },
+      future: {
+        eyebrow: "Dalje",
+        title: "Buduća podešavanja",
+        body: "CRM podešavanja, pravila obaveštenja i drugi administrativni blokovi mogu se dodavati postepeno."
       }
     },
     servicesCatalog: {
