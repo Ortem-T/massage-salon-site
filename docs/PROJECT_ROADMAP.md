@@ -1,6 +1,6 @@
 # Project Roadmap
 
-Last updated: 2026-05-15
+Last updated: 2026-08-05
 
 ## Project Overview
 
@@ -17,7 +17,7 @@ The current product is a homepage MVP with multilingual routing, brand identity,
 - Framer Motion
 - React Hook Form and Zod for booking form validation
 - Self-hosted font packages via `@fontsource`
-- GitHub repository workflow with feature branches
+- GitHub workflow with `main` as stable and `develop` as active development
 
 ## Architecture
 
@@ -28,6 +28,8 @@ The current product is a homepage MVP with multilingual routing, brand identity,
 - `src/components/ui` contains reusable UI primitives.
 - `src/components/motion` contains shared animation helpers.
 - `src/lib/booking` contains booking schema and mock service layer.
+- `src/lib/dashboard` contains authenticated staff dashboard data access, server actions, and admin settings.
+- `src/server/telegram` contains server-only Telegram notification formatting and delivery helpers.
 - `public/images` contains optimized public visual assets.
 
 Architecture should stay clean and incremental. Shared logic belongs in `src/lib`, reusable UI belongs in `src/components/ui`, and section-specific composition belongs in `src/components/sections`.
@@ -95,6 +97,9 @@ Rules:
   - mock submit service
   - `siteLocale` captured from current route
 - Russian-only Telegram team notifications for public bookings, dashboard manual bookings, dashboard status changes, and dashboard therapist assignment changes.
+- Admin-only Management page at `/[locale]/dashboard` for global salon controls.
+- Configurable Telegram daily schedule summary settings: enabled flag, send time, fixed `Europe/Belgrade` timezone, and admin test-summary action.
+- Vercel Cron endpoint for the Telegram daily schedule summary with `CRON_SECRET` bearer protection and delivery-log idempotency.
 
 ## Booking System Plan
 
@@ -147,8 +152,10 @@ Do not build CRM/admin too early. Future admin can include:
 - generated recurring schedule-block occurrences grouped by `series_id`
 - service catalog management
 - client notes
-- basic analytics
+- admin-only Management page for global salon controls
+- Telegram daily schedule settings and non-sensitive delivery history
 - notification history
+- basic analytics
 
 Service catalog direction:
 
@@ -165,6 +172,8 @@ Minimum future data model:
 - `services`: stable id/slug, category key, localized display data, duration, `show_duration_publicly`, price, active flag, online booking flag
 - `specialists`: stable id, public name, active flag, service capabilities
 - `schedule_blocks`: therapist, salon-wide, and room-rental operational blocks; recurring blocks are generated as ordinary rows and grouped with `series_id`
+- `app_settings`: safe global settings such as `available_rooms` and Telegram daily-summary configuration
+- `notification_delivery_log`: non-sensitive delivery audit/idempotency log for scheduled notifications
 - `booking_statuses`: pending, confirmed, cancelled, completed
 - `admin_users`: authenticated staff allowed to manage bookings
 - access boundary: Supabase RLS must prevent public reads and restrict writes to intended booking inserts
@@ -225,6 +234,8 @@ Later:
 - no client authentication yet
 - no backend before booking MVP is finished
 - do not expose Telegram bot tokens to the frontend
+- do not store raw Telegram bot tokens or raw chat IDs in editable public settings
+- protect cron endpoints with `CRON_SECRET`
 
 ## Git Workflow
 

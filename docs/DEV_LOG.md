@@ -34,6 +34,10 @@ Service category UI polish continued after local QA: homepage category cards kee
 
 Service catalog corrections are now captured in an idempotent follow-up migration. The canonical women's full-body sports massage slug is restored as an active 90-minute massage at 5000 RSD without creating a duplicate or changing therapist assignments. Permanent makeup brow wording now uses the approved powder-shading terminology, and interlash services no longer use public arrow/wing-style language.
 
+The duplicated admin Overview page has been replaced by an admin-only Management page at `/[locale]/dashboard`. Bookings remains the primary calendar-first operational page, while Management now holds global controls: Telegram daily schedule settings, current room-capacity summary, schedule-block status summary, and a quiet placeholder for future admin controls. Therapists are redirected from `/dashboard` to `/dashboard/bookings` and do not see the Management nav item.
+
+Telegram daily schedule summaries are now configurable from Management and delivered through a guarded cron endpoint. Settings live in `public.app_settings` as safe values only: `telegram_daily_schedule_enabled`, `telegram_daily_schedule_time`, and fixed `telegram_daily_schedule_timezone = Europe/Belgrade`. `GET/POST /api/cron/telegram-daily-schedule` is protected with `Authorization: Bearer ${CRON_SECRET}` and intended to run every 5 minutes via Vercel Cron. The job sends only during the configured Europe/Belgrade time window, defaults to 09:30, and uses `public.notification_delivery_log` for idempotency so a successful daily summary is not duplicated. Test summaries use `telegram_daily_schedule_test` and do not consume the scheduled delivery slot.
+
 ## Completed Tasks
 
 - Created Next.js 15 project structure with App Router.
@@ -70,7 +74,7 @@ Service catalog corrections are now captured in an idempotent follow-up migratio
 - Added Supabase booking persistence MVP behind `createBookingRequest()`, including a public anon insert-only RLS migration, a typed Supabase utility, and `/api/bookings` server-side validation.
 - Added a Supabase Auth protected dashboard foundation at `/[locale]/dashboard`, with server-side login, cookie-based SSR auth utilities, role-aware navigation, and placeholder admin/therapist dashboard pages.
 - Added a dashboard MVP Supabase migration draft for `profiles`, `therapists`, `clients`, `services`, additive `bookings` columns, RLS grants, and staff booking update constraints.
-- Added the first calendar-first dashboard bookings UI on `/[locale]/dashboard` and `/[locale]/dashboard/bookings`, including role-aware filters, status overview, booking details modal, and server actions for status, therapist assignment, and internal notes.
+- Added the first calendar-first dashboard bookings UI, now served from `/[locale]/dashboard/bookings`, including role-aware filters, status overview, booking details modal, and server actions for status, therapist assignment, and internal notes.
 - Added role-based booking management actions: admin can update status, assign therapists, and edit notes for all bookings; therapists can update status and notes only for assigned bookings. Added a follow-up RLS migration for therapist status permissions.
 - Hardened dashboard review findings: invalid staff roles are blocked at login/dashboard entry, booking details trap keyboard focus and support Escape close, admin updates verify affected rows, compact calendar events show text status cues, and dashboard dates use the Belgrade salon timezone with Serbian Latin formatting.
 - Added manual dashboard booking creation for staff-originated requests, including role-aware create permissions, source channel capture, optional duration, localized validation, and a follow-up RLS migration for authenticated staff inserts.
@@ -96,6 +100,8 @@ Service catalog corrections are now captured in an idempotent follow-up migratio
 - Fixed service category page booking CTAs so they navigate back to the localized homepage booking form with service preselection, and removed the permanent makeup note card from the category page.
 - Added service catalog corrections for women's full-body sports massage, brow powder-shading public wording, and interlash-space permanent makeup wording while preserving existing service slugs, IDs, assignments, and booking history.
 - Extended schedule blocks with room-rental scope, `rooms_occupied`, generated recurring occurrences through `series_id`, admin-only room-rental/series controls, single-occurrence and whole-series deletion, and shared availability capacity checks across public booking, manual booking, and rebooking suggestions.
+- Replaced the duplicated admin Overview page with an admin-only Management page and added configurable Telegram daily schedule summary controls.
+- Added the Telegram daily schedule formatter/sender, a guarded cron API route, Vercel Cron config, safe app settings, and a non-sensitive delivery log migration for idempotency.
 - Temporarily hid the homepage testimonials section behind a feature flag and removed placeholder review items from public dictionaries until real client reviews are available.
 - Updated the homepage About salon copy and stats in Serbian, Russian, and English to use clearer salon positioning and real specialist/procedure counts.
 - Updated two homepage benefits card texts in Serbian, Russian, and English to mention cozy atmosphere, music, coffee, natural oils, and gentle aromas.
@@ -163,7 +169,7 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Apply the dashboard manual booking migration in the hosted Supabase project and verify admin/therapist insert policies.
 - Add therapist-specific working hours later if needed; MVP public availability uses the centralized default 10:00-19:00 booking start window, all 7 days.
 - Add manual QA checklist for launch.
-- Verify Telegram booking notifications in the team chat after deployment env vars are configured.
+- Verify Telegram booking notifications and daily schedule summaries in the team chat after deployment env vars are configured.
 - Verify `https://raine.rs/sitemap.xml` and `https://raine.rs/robots.txt` after the next deployment.
 - Add `https://raine.rs` to Google Search Console and submit the sitemap.
 - Create or claim the Google Business Profile for Raine.
@@ -187,6 +193,7 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Apply `20260727100000_service_catalog_corrections.sql` after the structured service catalog migrations to restore women's full-body sports massage as 90 minutes / 5000 RSD and update current brow/interlash permanent makeup wording without duplicate services.
 - Apply `20260722120000_app_settings_available_rooms.sql` to create generic `app_settings`, seed `available_rooms = 2`, protect settings with RLS, and add `app_settings` to Supabase Realtime for dashboard refresh signals.
 - Apply `20260805120000_room_rental_recurring_schedule_blocks.sql` after schedule blocks and available rooms to enable `room_rental` blocks, `rooms_occupied`, `series_id`, updated safe availability projection, and tighter therapist RLS for schedule-block series.
+- Apply `20260805173000_telegram_daily_schedule_settings.sql` after `app_settings` exists to add Telegram daily-summary settings, tighten settings RLS, and create `notification_delivery_log`.
 - Test admin status changes, therapist assignment, therapist status changes, and internal notes updates against hosted Supabase RLS.
 - Test manual booking creation for admin assigned, admin unassigned, therapist own, and therapist direct-request attempts against hosted Supabase RLS.
 
@@ -258,8 +265,16 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Simulate failed submit before Supabase launch and verify localized error state.
 - Verify real WhatsApp, Telegram, Instagram, and Google Maps contact links before production.
 - Confirm unauthenticated `/sr/dashboard`, `/ru/dashboard`, and `/en/dashboard` visits redirect to the matching login page.
-- Confirm admin users see overview, bookings, clients, services, and therapists navigation.
-- Confirm therapist users see only overview and bookings navigation.
+- Confirm admin users see Management, bookings, schedule, promotions, clients, services, and therapists navigation.
+- Confirm therapist users do not see Management and are redirected from `/dashboard` to `/dashboard/bookings`.
+- Confirm Management no longer duplicates the bookings calendar.
+- Confirm admin can enable/disable Telegram daily schedule and save the send time.
+- Confirm Management shows `Europe/Belgrade` as fixed timezone.
+- Confirm admin can send a test daily schedule summary and gets a localized success/error state.
+- Confirm the daily schedule summary excludes client names, phone numbers, comments, internal notes, booking source, and prices.
+- Confirm daily schedule summary includes only pending/confirmed bookings plus schedule blocks and room-rental blocks.
+- Confirm scheduled daily summary idempotency prevents duplicate successful sends for the same local date and destination.
+- Confirm unauthenticated cron calls return 401 and do not send Telegram messages.
 - Confirm admin Clients CRM details shows the Notifications block before booking history, while therapists still cannot access the full Clients CRM page.
 - Confirm admin booking details can generate confirmation, reminder, rebooking, and Google review messages without showing a booking selector.
 - Confirm therapist booking details can generate notifications only for assigned/visible bookings.

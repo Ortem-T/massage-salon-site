@@ -33,6 +33,8 @@ import { saveClient, type SaveClientInput } from "@/lib/dashboard/clients";
 import {
   DashboardSettingsForbiddenError,
   DashboardSettingsValidationError,
+  sendTelegramDailyScheduleTest,
+  updateTelegramDailyScheduleSettings,
   updateAvailableRoomsSetting
 } from "@/lib/dashboard/settings";
 import {
@@ -242,6 +244,31 @@ export async function updateAvailableRoomsAction(
   try {
     const user = await requireDashboardUser(locale);
     await updateAvailableRoomsSetting(user, input.availableRooms);
+    revalidateDashboard(locale);
+    return { ok: true };
+  } catch (error) {
+    return toActionResult(error);
+  }
+}
+
+export async function updateTelegramDailyScheduleSettingsAction(
+  locale: Locale,
+  input: { enabled: boolean; sendTime: string }
+): Promise<DashboardActionResult> {
+  try {
+    const user = await requireDashboardUser(locale);
+    await updateTelegramDailyScheduleSettings(user, input);
+    revalidateDashboard(locale);
+    return { ok: true };
+  } catch (error) {
+    return toActionResult(error);
+  }
+}
+
+export async function sendTelegramDailyScheduleTestAction(locale: Locale): Promise<DashboardActionResult> {
+  try {
+    const user = await requireDashboardUser(locale);
+    await sendTelegramDailyScheduleTest(user);
     revalidateDashboard(locale);
     return { ok: true };
   } catch (error) {

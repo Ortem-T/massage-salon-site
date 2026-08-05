@@ -152,6 +152,34 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["client_rebooking_tokens"]["Insert"]>;
         Relationships: [];
       };
+      notification_delivery_log: {
+        Row: {
+          id: string;
+          notification_type: "telegram_daily_schedule" | "telegram_daily_schedule_test";
+          local_date: string;
+          destination_key: string;
+          status: "pending" | "sent" | "failed" | "skipped";
+          attempted_at: string;
+          sent_at: string | null;
+          error_code: string | null;
+          error_message_safe: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          notification_type: "telegram_daily_schedule" | "telegram_daily_schedule_test";
+          local_date: string;
+          destination_key: string;
+          status: "pending" | "sent" | "failed" | "skipped";
+          attempted_at?: string;
+          sent_at?: string | null;
+          error_code?: string | null;
+          error_message_safe?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["notification_delivery_log"]["Insert"]>;
+        Relationships: [];
+      };
       profiles: {
         Row: {
           id: string;

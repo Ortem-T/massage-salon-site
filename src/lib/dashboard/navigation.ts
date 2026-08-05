@@ -15,7 +15,7 @@ export function getDashboardNavigation(
 ): DashboardNavItem[] {
   const labels = dictionary.dashboard.navigation;
   const items: DashboardNavItem[] = [
-    { href: `/${locale}/dashboard`, label: labels.overview },
+    { href: `/${locale}/dashboard`, label: labels.management, adminOnly: true },
     { href: `/${locale}/dashboard/bookings`, label: labels.bookings },
     { href: `/${locale}/dashboard/schedule`, label: labels.schedule },
     { href: `/${locale}/dashboard/promotions`, label: labels.promotions, adminOnly: true },
