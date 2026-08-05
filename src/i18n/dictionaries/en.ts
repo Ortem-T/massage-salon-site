@@ -74,15 +74,15 @@ const en = {
       },
       permanent_makeup: {
         title: "Permanent makeup",
-        description: "Powder brows, lips and lash-line work with a soft premium approach.",
+        description: "Brows with the powder shading technique, lips and interlash-space work with a soft premium approach.",
         seoTitle: "Permanent makeup in Novi Sad | Raine",
-        seoDescription: "Permanent makeup at Raine in Novi Sad: powder brows, lips and lash-line treatments."
+        seoDescription: "Permanent makeup at Raine in Novi Sad: brows with the powder shading technique, lips and interlash-space treatments."
       }
     },
     permanentMakeupGroups: {
       brows: "Brows",
       lips: "Lips",
-      lashLine: "Lash line",
+      lashLine: "Interlash space",
       note: "Correction and refresh timing are planned individually after consultation and pigment assessment."
     },
     popularEyebrow: "Popular choice",
@@ -633,9 +633,13 @@ const en = {
         timeRange: "Time range",
         blockReason: "Block reason",
         salonWide: "Salon-wide block",
+        roomRental: "Room rental",
+        roomOccupied: "Room occupied",
         type: "Type",
         date: "Date",
         scope: "Scope",
+        recurrence: "Repeat",
+        recurring: "Recurring",
         noReason: "No reason saved."
       },
       create: {
@@ -805,6 +809,8 @@ const en = {
       existingBlockHint: "This date has schedule blocks",
       noBlocks: "No schedule blocks for this date.",
       confirmDelete: "Are you sure you want to delete this block?",
+      confirmDeleteOccurrence: "Delete this event only?",
+      confirmDeleteSeries: "Delete the entire recurring series?",
       ownTherapistFallback: "Your therapist profile is not connected yet.",
       operationMode: {
         eyebrow: "Salon operation mode",
@@ -841,7 +847,26 @@ const en = {
       },
       scope: {
         therapist: "Therapist",
-        salon: "Salon"
+        salon: "Entire salon",
+        roomRental: "Room rental"
+      },
+      recurrence: {
+        repeatEvent: "Repeat event",
+        doesNotRepeat: "Does not repeat",
+        generatedOccurrences: "Ordinary schedule blocks will be created for each generated date.",
+        frequency: "Repeat",
+        weekly: "Weekly",
+        monthly: "Monthly",
+        repeatOn: "Repeat on",
+        startDate: "Start date",
+        endDate: "End date",
+        monthlyHint: "Monthly recurrence uses the same day of the month. Months without that day are skipped.",
+        recurring: "Recurring event",
+        deleteAction: "Delete",
+        deleteOccurrence: "Delete this event only",
+        deleteOccurrenceShort: "This event",
+        deleteSeriesShort: "Series",
+        deleteSeries: "Delete entire series"
       },
       filters: {
         therapist: "Therapist filter",
@@ -859,6 +884,10 @@ const en = {
         ownOnly: "Only your own schedule blocks can be edited.",
         endAfterStart: "End time must be after start time.",
         overlap: "Time block overlaps with an existing block.",
+        noRecurrenceDates: "No recurrence dates were generated.",
+        conflictingBookings: "Conflicting bookings would exceed the available room capacity.",
+        weekdayRequired: "Choose at least one weekday.",
+        endDateAfterStart: "End date must be after or equal to the start date.",
         blocked: "This time is blocked.",
         dayUnavailable: "This day is unavailable."
       },

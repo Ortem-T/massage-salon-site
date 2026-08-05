@@ -112,7 +112,7 @@ with service_rows(slug, category, duration_minutes, price_rsd, active, bookable_
     ('lymphatic-drainage-massage-90', 'body', 90, 5000, true, true, 90),
     ('womens-sports-massage', 'body', 60, 4000, true, true, 100),
     ('mens-sports-massage', 'body', 60, 4000, true, true, 110),
-    ('womens-full-body-sports-massage', 'body', 120, 6000, true, true, 120),
+    ('womens-full-body-sports-massage', 'body', 90, 5000, true, true, 120),
     ('mens-full-body-sports-massage', 'body', 120, 6000, true, true, 130),
     ('taping-application', 'body', 30, 500, true, true, 140)
 )
@@ -166,9 +166,9 @@ with translation_rows(slug, locale, name, short_description) as (
     ('mens-sports-massage', 'ru', 'Спортивный мужской массаж', 'Интенсивная процедура для глубокой проработки мышц, восстановления после нагрузки и снятия напряжения.'),
     ('mens-sports-massage', 'sr', 'Muška sportska masaža', 'Intenzivan tretman za dublji rad na mišićima, oporavak nakon opterećenja i smanjenje napetosti.'),
     ('mens-sports-massage', 'en', 'Men''s Sports Massage', 'An intensive treatment for deeper muscle work, recovery after physical load and tension relief.'),
-    ('womens-full-body-sports-massage', 'ru', 'Спортивный женский массаж всего тела', 'Двухчасовая процедура для комплексной проработки всего тела, восстановления после нагрузки и снятия общего мышечного напряжения.'),
-    ('womens-full-body-sports-massage', 'sr', 'Ženska sportska masaža celog tela', 'Dvočasovni tretman za celoviti rad na telu, oporavak nakon opterećenja i smanjenje opšte mišićne napetosti.'),
-    ('womens-full-body-sports-massage', 'en', 'Women''s Full Body Sports Massage', 'A two-hour full body treatment for comprehensive muscle work, recovery after physical load and release of overall tension.'),
+    ('womens-full-body-sports-massage', 'ru', 'Женский спортивный массаж всего тела', 'Спортивный массаж всего тела для женщин: работа с мышечным напряжением, восстановлением после нагрузки и ощущением легкости.'),
+    ('womens-full-body-sports-massage', 'sr', 'Sportska masaža celog tela za žene', 'Sportska masaža celog tela prilagođena ženama, za rad sa mišićnom napetošću, oporavak i osećaj lakoće.'),
+    ('womens-full-body-sports-massage', 'en', 'Women''s full-body sports massage', 'A full-body sports massage tailored for women, focused on muscle tension, recovery and a lighter feeling in the body.'),
     ('mens-full-body-sports-massage', 'ru', 'Спортивный мужской массаж всего тела', 'Двухчасовая интенсивная процедура для глубокой проработки всего тела, восстановления и снятия накопленного напряжения.'),
     ('mens-full-body-sports-massage', 'sr', 'Muška sportska masaža celog tela', 'Dvočasovni intenzivan tretman za dubinski rad na celom telu, oporavak i oslobađanje nakupljene napetosti.'),
     ('mens-full-body-sports-massage', 'en', 'Men''s Full Body Sports Massage', 'A two-hour intensive full body treatment for deep muscle work, recovery and release of accumulated tension.'),

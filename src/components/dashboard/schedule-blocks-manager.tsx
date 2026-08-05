@@ -45,6 +45,10 @@ type ScheduleBlockFormState = {
   date: string;
   startTime: string;
   endTime: string;
+  repeatEnabled: boolean;
+  recurrenceFrequency: "weekly" | "monthly";
+  recurrenceEndDate: string;
+  recurrenceWeekdays: number[];
   reason: string;
 };
 
@@ -75,6 +79,30 @@ function formatDate(value: string, locale: Locale) {
   }).format(new Date(`${value}T12:00:00`));
 }
 
+function addDays(value: string, amount: number) {
+  const date = new Date(`${value}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + amount);
+
+  return date.toISOString().split("T")[0];
+}
+
+function getWeekdayOptions(locale: Locale) {
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = addDays("2026-01-05", index);
+
+    return {
+      value: getWeekdayFromDate(date),
+      label: new Intl.DateTimeFormat(dateLocales[locale], {
+        weekday: "short"
+      }).format(new Date(`${date}T12:00:00`)).replace(".", "")
+    };
+  });
+}
+
+function getWeekdayFromDate(value: string) {
+  return new Date(`${value}T12:00:00Z`).getUTCDay();
+}
+
 function formatTimeRange(block: DashboardScheduleBlock) {
   if (block.blockType === "full_day") {
     return null;
@@ -96,6 +124,7 @@ export function ScheduleBlocksManager({
   const schedule = dictionary.dashboard.schedule;
   const today = useMemo(() => getTodayValue(), []);
   const timeOptions = useMemo(() => getTimeOptions(), []);
+  const weekdayOptions = useMemo(() => getWeekdayOptions(locale), [locale]);
   const ownTherapistId = role === "therapist" ? (therapists[0]?.id ?? "") : "";
   const [selectedDate, setSelectedDate] = useState(today);
   const [therapistFilter, setTherapistFilter] = useState(role === "admin" ? "all" : ownTherapistId);
@@ -107,6 +136,10 @@ export function ScheduleBlocksManager({
     date: today,
     startTime: "10:00",
     endTime: "11:00",
+    repeatEnabled: false,
+    recurrenceFrequency: "weekly",
+    recurrenceEndDate: today,
+    recurrenceWeekdays: [getWeekdayFromDate(today)],
     reason: ""
   }));
   const [errors, setErrors] = useState<ScheduleBlockFormErrors>({});
@@ -158,7 +191,11 @@ export function ScheduleBlocksManager({
           return block.blockScope === "salon";
         }
 
-        return block.therapistId === therapistFilter;
+        if (therapistFilter === "room_rental") {
+          return block.blockScope === "room_rental";
+        }
+
+        return block.blockScope === "room_rental" || block.blockScope === "salon" || block.therapistId === therapistFilter;
       })
       .sort((a, b) => (a.startTime ?? "00:00").localeCompare(b.startTime ?? "00:00"));
   }, [blocks, role, selectedDate, therapistFilter]);
@@ -172,6 +209,10 @@ export function ScheduleBlocksManager({
       date: nextDate,
       startTime: "10:00",
       endTime: "11:00",
+      repeatEnabled: false,
+      recurrenceFrequency: "weekly",
+      recurrenceEndDate: nextDate,
+      recurrenceWeekdays: [getWeekdayFromDate(nextDate)],
       reason: ""
     });
     setErrors({});
@@ -188,6 +229,20 @@ export function ScheduleBlocksManager({
 
       if (field === "blockScope" && value === "salon") {
         next.therapistId = "";
+      }
+
+      if (field === "blockScope" && value === "room_rental") {
+        next.therapistId = "";
+        next.reason = next.reason.trim() ? next.reason : schedule.scope.roomRental;
+      }
+
+      if (field === "blockScope" && value === "therapist" && !next.therapistId) {
+        next.therapistId = role === "therapist" ? ownTherapistId : "";
+      }
+
+      if (field === "date" && typeof value === "string") {
+        next.recurrenceEndDate = value;
+        next.recurrenceWeekdays = [getWeekdayFromDate(value)];
       }
 
       return next;
@@ -218,6 +273,16 @@ export function ScheduleBlocksManager({
 
     if (form.blockScope === "therapist" && !form.therapistId) {
       nextErrors.therapistId = schedule.errors.therapist;
+    }
+
+    if (form.repeatEnabled && !form.id) {
+      if (!form.recurrenceEndDate || form.recurrenceEndDate < form.date) {
+        nextErrors.recurrenceEndDate = schedule.errors.endDateAfterStart;
+      }
+
+      if (form.recurrenceFrequency === "weekly" && form.recurrenceWeekdays.length === 0) {
+        nextErrors.recurrenceWeekdays = schedule.errors.weekdayRequired;
+      }
     }
 
     if (form.blockType === "time_range") {
@@ -263,6 +328,14 @@ export function ScheduleBlocksManager({
       return schedule.errors.overlap;
     }
 
+    if (result.reason === "capacity") {
+      return schedule.errors.conflictingBookings;
+    }
+
+    if (result.reason === "no_occurrences") {
+      return schedule.errors.noRecurrenceDates;
+    }
+
     return schedule.messages.error;
   }
 
@@ -303,6 +376,15 @@ export function ScheduleBlocksManager({
       date: form.date,
       startTime: form.blockType === "time_range" ? form.startTime : null,
       endTime: form.blockType === "time_range" ? form.endTime : null,
+      roomsOccupied: form.blockScope === "room_rental" ? 1 : 0,
+      recurrence: form.repeatEnabled && !form.id
+        ? {
+            enabled: true,
+            frequency: form.recurrenceFrequency,
+            weekdays: form.recurrenceWeekdays,
+            endDate: form.recurrenceEndDate
+          }
+        : null,
       reason: form.reason
     };
 
@@ -330,6 +412,10 @@ export function ScheduleBlocksManager({
       date: block.date,
       startTime: block.startTime?.slice(0, 5) ?? "10:00",
       endTime: block.endTime?.slice(0, 5) ?? "11:00",
+      repeatEnabled: false,
+      recurrenceFrequency: "weekly",
+      recurrenceEndDate: block.date,
+      recurrenceWeekdays: [getWeekdayFromDate(block.date)],
       reason: block.reason ?? ""
     });
     setSelectedDate(block.date);
@@ -337,14 +423,20 @@ export function ScheduleBlocksManager({
     setMessage(null);
   }
 
-  function deleteBlock(block: DashboardScheduleBlock) {
-    if (!window.confirm(schedule.confirmDelete)) {
+  function deleteBlock(block: DashboardScheduleBlock, mode: "occurrence" | "series" = "occurrence") {
+    const confirmMessage = mode === "series"
+      ? schedule.confirmDeleteSeries
+      : block.seriesId
+        ? schedule.confirmDeleteOccurrence
+        : schedule.confirmDelete;
+
+    if (!window.confirm(confirmMessage)) {
       return;
     }
 
     setMessage(null);
     startTransition(async () => {
-      const result = await deleteScheduleBlockAction(locale, block.id);
+      const result = await deleteScheduleBlockAction(locale, block.id, mode);
       setMessage(result.ok ? schedule.messages.deleted : getActionMessage(result));
 
       if (result.ok) {
@@ -352,6 +444,41 @@ export function ScheduleBlocksManager({
         refreshScheduleData();
       }
     });
+  }
+
+  function toggleRecurrenceWeekday(weekday: number) {
+    setForm((current) => {
+      const exists = current.recurrenceWeekdays.includes(weekday);
+      const recurrenceWeekdays = exists
+        ? current.recurrenceWeekdays.filter((item) => item !== weekday)
+        : [...current.recurrenceWeekdays, weekday].sort((a, b) => a - b);
+
+      return {
+        ...current,
+        recurrenceWeekdays
+      };
+    });
+    setErrors((current) => {
+      if (!current.recurrenceWeekdays) {
+        return current;
+      }
+
+      const next = { ...current };
+      delete next.recurrenceWeekdays;
+      return next;
+    });
+  }
+
+  function getBlockScopeLabel(block: DashboardScheduleBlock) {
+    if (block.blockScope === "salon") {
+      return schedule.scope.salon;
+    }
+
+    if (block.blockScope === "room_rental") {
+      return schedule.scope.roomRental;
+    }
+
+    return therapistNames.get(block.therapistId ?? "") ?? schedule.placeholders.therapist;
   }
 
   return (
@@ -375,6 +502,7 @@ export function ScheduleBlocksManager({
             >
               <option value="all">{schedule.filters.allTherapists}</option>
               <option value="salon">{schedule.scope.salon}</option>
+              <option value="room_rental">{schedule.scope.roomRental}</option>
               {therapists.map((therapist) => (
                 <option key={therapist.id} value={therapist.id}>
                   {therapist.displayName}
@@ -503,6 +631,7 @@ export function ScheduleBlocksManager({
                   >
                     <option value="therapist">{schedule.scope.therapist}</option>
                     <option value="salon">{schedule.scope.salon}</option>
+                    <option value="room_rental">{schedule.scope.roomRental}</option>
                   </Select>
                 </div>
               ) : null}
@@ -576,6 +705,102 @@ export function ScheduleBlocksManager({
               </div>
             ) : null}
 
+            {!form.id ? (
+              <div className="rounded-2xl border border-border/70 bg-background/45 p-4">
+                <label className="flex items-start gap-3 text-sm font-semibold text-primary">
+                  <input
+                    type="checkbox"
+                    checked={form.repeatEnabled}
+                    className="mt-1 size-4 rounded border-border accent-primary"
+                    onChange={(event) => updateField("repeatEnabled", event.target.checked)}
+                  />
+                  <span>
+                    <span className="block">{schedule.recurrence.repeatEvent}</span>
+                    <span className="mt-1 block text-xs font-normal leading-5 text-muted-foreground">
+                      {form.repeatEnabled ? schedule.recurrence.generatedOccurrences : schedule.recurrence.doesNotRepeat}
+                    </span>
+                  </span>
+                </label>
+
+                {form.repeatEnabled ? (
+                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <label htmlFor="schedule-recurrence-frequency" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                        {schedule.recurrence.frequency}
+                      </label>
+                      <Select
+                        id="schedule-recurrence-frequency"
+                        value={form.recurrenceFrequency}
+                        onChange={(event) => updateField("recurrenceFrequency", event.target.value as "weekly" | "monthly")}
+                      >
+                        <option value="weekly">{schedule.recurrence.weekly}</option>
+                        <option value="monthly">{schedule.recurrence.monthly}</option>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="schedule-recurrence-end-date" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                        {schedule.recurrence.endDate}
+                      </label>
+                      <BookingDatePicker
+                        id="schedule-recurrence-end-date"
+                        copy={dictionary.booking.calendar}
+                        errorId={errors.recurrenceEndDate ? "schedule-recurrence-end-date-error" : undefined}
+                        invalid={Boolean(errors.recurrenceEndDate)}
+                        isDateSelectable={(value) => value >= form.date}
+                        locale={locale}
+                        minDate={form.date}
+                        value={form.recurrenceEndDate}
+                        onChange={(value) => updateField("recurrenceEndDate", value)}
+                      />
+                      {errors.recurrenceEndDate ? (
+                        <p id="schedule-recurrence-end-date-error" className="text-sm text-accent">
+                          {errors.recurrenceEndDate}
+                        </p>
+                      ) : null}
+                    </div>
+
+                    {form.recurrenceFrequency === "weekly" ? (
+                      <div className="space-y-2 sm:col-span-2">
+                        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                          {schedule.recurrence.repeatOn}
+                        </p>
+                        <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
+                          {weekdayOptions.map((weekday) => {
+                            const selected = form.recurrenceWeekdays.includes(weekday.value);
+
+                            return (
+                              <button
+                                key={weekday.value}
+                                type="button"
+                                aria-pressed={selected}
+                                className={[
+                                  "focus-ring rounded-xl border px-2 py-2 text-sm font-semibold transition",
+                                  selected
+                                    ? "border-primary/35 bg-primary text-primary-foreground shadow-sm"
+                                    : "border-border/70 bg-card/60 text-muted-foreground hover:border-primary/25 hover:text-primary"
+                                ].join(" ")}
+                                onClick={() => toggleRecurrenceWeekday(weekday.value)}
+                              >
+                                {weekday.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {errors.recurrenceWeekdays ? (
+                          <p className="text-sm text-accent">{errors.recurrenceWeekdays}</p>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <p className="rounded-2xl border border-border/70 bg-card/55 px-4 py-3 text-sm leading-6 text-muted-foreground sm:col-span-2">
+                        {schedule.recurrence.monthlyHint}
+                      </p>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
             <div className="space-y-2">
               <label htmlFor="schedule-reason" className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                 {schedule.fields.reason}
@@ -619,25 +844,69 @@ export function ScheduleBlocksManager({
 
                 return (
                   <article key={block.id} className="rounded-2xl border border-border/70 bg-background/50 p-4">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div>
-                        <p className="text-sm font-semibold text-primary">
+                    <div className="space-y-4">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold leading-6 text-primary">
                           {block.blockType === "full_day" ? schedule.types.fullDay : schedule.types.timeRange}
                           {range ? ` · ${range}` : ""}
                         </p>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          {block.blockScope === "salon"
-                            ? schedule.scope.salon
-                            : therapistNames.get(block.therapistId ?? "") ?? schedule.placeholders.therapist}
+                        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                          {getBlockScopeLabel(block)}
+                          {block.seriesId ? ` · ${schedule.recurrence.recurring}` : ""}
                         </p>
                         {block.reason ? <p className="mt-3 text-sm leading-6 text-foreground">{block.reason}</p> : null}
                       </div>
-                      <div className="flex gap-2">
-                        <Button type="button" variant="outline" size="sm" onClick={() => editBlock(block)}>
+
+                      <div className="flex flex-col gap-2 border-t border-border/60 pt-3">
+                        {block.seriesId && role === "admin" ? (
+                          <div className="rounded-2xl border border-border/70 bg-card/60 p-1.5">
+                            <p className="px-3 pb-1 pt-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                              {schedule.recurrence.deleteAction}
+                            </p>
+                            <div className="grid grid-cols-2 gap-1">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                aria-label={schedule.recurrence.deleteOccurrence}
+                                title={schedule.recurrence.deleteOccurrence}
+                                className="min-w-0 whitespace-nowrap rounded-xl px-3 text-muted-foreground hover:bg-secondary/75 hover:text-primary"
+                                onClick={() => deleteBlock(block, "occurrence")}
+                              >
+                                {schedule.recurrence.deleteOccurrenceShort}
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                aria-label={schedule.recurrence.deleteSeries}
+                                title={schedule.recurrence.deleteSeries}
+                                className="min-w-0 whitespace-nowrap rounded-xl px-3 text-muted-foreground hover:bg-secondary/75 hover:text-primary"
+                                onClick={() => deleteBlock(block, "series")}
+                              >
+                                {schedule.recurrence.deleteSeriesShort}
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="w-full whitespace-nowrap text-muted-foreground hover:bg-secondary/75 hover:text-primary sm:w-auto"
+                            onClick={() => deleteBlock(block)}
+                          >
+                            {schedule.deleteBlock}
+                          </Button>
+                        )}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="w-full whitespace-nowrap"
+                          onClick={() => editBlock(block)}
+                        >
                           {schedule.editBlock}
-                        </Button>
-                        <Button type="button" variant="ghost" size="sm" onClick={() => deleteBlock(block)}>
-                          {schedule.deleteBlock}
                         </Button>
                       </div>
                     </div>

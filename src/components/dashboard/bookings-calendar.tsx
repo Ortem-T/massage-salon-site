@@ -571,7 +571,7 @@ export function BookingsCalendar({
         return true;
       }
 
-      return block.blockScope === "salon" || block.therapistId === therapistFilter;
+      return block.blockScope === "salon" || block.blockScope === "room_rental" || block.therapistId === therapistFilter;
     });
   }, [role, scheduleBlocks, therapistFilter]);
 
@@ -797,6 +797,10 @@ export function BookingsCalendar({
       return calendar.scheduleBlocks.salonWide;
     }
 
+    if (block.blockScope === "room_rental") {
+      return role === "admin" ? calendar.scheduleBlocks.roomRental : calendar.scheduleBlocks.roomOccupied;
+    }
+
     return therapistNames.get(block.therapistId ?? "") ?? calendar.filters.unassignedTherapist;
   }
 
@@ -810,10 +814,14 @@ export function BookingsCalendar({
 
   function getScheduleBlockCompactLabel(block: DashboardScheduleBlock) {
     if (block.blockType === "full_day") {
-      return calendar.scheduleBlocks.unavailableAllDay;
+      return block.blockScope === "room_rental"
+        ? calendar.scheduleBlocks.roomRental
+        : calendar.scheduleBlocks.unavailableAllDay;
     }
 
-    return `${getScheduleBlockTimeLabel(block)} · ${calendar.scheduleBlocks.unavailable}`;
+    return `${getScheduleBlockTimeLabel(block)} · ${
+      block.blockScope === "room_rental" ? getScheduleBlockTherapistLabel(block) : calendar.scheduleBlocks.unavailable
+    }`;
   }
 
   function getCompactEventLabel(event: DashboardCalendarEvent) {
@@ -877,7 +885,7 @@ export function BookingsCalendar({
         <span className="block space-y-3">
           <span className="block">
             <span className="block text-xs font-semibold uppercase tracking-[0.12em] text-accent">
-              {calendar.scheduleBlocks.unavailable}
+              {block.blockScope === "room_rental" ? getScheduleBlockTherapistLabel(block) : calendar.scheduleBlocks.unavailable}
             </span>
             <span className="mt-1 block text-sm font-semibold text-primary">{getScheduleBlockTimeLabel(block)}</span>
             <span className="mt-1 block text-xs text-muted-foreground">
@@ -891,13 +899,25 @@ export function BookingsCalendar({
                 {calendar.scheduleBlocks.salonWide}
               </span>
             ) : null}
+            {block.blockScope === "room_rental" ? (
+              <span className="block">
+                <span className="font-semibold text-primary">{calendar.scheduleBlocks.scope}: </span>
+                {getScheduleBlockTherapistLabel(block)}
+              </span>
+            ) : null}
+            {block.seriesId ? (
+              <span className="block">
+                <span className="font-semibold text-primary">{calendar.scheduleBlocks.recurrence}: </span>
+                {calendar.scheduleBlocks.recurring}
+              </span>
+            ) : null}
             {block.blockScope === "therapist" && role === "admin" ? (
               <span className="block">
                 <span className="font-semibold text-primary">{calendar.details.therapist}: </span>
                 {getScheduleBlockTherapistLabel(block)}
               </span>
             ) : null}
-            {(role === "admin" || block.blockScope === "therapist") && block.reason ? (
+            {role === "admin" && block.reason ? (
               <span className="block">
                 <span className="font-semibold text-primary">{calendar.scheduleBlocks.blockReason}: </span>
                 {block.reason}
@@ -2504,7 +2524,9 @@ export function BookingsCalendar({
                   {calendar.scheduleBlocks.scheduleBlock}
                 </p>
                 <h2 id="schedule-block-details-title" className="mt-2 font-serif text-3xl font-semibold leading-tight text-primary">
-                  {selectedScheduleBlock.blockType === "full_day"
+                  {selectedScheduleBlock.blockScope === "room_rental"
+                    ? getScheduleBlockTherapistLabel(selectedScheduleBlock)
+                    : selectedScheduleBlock.blockType === "full_day"
                     ? calendar.scheduleBlocks.unavailableAllDay
                     : calendar.scheduleBlocks.blockedTime}
                 </h2>
@@ -2532,6 +2554,9 @@ export function BookingsCalendar({
                 [calendar.scheduleBlocks.date, formatDate(selectedScheduleBlock.date, locale, { day: "numeric", month: "long", year: "numeric" })],
                 [calendar.create.fields.time, getScheduleBlockTimeLabel(selectedScheduleBlock)],
                 [calendar.scheduleBlocks.scope, getScheduleBlockTherapistLabel(selectedScheduleBlock)],
+                ...(selectedScheduleBlock.seriesId
+                  ? [[calendar.scheduleBlocks.recurrence, calendar.scheduleBlocks.recurring]]
+                  : []),
                 ...(selectedScheduleBlock.blockScope === "therapist"
                   ? [[calendar.details.therapist, getScheduleBlockTherapistLabel(selectedScheduleBlock)]]
                   : [])
@@ -2543,14 +2568,16 @@ export function BookingsCalendar({
               ))}
             </dl>
 
-            <div className="mt-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                {calendar.scheduleBlocks.blockReason}
-              </p>
-              <p className="mt-2 rounded-2xl border border-border/70 bg-background/50 p-3 text-sm leading-6 text-foreground">
-                {selectedScheduleBlock.reason || calendar.scheduleBlocks.noReason}
-              </p>
-            </div>
+            {role === "admin" || selectedScheduleBlock.blockScope === "therapist" ? (
+              <div className="mt-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                  {calendar.scheduleBlocks.blockReason}
+                </p>
+                <p className="mt-2 rounded-2xl border border-border/70 bg-background/50 p-3 text-sm leading-6 text-foreground">
+                  {selectedScheduleBlock.reason || calendar.scheduleBlocks.noReason}
+                </p>
+              </div>
+            ) : null}
 
             <div className="mt-6 flex flex-wrap gap-2 border-t border-border/70 pt-5">
               <Button

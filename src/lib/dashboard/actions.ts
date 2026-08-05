@@ -19,6 +19,7 @@ import {
 import {
   createScheduleBlock,
   deleteScheduleBlock,
+  type DeleteScheduleBlockMode,
   ScheduleBlockValidationError,
   type ScheduleBlockInput,
   updateScheduleBlock
@@ -52,7 +53,16 @@ import {
 
 export type DashboardActionResult = {
   ok: boolean;
-  reason?: "forbidden" | "error" | "invalid" | "invalid_time" | "overlap" | "blocked" | "service_restriction";
+  reason?:
+    | "forbidden"
+    | "error"
+    | "invalid"
+    | "invalid_time"
+    | "overlap"
+    | "blocked"
+    | "service_restriction"
+    | "no_occurrences"
+    | "capacity";
 };
 
 export type RebookingLinkActionResult =
@@ -212,11 +222,12 @@ export async function updateScheduleBlockAction(
 
 export async function deleteScheduleBlockAction(
   locale: Locale,
-  id: string
+  id: string,
+  mode?: DeleteScheduleBlockMode
 ): Promise<DashboardActionResult> {
   try {
     const user = await requireDashboardUser(locale);
-    await deleteScheduleBlock(user, id);
+    await deleteScheduleBlock(user, id, mode);
     revalidateDashboard(locale);
     return { ok: true };
   } catch (error) {

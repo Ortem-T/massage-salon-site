@@ -129,7 +129,8 @@ function toAvailabilityScheduleBlock(row: PublicScheduleBlockRow): AvailabilityS
     blockType: row.block_type,
     blockScope: row.block_scope,
     startTime: row.start_time,
-    endTime: row.end_time
+    endTime: row.end_time,
+    roomsOccupied: row.rooms_occupied
   };
 }
 
@@ -181,7 +182,7 @@ async function findNearestAvailableSlot(
       .lte("booking_date", endDate),
     supabase
       .from("public_schedule_block_availability")
-      .select("block_date, therapist_id, block_type, block_scope, start_time, end_time")
+      .select("block_date, therapist_id, block_type, block_scope, start_time, end_time, rooms_occupied")
       .gte("block_date", now.date)
       .lte("block_date", endDate)
   ]);
@@ -242,7 +243,7 @@ async function getAvailableSlotsForDate(
       .eq("booking_date", input.date),
     supabase
       .from("public_schedule_block_availability")
-      .select("block_date, therapist_id, block_type, block_scope, start_time, end_time")
+      .select("block_date, therapist_id, block_type, block_scope, start_time, end_time, rooms_occupied")
       .eq("block_date", input.date)
   ]);
 

@@ -42,6 +42,7 @@ type PublicScheduleBlockRow = {
   block_scope: AvailabilityScheduleBlock["blockScope"];
   start_time: string | null;
   end_time: string | null;
+  rooms_occupied: number | null;
 };
 
 function toAvailabilityBooking(row: PublicAvailabilityRow): AvailabilityBooking {
@@ -61,7 +62,8 @@ function toAvailabilityScheduleBlock(row: PublicScheduleBlockRow): AvailabilityS
     blockType: row.block_type,
     blockScope: row.block_scope,
     startTime: row.start_time,
-    endTime: row.end_time
+    endTime: row.end_time,
+    roomsOccupied: row.rooms_occupied
   };
 }
 
@@ -224,7 +226,7 @@ export async function handlePublicBookingPost(request: Request) {
 
   const { data: blockRows, error: blocksError } = await supabase
     .from("public_schedule_block_availability")
-    .select("block_date, therapist_id, block_type, block_scope, start_time, end_time")
+    .select("block_date, therapist_id, block_type, block_scope, start_time, end_time, rooms_occupied")
     .eq("block_date", payload.data.preferred_date);
 
   if (blocksError) {
