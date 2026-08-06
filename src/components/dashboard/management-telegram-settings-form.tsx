@@ -25,7 +25,10 @@ type TelegramSettingsCopy = {
   saving: string;
   sendTestSummary: string;
   sendingTest: string;
+  lastCronCall: string;
+  lastEndpointResponse: string;
   lastSuccessfulSend: string;
+  noCronCalls: string;
   neverSent: string;
   messages: {
     saved: string;
@@ -83,20 +86,28 @@ export function ManagementTelegramSettingsForm({
   const [isTesting, startTestingTransition] = useTransition();
   const isPending = isSaving || isTesting;
   const timeOptions = getDailyScheduleTimeOptions(sendTime);
-  const lastSend = (() => {
-    if (!initialSettings.lastSuccessfulSendAt) {
-      return copy.neverSent;
+  const formatDateTime = (value: string | null | undefined, fallback: string) => {
+    if (!value) {
+      return fallback;
     }
-
     try {
       return new Intl.DateTimeFormat(localeDateFormats[locale], {
         dateStyle: "medium",
         timeStyle: "short"
-      }).format(new Date(initialSettings.lastSuccessfulSendAt));
+      }).format(new Date(value));
     } catch {
-      return copy.neverSent;
+      return fallback;
     }
-  })();
+  };
+  const lastCronCall = formatDateTime(initialSettings.lastCronCallAt, copy.noCronCalls);
+  const lastSend = formatDateTime(initialSettings.lastSuccessfulSendAt, copy.neverSent);
+  const lastEndpointResponse = initialSettings.lastEndpointStatusCode
+    ? [
+        initialSettings.lastEndpointStatusCode,
+        initialSettings.lastEndpointResponseStatus,
+        initialSettings.lastEndpointResponseReason
+      ].filter(Boolean).join(" · ")
+    : copy.noCronCalls;
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -180,9 +191,19 @@ export function ManagementTelegramSettingsForm({
         </div>
         <p className="text-sm leading-6 text-muted-foreground">{copy.timezoneHelper}</p>
 
-        <div className="rounded-2xl border border-border/70 bg-card/70 p-4">
-          <p className="text-sm text-muted-foreground">{copy.lastSuccessfulSend}</p>
-          <p className="mt-1 text-sm font-semibold text-primary">{lastSend}</p>
+        <div className="grid gap-3 md:grid-cols-3">
+          <div className="rounded-2xl border border-border/70 bg-card/70 p-4">
+            <p className="text-sm text-muted-foreground">{copy.lastCronCall}</p>
+            <p className="mt-1 text-sm font-semibold text-primary">{lastCronCall}</p>
+          </div>
+          <div className="rounded-2xl border border-border/70 bg-card/70 p-4">
+            <p className="text-sm text-muted-foreground">{copy.lastEndpointResponse}</p>
+            <p className="mt-1 text-sm font-semibold text-primary">{lastEndpointResponse}</p>
+          </div>
+          <div className="rounded-2xl border border-border/70 bg-card/70 p-4">
+            <p className="text-sm text-muted-foreground">{copy.lastSuccessfulSend}</p>
+            <p className="mt-1 text-sm font-semibold text-primary">{lastSend}</p>
+          </div>
         </div>
 
         {message ? (

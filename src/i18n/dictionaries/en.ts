@@ -394,7 +394,7 @@ const en = {
     management: {
       eyebrow: "Management",
       title: "Salon control center",
-      subtitle: "Global settings and administrative tools without duplicating the booking calendar.",
+      subtitle: "Global settings and administrative tools.",
       telegram: {
         title: "Telegram notifications",
         subtitle: "Configure the automatic daily team summary. The message includes schedule operations only, without client personal data.",
@@ -408,7 +408,10 @@ const en = {
         saving: "Saving...",
         sendTestSummary: "Send test summary",
         sendingTest: "Sending...",
+        lastCronCall: "Last cron call",
+        lastEndpointResponse: "Last endpoint response",
         lastSuccessfulSend: "Last successful send",
+        noCronCalls: "Cron has not called the endpoint yet",
         neverSent: "Never sent",
         messages: {
           saved: "Telegram settings saved.",

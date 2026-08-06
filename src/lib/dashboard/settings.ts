@@ -32,6 +32,11 @@ export type DashboardTelegramSettings = {
   dailyScheduleEnabled: boolean;
   dailyScheduleTime: string;
   dailyScheduleTimezone: typeof TELEGRAM_DAILY_SCHEDULE_TIMEZONE;
+  lastCronCallAt: string | null;
+  lastEndpointCompletedAt: string | null;
+  lastEndpointResponseReason: string | null;
+  lastEndpointResponseStatus: string | null;
+  lastEndpointStatusCode: number | null;
   lastSuccessfulSendAt: string | null;
   error: boolean;
 };
@@ -90,7 +95,11 @@ export async function getDashboardTelegramSettings(user: DashboardUser): Promise
   }
 
   const supabase = await createSupabaseServerClient();
-  const [{ data: settings, error: settingsError }, { data: lastSend, error: lastSendError }] = await Promise.all([
+  const [
+    { data: settings, error: settingsError },
+    { data: lastSend, error: lastSendError },
+    { data: lastCronCall }
+  ] = await Promise.all([
     supabase
       .from("app_settings")
       .select("key, value")
@@ -106,6 +115,13 @@ export async function getDashboardTelegramSettings(user: DashboardUser): Promise
       .eq("status", "sent")
       .order("sent_at", { ascending: false, nullsFirst: false })
       .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("notification_cron_event_log")
+      .select("received_at, completed_at, status, response_status, response_reason")
+      .eq("event_type", TELEGRAM_DAILY_SCHEDULE_TYPE)
+      .order("received_at", { ascending: false, nullsFirst: false })
+      .limit(1)
       .maybeSingle()
   ]);
   const values = new Map((settings ?? []).map((setting) => [setting.key, setting.value]));
@@ -114,6 +130,11 @@ export async function getDashboardTelegramSettings(user: DashboardUser): Promise
     dailyScheduleEnabled: normalizeTelegramDailyScheduleEnabled(values.get(TELEGRAM_DAILY_SCHEDULE_ENABLED_KEY)),
     dailyScheduleTime: normalizeTelegramDailyScheduleTime(values.get(TELEGRAM_DAILY_SCHEDULE_TIME_KEY)),
     dailyScheduleTimezone: TELEGRAM_DAILY_SCHEDULE_TIMEZONE,
+    lastCronCallAt: lastCronCall?.received_at ?? null,
+    lastEndpointCompletedAt: lastCronCall?.completed_at ?? null,
+    lastEndpointResponseReason: lastCronCall?.response_reason ?? null,
+    lastEndpointResponseStatus: lastCronCall?.status ?? null,
+    lastEndpointStatusCode: lastCronCall?.response_status ?? null,
     lastSuccessfulSendAt: lastSend?.sent_at ?? null,
     error: Boolean(settingsError || lastSendError)
   };

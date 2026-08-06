@@ -395,7 +395,7 @@ const sr = {
     management: {
       eyebrow: "Upravljanje",
       title: "Kontrolni centar salona",
-      subtitle: "Globalna podešavanja i administrativni alati bez dupliranja kalendara termina.",
+      subtitle: "Globalna podešavanja i administrativni alati.",
       telegram: {
         title: "Telegram obaveštenja",
         subtitle: "Podesite automatski dnevni pregled za tim. Poruka sadrži samo raspored, bez ličnih podataka klijenata.",
@@ -409,7 +409,10 @@ const sr = {
         saving: "Čuvamo...",
         sendTestSummary: "Pošalji test raspored",
         sendingTest: "Šaljemo...",
+        lastCronCall: "Poslednji cron poziv",
+        lastEndpointResponse: "Poslednji odgovor endpoint-a",
         lastSuccessfulSend: "Poslednje uspešno slanje",
+        noCronCalls: "Cron još nije pozvao endpoint",
         neverSent: "Još nije poslato",
         messages: {
           saved: "Telegram podešavanja su sačuvana.",
