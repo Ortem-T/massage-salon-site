@@ -25,6 +25,7 @@ type DailyScheduleBookingRow = {
   id: string;
   service: string;
   specialist: string;
+  client_name: string;
   preferred_date: string;
   preferred_time: string;
   status: BookingStatus;
@@ -306,7 +307,7 @@ async function loadDailyScheduleData(localDate: string) {
   const [{ data: bookings }, { data: blocks }] = await Promise.all([
     supabase
       .from("bookings")
-      .select("id, service, specialist, preferred_date, preferred_time, status, duration_minutes, therapist_id")
+      .select("id, service, specialist, client_name, preferred_date, preferred_time, status, duration_minutes, therapist_id")
       .eq("preferred_date", localDate)
       .in("status", includedBookingStatuses),
     supabase
@@ -365,7 +366,7 @@ export async function buildTelegramDailyScheduleMessage(localDate: string) {
       typeOrder: 1,
       startMinutes: toMinutes(startTime, 0),
       endMinutes: toMinutes(endTime, 0),
-      text: `${startTime}–${endTime}\n✍️ ${escapeHtml(therapistName || "Специалист")} · ${escapeHtml(serviceName)}`
+      text: `${startTime}–${endTime}\n✍️ ${escapeHtml(therapistName || "Специалист")} · ${escapeHtml(serviceName)}\n👤 ${escapeHtml(booking.client_name)}`
     });
   });
 

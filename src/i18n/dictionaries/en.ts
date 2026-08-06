@@ -394,7 +394,7 @@ const en = {
     management: {
       eyebrow: "Management",
       title: "Salon control center",
-      subtitle: "Global settings and administrative tools without duplicating the booking calendar.",
+      subtitle: "Global settings and administrative tools.",
       telegram: {
         title: "Telegram notifications",
         subtitle: "Configure the automatic daily team summary. The message includes schedule operations only, without client personal data.",

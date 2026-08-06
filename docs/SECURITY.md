@@ -128,7 +128,7 @@ Scheduling is handled by Supabase Cron, not Vercel Cron. The database job `raine
 
 Changing the send time in Management still does not require a deployment restart. When the server-side Supabase secret is configured, the dashboard save action calls a service-role wrapper that re-plans the next send job immediately.
 
-The daily schedule message intentionally excludes client identity and sensitive details. It includes only pending/confirmed bookings, therapist name, Russian service name, appointment interval, room-rental blocks, therapist-specific blocks, and salon-wide blocks. It excludes cancelled/completed bookings, client names, phones, language, comments, internal notes, booking source, prices, and raw Telegram links.
+The daily schedule message includes only operational context for the team: pending/confirmed bookings, client name, therapist name, Russian service name, appointment interval, room-rental blocks, therapist-specific blocks, and salon-wide blocks. It excludes cancelled/completed bookings, phones, language, comments, internal notes, booking source, prices, and raw Telegram links.
 
 `public.notification_delivery_log` stores non-sensitive delivery status for idempotency and audit context. Scheduled summaries use `notification_type = 'telegram_daily_schedule'` and a uniqueness rule for `(notification_type, local_date, destination_key)`; test summaries use `telegram_daily_schedule_test` and do not consume scheduled idempotency. `destination_key` is a non-sensitive reference derived from a hashed Telegram chat id, not the raw chat id.
 

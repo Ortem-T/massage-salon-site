@@ -36,7 +36,7 @@ Service catalog corrections are now captured in an idempotent follow-up migratio
 
 The duplicated admin Overview page has been replaced by an admin-only Management page at `/[locale]/dashboard`. Bookings remains the primary calendar-first operational page, while Management now holds global controls: Telegram daily schedule settings, current room-capacity summary, schedule-block status summary, and a quiet placeholder for future admin controls. Therapists are redirected from `/dashboard` to `/dashboard/bookings` and do not see the Management nav item.
 
-Telegram daily schedule summaries are now configurable from Management and delivered through a Supabase Cron-driven endpoint. Settings live in `public.app_settings` as safe values only: `telegram_daily_schedule_enabled`, `telegram_daily_schedule_time`, and fixed `telegram_daily_schedule_timezone = Europe/Belgrade`. `POST /api/cron/telegram-daily-schedule` accepts the Supabase Cron callback body, sends only during the configured Europe/Belgrade time window, defaults to 09:30, and uses `public.notification_delivery_log` for idempotency so a successful daily summary is not duplicated. Test summaries use `telegram_daily_schedule_test` and do not consume the scheduled delivery slot.
+Telegram daily schedule summaries are now configurable from Management and delivered through a Supabase Cron-driven endpoint. Settings live in `public.app_settings` as safe values only: `telegram_daily_schedule_enabled`, `telegram_daily_schedule_time`, and fixed `telegram_daily_schedule_timezone = Europe/Belgrade`. `POST /api/cron/telegram-daily-schedule` accepts the Supabase Cron callback body, sends only during the configured Europe/Belgrade time window, defaults to 09:30, and uses `public.notification_delivery_log` for idempotency so a successful daily summary is not duplicated. Booking entries include the client name for team coordination. Test summaries use `telegram_daily_schedule_test` and do not consume the scheduled delivery slot.
 
 The Telegram daily schedule scheduler was moved away from Vercel Cron to avoid paid Vercel cron usage. `vercel.json` was removed. Supabase now owns scheduling through a daily planner job `raine-telegram-daily-schedule-plan`, which schedules `raine-telegram-daily-schedule-send` for the configured Europe/Belgrade time. The callback URL is read from Supabase Vault secret `raine_site_url`.
 
@@ -110,6 +110,7 @@ Scheduled Telegram delivery reliability was hardened after the first 09:30 produ
 - Replaced the temporary 5-minute Supabase Cron callback with a once-daily planner job plus a dedicated send job at the configured time. Saving Telegram settings re-plans the send job immediately when the server-side Supabase secret is available.
 - Hardened the Supabase Cron Telegram daily-summary callback with a longer `pg_net` timeout, request-id logging, a wider scheduled send window, and immediate replanning when the migration is applied.
 - Simplified Telegram daily-summary endpoint protection by removing the Vercel/Supabase shared bearer secret, keeping Supabase Cron, relying on POST-only schedule-gated idempotent delivery, and adding admin-visible cron endpoint telemetry.
+- Added client names to booking rows in the Telegram daily schedule summary while keeping phones, comments, internal notes, source data, and prices excluded.
 - Temporarily hid the homepage testimonials section behind a feature flag and removed placeholder review items from public dictionaries until real client reviews are available.
 - Updated the homepage About salon copy and stats in Serbian, Russian, and English to use clearer salon positioning and real specialist/procedure counts.
 - Updated two homepage benefits card texts in Serbian, Russian, and English to mention cozy atmosphere, music, coffee, natural oils, and gentle aromas.
@@ -283,7 +284,7 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Confirm admin can enable/disable Telegram daily schedule and save the send time.
 - Confirm Management shows `Europe/Belgrade` as fixed timezone.
 - Confirm admin can send a test daily schedule summary and gets a localized success/error state.
-- Confirm the daily schedule summary excludes client names, phone numbers, comments, internal notes, booking source, and prices.
+- Confirm the daily schedule summary includes client names for booking rows and excludes phone numbers, comments, internal notes, booking source, and prices.
 - Confirm daily schedule summary includes only pending/confirmed bookings plus schedule blocks and room-rental blocks.
 - Confirm scheduled daily summary idempotency prevents duplicate successful sends for the same local date and destination.
 - Confirm `GET /api/cron/telegram-daily-schedule` returns `405`, invalid POST bodies return `400`, and valid Supabase Cron POSTs send only inside the configured schedule window with one successful scheduled send per day.

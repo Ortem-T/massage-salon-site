@@ -395,7 +395,7 @@ const sr = {
     management: {
       eyebrow: "Upravljanje",
       title: "Kontrolni centar salona",
-      subtitle: "Globalna podešavanja i administrativni alati bez dupliranja kalendara termina.",
+      subtitle: "Globalna podešavanja i administrativni alati.",
       telegram: {
         title: "Telegram obaveštenja",
         subtitle: "Podesite automatski dnevni pregled za tim. Poruka sadrži samo raspored, bez ličnih podataka klijenata.",
