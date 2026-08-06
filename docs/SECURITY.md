@@ -118,21 +118,21 @@ Secrets stay server-side:
 
 - `TELEGRAM_BOT_TOKEN`
 - `TELEGRAM_CHAT_ID`
-- `CRON_SECRET`
 - `SUPABASE_SECRET_KEY`
 
-The cron endpoint `GET/POST /api/cron/telegram-daily-schedule` requires `Authorization: Bearer ${CRON_SECRET}`. It reads current settings at execution time, calculates the current salon local date/time in `Europe/Belgrade`, and sends only inside the configured time window.
+The cron endpoint `POST /api/cron/telegram-daily-schedule` is intentionally simple: it accepts only the Supabase Cron callback body with `source = "supabase_cron"`, reads current settings at execution time, calculates the current salon local date/time in `Europe/Belgrade`, and sends only inside the configured time window. `GET` requests return `405` and invalid callback bodies return `400`.
 
 Scheduling is handled by Supabase Cron, not Vercel Cron. The database job `raine-telegram-daily-schedule-plan` runs once per day at `00:00 UTC` and plans a dedicated `raine-telegram-daily-schedule-send` job for the admin-configured send time in `Europe/Belgrade`. The send job calls the Next.js endpoint through `pg_net`. Callback configuration is stored in Supabase Vault:
 
 - `raine_site_url`: production site URL, for example `https://raine.rs`
-- `raine_cron_secret`: the same value as the server-side `CRON_SECRET`
 
 Changing the send time in Management still does not require a deployment restart. When the server-side Supabase secret is configured, the dashboard save action calls a service-role wrapper that re-plans the next send job immediately.
 
 The daily schedule message intentionally excludes client identity and sensitive details. It includes only pending/confirmed bookings, therapist name, Russian service name, appointment interval, room-rental blocks, therapist-specific blocks, and salon-wide blocks. It excludes cancelled/completed bookings, client names, phones, language, comments, internal notes, booking source, prices, and raw Telegram links.
 
 `public.notification_delivery_log` stores non-sensitive delivery status for idempotency and audit context. Scheduled summaries use `notification_type = 'telegram_daily_schedule'` and a uniqueness rule for `(notification_type, local_date, destination_key)`; test summaries use `telegram_daily_schedule_test` and do not consume scheduled idempotency. `destination_key` is a non-sensitive reference derived from a hashed Telegram chat id, not the raw chat id.
+
+`public.notification_cron_event_log` stores non-sensitive cron endpoint telemetry for admin visibility: source, local date, endpoint status, HTTP-style response code, safe reason code, received time, and completed time. It stores no tokens, Telegram chat IDs, client data, or message bodies.
 
 Telegram send failures are logged as safe status/error codes and must not block booking operations, schedule blocks, dashboard loading, public booking, or CRM flows.
 

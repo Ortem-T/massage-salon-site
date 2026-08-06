@@ -409,7 +409,10 @@ const sr = {
         saving: "Čuvamo...",
         sendTestSummary: "Pošalji test raspored",
         sendingTest: "Šaljemo...",
+        lastCronCall: "Poslednji cron poziv",
+        lastEndpointResponse: "Poslednji odgovor endpoint-a",
         lastSuccessfulSend: "Poslednje uspešno slanje",
+        noCronCalls: "Cron još nije pozvao endpoint",
         neverSent: "Još nije poslato",
         messages: {
           saved: "Telegram podešavanja su sačuvana.",

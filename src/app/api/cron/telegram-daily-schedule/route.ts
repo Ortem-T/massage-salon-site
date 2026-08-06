@@ -1,23 +1,47 @@
 import { NextResponse } from "next/server";
 
-import { sendTelegramDailySchedule } from "@/server/telegram/dailySchedule";
+import {
+  recordTelegramDailyScheduleCronEvent,
+  sendTelegramDailySchedule
+} from "@/server/telegram/dailySchedule";
 
 export const dynamic = "force-dynamic";
 
-function isAuthorized(request: Request) {
-  const cronSecret = process.env.CRON_SECRET?.trim();
-  const authorization = request.headers.get("authorization")?.trim();
+type CronRequestBody = {
+  source?: unknown;
+};
 
-  return Boolean(cronSecret && authorization === `Bearer ${cronSecret}`);
+async function readCronSource(request: Request) {
+  try {
+    const body = (await request.json()) as CronRequestBody;
+
+    return typeof body.source === "string" ? body.source : "";
+  } catch {
+    return "";
+  }
 }
 
-export async function GET(request: Request) {
-  if (!isAuthorized(request)) {
-    return NextResponse.json({ ok: false, status: "unauthorized" }, { status: 401 });
+export async function GET() {
+  return NextResponse.json({ ok: false, status: "method_not_allowed" }, { status: 405 });
+}
+
+export async function POST(request: Request) {
+  const receivedAt = new Date().toISOString();
+  const source = await readCronSource(request);
+
+  if (source !== "supabase_cron") {
+    return NextResponse.json({ ok: false, status: "bad_cron_source" }, { status: 400 });
   }
 
   const result = await sendTelegramDailySchedule({ mode: "scheduled" });
   const responseStatus = result.ok ? 200 : 502;
+
+  await recordTelegramDailyScheduleCronEvent({
+    source,
+    result,
+    responseStatus,
+    receivedAt
+  });
 
   return NextResponse.json(
     {
@@ -28,8 +52,4 @@ export async function GET(request: Request) {
     },
     { status: responseStatus }
   );
-}
-
-export async function POST(request: Request) {
-  return GET(request);
 }

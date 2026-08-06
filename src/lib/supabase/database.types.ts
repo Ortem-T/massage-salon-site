@@ -180,6 +180,34 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["notification_delivery_log"]["Insert"]>;
         Relationships: [];
       };
+      notification_cron_event_log: {
+        Row: {
+          id: string;
+          event_type: "telegram_daily_schedule";
+          source: string;
+          local_date: string | null;
+          status: "received" | "sent" | "failed" | "skipped";
+          response_status: number;
+          response_reason: string | null;
+          received_at: string;
+          completed_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_type: "telegram_daily_schedule";
+          source?: string;
+          local_date?: string | null;
+          status: "received" | "sent" | "failed" | "skipped";
+          response_status: number;
+          response_reason?: string | null;
+          received_at?: string;
+          completed_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["notification_cron_event_log"]["Insert"]>;
+        Relationships: [];
+      };
       profiles: {
         Row: {
           id: string;

@@ -408,7 +408,10 @@ const ru = {
         saving: "Сохраняем...",
         sendTestSummary: "Отправить тестовую сводку",
         sendingTest: "Отправляем...",
+        lastCronCall: "Последний cron-вызов",
+        lastEndpointResponse: "Последний ответ endpoint",
         lastSuccessfulSend: "Последняя успешная отправка",
+        noCronCalls: "Cron еще не вызывал endpoint",
         neverSent: "Еще не отправлялось",
         messages: {
           saved: "Настройки Telegram сохранены.",

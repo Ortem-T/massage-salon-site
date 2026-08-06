@@ -99,7 +99,7 @@ Rules:
 - Russian-only Telegram team notifications for public bookings, dashboard manual bookings, dashboard status changes, and dashboard therapist assignment changes.
 - Admin-only Management page at `/[locale]/dashboard` for global salon controls.
 - Configurable Telegram daily schedule summary settings: enabled flag, send time, fixed `Europe/Belgrade` timezone, and admin test-summary action.
-- Supabase Cron daily planner for the Telegram daily schedule summary with Vault-stored callback secrets, `CRON_SECRET` bearer protection, and delivery-log idempotency.
+- Supabase Cron daily planner for the Telegram daily schedule summary with Vault-stored site URL, POST-only schedule-gated endpoint delivery, visible endpoint telemetry, and delivery-log idempotency.
 
 ## Booking System Plan
 
@@ -235,7 +235,7 @@ Later:
 - no backend before booking MVP is finished
 - do not expose Telegram bot tokens to the frontend
 - do not store raw Telegram bot tokens or raw chat IDs in editable public settings
-- protect cron endpoints with `CRON_SECRET`
+- keep cron endpoints simple, POST-only, schedule-gated, idempotent, and free of client data
 
 ## Git Workflow
 

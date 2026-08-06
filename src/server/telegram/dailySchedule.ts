@@ -79,6 +79,8 @@ export type DailyScheduleSendResult = {
   message?: string;
 };
 
+type CronEventStatus = Extract<DeliveryStatus, "sent" | "failed" | "skipped">;
+
 const includedBookingStatuses = ["pending", "confirmed"] satisfies BookingStatus[];
 const sendWindowMinutes = 60;
 
@@ -268,6 +270,35 @@ async function updateDeliveryLog(input: {
   }
 
   await supabase.from("notification_delivery_log").insert(payload);
+}
+
+function normalizeCronSource(value: string | null | undefined) {
+  const normalized = value?.trim().replaceAll(/[^\w:-]/g, "_").slice(0, 80);
+
+  return normalized || "unknown";
+}
+
+export async function recordTelegramDailyScheduleCronEvent(input: {
+  source: string | null | undefined;
+  result: DailyScheduleSendResult;
+  responseStatus: number;
+  receivedAt: string;
+}) {
+  try {
+    const supabase = createSupabaseAdminClient();
+    await supabase.from("notification_cron_event_log").insert({
+      event_type: TELEGRAM_DAILY_SCHEDULE_TYPE,
+      source: normalizeCronSource(input.source),
+      local_date: input.result.localDate,
+      status: input.result.status as CronEventStatus,
+      response_status: input.responseStatus,
+      response_reason: input.result.reason ?? null,
+      received_at: input.receivedAt,
+      completed_at: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("[telegram daily schedule] cron event log unavailable", error instanceof Error ? error.name : "unknown");
+  }
 }
 
 async function loadDailyScheduleData(localDate: string) {

@@ -408,7 +408,10 @@ const en = {
         saving: "Saving...",
         sendTestSummary: "Send test summary",
         sendingTest: "Sending...",
+        lastCronCall: "Last cron call",
+        lastEndpointResponse: "Last endpoint response",
         lastSuccessfulSend: "Last successful send",
+        noCronCalls: "Cron has not called the endpoint yet",
         neverSent: "Never sent",
         messages: {
           saved: "Telegram settings saved.",
