@@ -40,6 +40,8 @@ Telegram daily schedule summaries are now configurable from Management and deliv
 
 The Telegram daily schedule scheduler was moved away from Vercel Cron to avoid paid Vercel cron usage. `vercel.json` was removed. Supabase now owns scheduling through a daily planner job `raine-telegram-daily-schedule-plan`, which schedules `raine-telegram-daily-schedule-send` for the configured Europe/Belgrade time. The callback URL and bearer secret are read from Supabase Vault secrets `raine_site_url` and `raine_cron_secret`.
 
+Scheduled Telegram delivery reliability was hardened after the first 09:30 production run did not register a successful scheduled send while manual test sends worked. The scheduled endpoint window is now more tolerant of cron/HTTP delay, and the Supabase `pg_net` callback uses a longer timeout plus request-id logging. If scheduled delivery still does not appear, check hosted Supabase `cron.job`, `cron.job_run_details`, `net._http_response`, and Vault secrets before changing Telegram sender logic.
+
 ## Completed Tasks
 
 - Created Next.js 15 project structure with App Router.
@@ -106,6 +108,7 @@ The Telegram daily schedule scheduler was moved away from Vercel Cron to avoid p
 - Added the Telegram daily schedule formatter/sender, a guarded cron API route, safe app settings, and a non-sensitive delivery log migration for idempotency.
 - Switched Telegram daily schedule automation from Vercel Cron to Supabase Cron with `pg_net` and Vault-backed callback secrets.
 - Replaced the temporary 5-minute Supabase Cron callback with a once-daily planner job plus a dedicated send job at the configured time. Saving Telegram settings re-plans the send job immediately when the server-side Supabase secret is available.
+- Hardened the Supabase Cron Telegram daily-summary callback with a longer `pg_net` timeout, request-id logging, a wider scheduled send window, and immediate replanning when the migration is applied.
 - Temporarily hid the homepage testimonials section behind a feature flag and removed placeholder review items from public dictionaries until real client reviews are available.
 - Updated the homepage About salon copy and stats in Serbian, Russian, and English to use clearer salon positioning and real specialist/procedure counts.
 - Updated two homepage benefits card texts in Serbian, Russian, and English to mention cozy atmosphere, music, coffee, natural oils, and gentle aromas.
@@ -200,6 +203,7 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Apply `20260805173000_telegram_daily_schedule_settings.sql` after `app_settings` exists to add Telegram daily-summary settings, tighten settings RLS, and create `notification_delivery_log`.
 - Apply `20260805181500_supabase_cron_telegram_daily_schedule.sql` after creating Vault secrets `raine_site_url` and `raine_cron_secret`; the next migration replaces its temporary 5-minute callback.
 - Apply `20260805190000_supabase_cron_daily_telegram_planner.sql` to replace the temporary 5-minute cron callback with the daily planner/send-job model.
+- Apply `20260806115742_harden_telegram_daily_schedule_cron_callback.sql` to harden the Supabase Cron callback timeout/logging and replan the next daily schedule send.
 - Test admin status changes, therapist assignment, therapist status changes, and internal notes updates against hosted Supabase RLS.
 - Test manual booking creation for admin assigned, admin unassigned, therapist own, and therapist direct-request attempts against hosted Supabase RLS.
 
