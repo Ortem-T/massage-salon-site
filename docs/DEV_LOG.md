@@ -1,6 +1,6 @@
 # Development Log
 
-Last updated: 2026-08-05
+Last updated: 2026-08-11
 
 This log is shared context for human and AI-assisted development. Update it after every major development stage so future Codex, `web-coder`, and `grill-me` sessions can continue without rediscovering project history.
 
@@ -41,6 +41,8 @@ Telegram daily schedule summaries are now configurable from Management and deliv
 The Telegram daily schedule scheduler was moved away from Vercel Cron to avoid paid Vercel cron usage. `vercel.json` was removed. Supabase now owns scheduling through a daily planner job `raine-telegram-daily-schedule-plan`, which schedules `raine-telegram-daily-schedule-send` for the configured Europe/Belgrade time. The callback URL is read from Supabase Vault secret `raine_site_url`.
 
 Scheduled Telegram delivery reliability was hardened after the first 09:30 production run did not register a successful scheduled send while manual test sends worked. The shared `CRON_SECRET`/Vault bearer-token layer produced `401` responses, so daily-summary endpoint protection was simplified to POST-only cron callbacks, schedule-window checks, and delivery idempotency. Admin Management now shows the last cron call, last endpoint response, and last successful Telegram send from safe database logs.
+
+Stage 1 of the SrediMe calendar integration is implemented as one-way Raine -> SrediMe synchronization. Admins can generate, copy, regenerate, and revoke one private ICS/iCal URL per therapist from `/[locale]/dashboard/therapists`. The raw URL token is shown only when generated; the database stores only a SHA-256 token hash in `public.therapist_calendar_tokens`. `GET /api/calendar/sredime/<opaque-token>.ics` resolves the token server-side and returns sanitized `Busy` events only. Busy intervals are computed from the shared availability primitives rather than raw therapist bookings, so pending/confirmed bookings, therapist blocks, salon blocks, room-rental capacity, the 30-minute buffer, and current `available_rooms` are reflected on the next SrediMe fetch.
 
 ## Completed Tasks
 
@@ -111,6 +113,7 @@ Scheduled Telegram delivery reliability was hardened after the first 09:30 produ
 - Hardened the Supabase Cron Telegram daily-summary callback with a longer `pg_net` timeout, request-id logging, a wider scheduled send window, and immediate replanning when the migration is applied.
 - Simplified Telegram daily-summary endpoint protection by removing the Vercel/Supabase shared bearer secret, keeping Supabase Cron, relying on POST-only schedule-gated idempotent delivery, and adding admin-visible cron endpoint telemetry.
 - Added client names to booking rows in the Telegram daily schedule summary while keeping phones, comments, internal notes, source data, and prices excluded.
+- Added Stage 1 SrediMe calendar integration with hash-only therapist ICS tokens, admin-only link management, sanitized dynamic busy-feed endpoint, room-capacity-aware busy intervals, and internal integration documentation.
 - Temporarily hid the homepage testimonials section behind a feature flag and removed placeholder review items from public dictionaries until real client reviews are available.
 - Updated the homepage About salon copy and stats in Serbian, Russian, and English to use clearer salon positioning and real specialist/procedure counts.
 - Updated two homepage benefits card texts in Serbian, Russian, and English to mention cozy atmosphere, music, coffee, natural oils, and gentle aromas.
@@ -179,6 +182,9 @@ The current focus is production launch polish after the Vercel deployment plus c
 - Add therapist-specific working hours later if needed; MVP public availability uses the centralized default 10:00-19:00 booking start window, all 7 days.
 - Add manual QA checklist for launch.
 - Verify Telegram booking notifications and daily schedule summaries in the team chat after deployment env vars are configured.
+- Apply `20260811120000_sredime_therapist_calendar_tokens.sql` before generating SrediMe ICS links in production.
+- Connect each therapist in SrediMe by copying their Raine ICS URL into `URL eksternog kalendara za uvoz (ICS/iCal)`.
+- Test SrediMe one-way import against `available_rooms = 1` and `available_rooms = 2` before relying on it operationally.
 - Verify `https://raine.rs/sitemap.xml` and `https://raine.rs/robots.txt` after the next deployment.
 - Add `https://raine.rs` to Google Search Console and submit the sitemap.
 - Create or claim the Google Business Profile for Raine.

@@ -53,6 +53,16 @@ type IsSlotAvailableInput = CalculateAvailableTimeSlotsInput & {
   preferredTime: string;
 };
 
+type CalculateTherapistBusyIntervalsInput = {
+  therapistId: string;
+  date: string;
+  bookingWindow?: BookingStartWindow;
+  breakMinutes?: number;
+  availableRooms?: number;
+  bookings?: AvailabilityBooking[];
+  scheduleBlocks?: AvailabilityScheduleBlock[];
+};
+
 export function toDateValue(date: Date) {
   const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
   return localDate.toISOString().split("T")[0];
@@ -279,6 +289,102 @@ export function getAllBookingsByDate(date: string, bookings: AvailabilityBooking
 
 function intervalsOverlap(first: BlockedInterval, second: BlockedInterval) {
   return first.startMinutes < second.endMinutes && second.startMinutes < first.endMinutes;
+}
+
+export function mergeBlockedIntervals(intervals: BlockedInterval[]) {
+  const sortedIntervals = intervals
+    .filter((interval) => interval.startMinutes < interval.endMinutes)
+    .sort((a, b) => a.startMinutes - b.startMinutes || a.endMinutes - b.endMinutes);
+  const merged: BlockedInterval[] = [];
+
+  sortedIntervals.forEach((interval) => {
+    const previous = merged.at(-1);
+
+    if (!previous || interval.startMinutes > previous.endMinutes) {
+      merged.push({ ...interval });
+      return;
+    }
+
+    previous.endMinutes = Math.max(previous.endMinutes, interval.endMinutes);
+  });
+
+  return merged;
+}
+
+export function calculateRoomCapacityBlockedIntervals(
+  bookings: AvailabilityBooking[],
+  roomRentalIntervals: RoomRentalInterval[],
+  availableRooms: number = defaultBookingAvailability.availableRooms,
+  options: { breakMinutes?: number } = {}
+) {
+  const parsedRoomCount = Math.floor(availableRooms);
+  const roomCount = Number.isFinite(parsedRoomCount)
+    ? Math.max(1, parsedRoomCount)
+    : defaultBookingAvailability.availableRooms;
+  const weightedIntervals = [
+    ...calculateBlockedIntervals(bookings, options).map((interval) => ({ ...interval, roomsOccupied: 1 })),
+    ...roomRentalIntervals
+  ];
+  const deltas = new Map<number, number>();
+
+  weightedIntervals.forEach((interval) => {
+    if (interval.startMinutes >= interval.endMinutes || interval.roomsOccupied <= 0) {
+      return;
+    }
+
+    deltas.set(interval.startMinutes, (deltas.get(interval.startMinutes) ?? 0) + interval.roomsOccupied);
+    deltas.set(interval.endMinutes, (deltas.get(interval.endMinutes) ?? 0) - interval.roomsOccupied);
+  });
+
+  const points = [...deltas.keys()].sort((a, b) => a - b);
+  const intervals: BlockedInterval[] = [];
+  let usage = 0;
+  let previousPoint: number | null = null;
+
+  points.forEach((point) => {
+    if (previousPoint !== null && previousPoint < point && usage >= roomCount) {
+      intervals.push({
+        startMinutes: previousPoint,
+        endMinutes: point
+      });
+    }
+
+    usage += deltas.get(point) ?? 0;
+    previousPoint = point;
+  });
+
+  return mergeBlockedIntervals(intervals);
+}
+
+export function calculateTherapistBusyIntervals({
+  therapistId,
+  date,
+  bookingWindow = getDefaultBookingStartWindow(),
+  breakMinutes = defaultBookingAvailability.breakMinutes,
+  availableRooms = defaultBookingAvailability.availableRooms,
+  bookings = [],
+  scheduleBlocks = []
+}: CalculateTherapistBusyIntervalsInput) {
+  if (!therapistId || !date || !isWorkingDay(date)) {
+    return [];
+  }
+
+  const allBookingsForDate = getAllBookingsByDate(date, bookings);
+  const therapistBookings = getTherapistBookingsByDate(therapistId, date, bookings);
+  const roomRentalIntervals = calculateRoomRentalIntervals(scheduleBlocks, {
+    date,
+    bookingWindow
+  });
+
+  return mergeBlockedIntervals([
+    ...calculateBlockedIntervals(therapistBookings, { breakMinutes }),
+    ...calculateBlockedIntervalsFromScheduleBlocks(scheduleBlocks, {
+      date,
+      therapistId,
+      bookingWindow
+    }),
+    ...calculateRoomCapacityBlockedIntervals(allBookingsForDate, roomRentalIntervals, availableRooms, { breakMinutes })
+  ]);
 }
 
 export function calculateAvailableTimeSlots({

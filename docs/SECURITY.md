@@ -1,6 +1,6 @@
 # Security Notes
 
-Last updated: 2026-07-14
+Last updated: 2026-08-11
 
 ## Current Security Model
 
@@ -150,6 +150,48 @@ Room rental is implemented as an extension of `public.schedule_blocks`, not as a
 - Therapists cannot create room-rental blocks, cannot create recurrence series, cannot update `rooms_occupied`, and cannot delete recurring series through server actions. RLS also restricts therapist schedule-block writes to own non-recurring therapist blocks with `rooms_occupied = 0`.
 - Admin recurring blocks are generated as ordinary `schedule_blocks` rows with a shared `series_id`; recurrence rules are not stored and no infinite recurrence parser is exposed.
 - Editing one recurring occurrence detaches it by clearing `series_id`, so the dashboard does not silently modify every occurrence in a series.
+
+## SrediMe Private ICS Calendar Feeds
+
+Stage 1 of SrediMe synchronization is Raine -> SrediMe only. SrediMe imports one private ICS/iCal URL per therapist and Raine generates the feed dynamically on request.
+
+Calendar URL security:
+
+- URL shape: `/api/calendar/sredime/<opaque-token>.ics`.
+- The token is high-entropy random data and is never a therapist id, slug, booking id, client id, or signed client-readable payload.
+- The database stores only `token_hash` in `public.therapist_calendar_tokens`.
+- Raw tokens are shown to admins only at generation/regeneration time.
+- Regeneration revokes the previous active token immediately.
+- Revoked, invalid, or malformed tokens return a generic `404 Not Found`.
+
+Admin access:
+
+- Only admin users can generate, regenerate, revoke, view status, or copy newly generated SrediMe URLs.
+- Server actions verify `app_metadata.role = admin`; UI hiding is not treated as a security boundary.
+- Therapists do not see SrediMe calendar controls.
+
+Feed privacy:
+
+- The ICS endpoint returns only sanitized `Busy` events.
+- It does not include client names, phone numbers, service names, prices, comments, internal notes, booking source, block reasons, therapist UUIDs, booking UUIDs, or client UUIDs.
+- Event UIDs are deterministic hashes of calendar identity and interval timestamps, not raw database ids.
+
+Availability security:
+
+- The public ICS endpoint uses trusted server-side Supabase access after token resolution and returns only sanitized busy intervals.
+- RLS for `bookings`, `schedule_blocks`, `clients`, and therapist dashboards is not weakened for SrediMe.
+- Anon users cannot list tokens, therapists, bookings, schedule blocks, or clients.
+- The feed reads current `available_rooms` at request time and computes room-capacity exhaustion server-side.
+
+Operational behavior:
+
+- Pending and confirmed bookings block availability.
+- Cancelled and completed bookings do not block future availability.
+- The existing scheduling buffer is included in busy intervals.
+- Room-rental blocks affect feeds only through room-capacity exhaustion.
+- Salon-wide blocks mark all therapists busy.
+- Therapist-specific blocks mark only that therapist busy.
+- The feed assumes SrediMe maintains employee working hours and does not export every night/non-working period as busy.
 
 ## Rate Limiting
 

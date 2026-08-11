@@ -452,6 +452,44 @@ const sr = {
       noTherapists: "Specijalista nije dodeljen",
       loadError: "Katalog usluga nije moguće učitati."
     },
+    therapistsManagement: {
+      sectionTitle: "SrediMe kalendar",
+      dataError: "Podešavanja SrediMe kalendara nije moguće učitati. Proverite da li je migracija tokena primenjena.",
+      inactive: "Neaktivan",
+      active: "Aktivan",
+      notConnected: "Nije povezan",
+      createdAt: "Kreirano",
+      lastUsedAt: "Poslednje otvaranje",
+      neverUsed: "Još nije otvarano",
+      linkHidden: "Link je sakriven posle osvežavanja stranice. Ako ga izgubite, kreirajte novi link i dodajte ga u SrediMe.",
+      generatedUrlLabel: "Novi ICS/iCal link",
+      helper:
+        "Ovaj link dodajte u SrediMe kao eksterni ICS/iCal kalendar zaposlenog. Kalendar prenosi samo zauzete termine, bez podataka klijenata.",
+      privacy: "Kalendar šalje samo Busy događaje: bez imena klijenata, telefona, usluga, beleški i internih ID-jeva.",
+      oneWay: "Sinhronizacija je trenutno jednosmerna: Raine → SrediMe. Termine iz SrediMe za sada treba ručno dodati u Raine.",
+      setupTitle: "Kako povezati",
+      setupSteps: [
+        "Otvorite zaposlenog u SrediMe: Zaposleni → employee → Zakazivanje.",
+        "Kopirajte ICS/iCal link iz Raine dashboarda.",
+        "Nalepite ga u polje URL eksternog kalendara za uvoz (ICS/iCal) i sačuvajte.",
+        "Ponovite za svakog terapeuta."
+      ],
+      actions: {
+        generate: "Kreiraj link",
+        copy: "Kopiraj",
+        copied: "Link je kopiran",
+        regenerate: "Kreiraj novi link",
+        revoke: "Poništi link",
+        open: "Otvori ICS",
+        working: "Ažuriramo..."
+      },
+      messages: {
+        generated: "Link je kreiran. Kopirajte ga sada.",
+        revoked: "Link je poništen.",
+        copyFailed: "Link nije moguće kopirati. Kopirajte ga ručno.",
+        error: "Link nije moguće ažurirati."
+      }
+    },
     promotions: {
       eyebrow: "Akcije",
       title: "Promo kartica zakazivanja",
