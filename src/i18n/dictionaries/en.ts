@@ -453,6 +453,7 @@ const en = {
     },
     therapistsManagement: {
       sectionTitle: "SrediMe calendar",
+      connected: "Connected",
       dataError: "Could not load SrediMe calendar settings. Check that the token migration has been applied.",
       inactive: "Inactive",
       active: "Active",

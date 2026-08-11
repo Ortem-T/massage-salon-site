@@ -453,6 +453,7 @@ const ru = {
     },
     therapistsManagement: {
       sectionTitle: "Календарь SrediMe",
+      connected: "Подключено",
       dataError: "Не удалось загрузить настройки календарей SrediMe. Проверьте, что миграция токенов применена.",
       inactive: "Неактивен",
       active: "Активна",
