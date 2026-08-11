@@ -451,6 +451,44 @@ const en = {
       noTherapists: "No specialist assigned",
       loadError: "Could not load the service catalog."
     },
+    therapistsManagement: {
+      sectionTitle: "SrediMe calendar",
+      dataError: "Could not load SrediMe calendar settings. Check that the token migration has been applied.",
+      inactive: "Inactive",
+      active: "Active",
+      notConnected: "Not connected",
+      createdAt: "Created",
+      lastUsedAt: "Last used",
+      neverUsed: "Not opened yet",
+      linkHidden: "The link is hidden after page reload. If it is lost, regenerate the link and add the new one to SrediMe.",
+      generatedUrlLabel: "New ICS/iCal link",
+      helper:
+        "Add this URL to SrediMe as the therapist’s external ICS/iCal calendar. The feed contains busy times only and no client data.",
+      privacy: "The calendar sends only Busy events: no client names, phones, services, notes, or internal IDs.",
+      oneWay: "Synchronization is currently one-way: Raine → SrediMe. Bookings created in SrediMe must still be added to Raine manually.",
+      setupTitle: "Connection steps",
+      setupSteps: [
+        "Open the employee in SrediMe: Zaposleni → employee → Zakazivanje.",
+        "Copy the ICS/iCal link from Raine.",
+        "Paste it into URL eksternog kalendara za uvoz (ICS/iCal) and save.",
+        "Repeat for every therapist."
+      ],
+      actions: {
+        generate: "Generate link",
+        copy: "Copy",
+        copied: "Link copied",
+        regenerate: "Regenerate link",
+        revoke: "Revoke link",
+        open: "Open ICS",
+        working: "Updating..."
+      },
+      messages: {
+        generated: "Link created. Copy it now.",
+        revoked: "Link revoked.",
+        copyFailed: "Could not copy the link. Copy it manually.",
+        error: "Could not update the link."
+      }
+    },
     promotions: {
       eyebrow: "Promotions",
       title: "Booking promo card",

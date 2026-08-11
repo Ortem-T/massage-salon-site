@@ -356,6 +356,34 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["schedule_blocks"]["Insert"]>;
         Relationships: [];
       };
+      therapist_calendar_tokens: {
+        Row: {
+          id: string;
+          therapist_id: string;
+          token_hash: string;
+          provider: "sredime";
+          active: boolean;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+          last_used_at: string | null;
+          revoked_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          therapist_id: string;
+          token_hash: string;
+          provider?: "sredime";
+          active?: boolean;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          last_used_at?: string | null;
+          revoked_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["therapist_calendar_tokens"]["Insert"]>;
+        Relationships: [];
+      };
       therapists: {
         Row: {
           id: string;

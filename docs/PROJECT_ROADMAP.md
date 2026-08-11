@@ -1,6 +1,6 @@
 # Project Roadmap
 
-Last updated: 2026-08-05
+Last updated: 2026-08-11
 
 ## Project Overview
 
@@ -100,6 +100,7 @@ Rules:
 - Admin-only Management page at `/[locale]/dashboard` for global salon controls.
 - Configurable Telegram daily schedule summary settings: enabled flag, send time, fixed `Europe/Belgrade` timezone, and admin test-summary action.
 - Supabase Cron daily planner for the Telegram daily schedule summary with Vault-stored site URL, POST-only schedule-gated endpoint delivery, visible endpoint telemetry, and delivery-log idempotency.
+- Stage 1 SrediMe integration: admin-generated private ICS/iCal busy-feed URLs per therapist for one-way Raine -> SrediMe calendar synchronization.
 
 ## Booking System Plan
 
@@ -156,6 +157,7 @@ Do not build CRM/admin too early. Future admin can include:
 - Telegram daily schedule settings and non-sensitive delivery history
 - notification history
 - basic analytics
+- external calendar integration management, starting with hash-only SrediMe ICS tokens per therapist
 
 Service catalog direction:
 

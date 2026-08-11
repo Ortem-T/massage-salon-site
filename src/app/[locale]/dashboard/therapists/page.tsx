@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
 
-import { DashboardPlaceholder } from "@/components/dashboard/dashboard-placeholder";
+import { TherapistsManager } from "@/components/dashboard/therapists-manager";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { requireDashboardRole } from "@/lib/dashboard/auth";
+import { getSredimeTherapistCalendars } from "@/lib/integrations/sredime/calendar";
 
 type DashboardTherapistsPageProps = {
   params: Promise<{ locale: string }>;
@@ -17,10 +18,17 @@ export default async function DashboardTherapistsPage({ params }: DashboardThera
   }
 
   const locale: Locale = rawLocale;
-  await requireDashboardRole(locale, ["admin"]);
+  const user = await requireDashboardRole(locale, ["admin"]);
 
   const dictionary = await getDictionary(locale);
-  const page = dictionary.dashboard.pages.therapists;
+  const data = await getSredimeTherapistCalendars(user);
 
-  return <DashboardPlaceholder eyebrow={page.eyebrow} title={page.title} body={page.body} />;
+  return (
+    <TherapistsManager
+      calendars={data.calendars}
+      dataError={data.error}
+      dictionary={dictionary}
+      locale={locale}
+    />
+  );
 }

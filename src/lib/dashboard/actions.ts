@@ -52,6 +52,11 @@ import {
   getRebookingTemplateForClient,
   validateManualRebookingSuggestion
 } from "@/lib/rebooking/suggestions";
+import {
+  createSredimeTherapistCalendarLink,
+  revokeSredimeTherapistCalendarLink,
+  type SredimeCalendarTokenMetadata
+} from "@/lib/integrations/sredime/calendar";
 
 export type DashboardActionResult = {
   ok: boolean;
@@ -76,6 +81,17 @@ export type RebookingLinkActionResult =
   | {
       ok: false;
       reason: "forbidden" | "error" | "missing_client" | "manual_required" | "manual_unavailable" | "slot_unavailable";
+    };
+
+export type SredimeCalendarActionResult =
+  | {
+      ok: true;
+      calendarUrl?: string;
+      token: SredimeCalendarTokenMetadata | null;
+    }
+  | {
+      ok: false;
+      reason: "forbidden" | "error";
     };
 
 type BookingActionInput = {
@@ -562,6 +578,59 @@ export async function revokeBookingRebookingLinkAction(
 
     if (process.env.NODE_ENV !== "production") {
       console.error("[booking rebooking revoke action failed]", error);
+    }
+
+    return { ok: false, reason: "error" };
+  }
+}
+
+export async function generateSredimeCalendarLinkAction(
+  locale: Locale,
+  input: { therapistId: string }
+): Promise<SredimeCalendarActionResult> {
+  try {
+    const user = await requireDashboardUser(locale);
+    const result = await createSredimeTherapistCalendarLink(user, input.therapistId);
+    revalidateDashboard(locale);
+
+    return {
+      ok: true,
+      calendarUrl: result.calendarUrl,
+      token: result.token
+    };
+  } catch (error) {
+    if (error instanceof DashboardForbiddenError) {
+      return { ok: false, reason: "forbidden" };
+    }
+
+    if (process.env.NODE_ENV !== "production") {
+      console.error("[sredime calendar action failed]", error);
+    }
+
+    return { ok: false, reason: "error" };
+  }
+}
+
+export async function revokeSredimeCalendarLinkAction(
+  locale: Locale,
+  input: { therapistId: string }
+): Promise<SredimeCalendarActionResult> {
+  try {
+    const user = await requireDashboardUser(locale);
+    const token = await revokeSredimeTherapistCalendarLink(user, input.therapistId);
+    revalidateDashboard(locale);
+
+    return {
+      ok: true,
+      token
+    };
+  } catch (error) {
+    if (error instanceof DashboardForbiddenError) {
+      return { ok: false, reason: "forbidden" };
+    }
+
+    if (process.env.NODE_ENV !== "production") {
+      console.error("[sredime calendar revoke action failed]", error);
     }
 
     return { ok: false, reason: "error" };
