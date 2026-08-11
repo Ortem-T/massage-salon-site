@@ -162,7 +162,7 @@ export function TherapistsManager({ calendars, dataError, dictionary, locale }: 
           </div>
         </div>
 
-        <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="mt-5 grid gap-5 2xl:grid-cols-[minmax(0,1fr)_360px]">
           <div className="grid gap-4">
             {calendars.map((calendar) => {
               const state = statesByTherapist[calendar.therapistId] ?? { token: calendar.token };
@@ -176,7 +176,7 @@ export function TherapistsManager({ calendars, dataError, dictionary, locale }: 
                   key={calendar.therapistId}
                   className="rounded-3xl border border-border/70 bg-background/70 p-5 shadow-soft transition hover:border-primary/18 hover:bg-card/78"
                 >
-                  <div className="grid gap-5 lg:grid-cols-[minmax(160px,0.7fr)_minmax(260px,1fr)] xl:grid-cols-[minmax(160px,0.65fr)_minmax(280px,1fr)_auto] xl:items-start">
+                  <div className="grid gap-5 lg:grid-cols-[minmax(160px,0.7fr)_minmax(260px,1fr)] 2xl:grid-cols-[minmax(160px,0.65fr)_minmax(280px,1fr)_auto] 2xl:items-start">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="text-2xl font-semibold leading-tight text-primary">{calendar.displayName}</h3>
@@ -227,7 +227,7 @@ export function TherapistsManager({ calendars, dataError, dictionary, locale }: 
                       ) : null}
                     </div>
 
-                    <div className="flex flex-wrap gap-2 xl:w-[220px] xl:justify-end">
+                    <div className="flex flex-wrap gap-2 lg:col-span-2 2xl:col-span-1 2xl:w-[220px] 2xl:justify-end">
                       <Button
                         type="button"
                         size="sm"
