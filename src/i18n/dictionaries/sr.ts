@@ -454,6 +454,7 @@ const sr = {
     },
     therapistsManagement: {
       sectionTitle: "SrediMe kalendar",
+      connected: "Povezano",
       dataError: "Podešavanja SrediMe kalendara nije moguće učitati. Proverite da li je migracija tokena primenjena.",
       inactive: "Neaktivan",
       active: "Aktivan",

@@ -124,19 +124,10 @@ export function TherapistsManager({ calendars, dataError, dictionary, locale }: 
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
           {page.eyebrow}
         </p>
-        <div className="mt-3 grid gap-5 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-end">
-          <div className="max-w-3xl">
-            <h1 className="font-serif text-4xl font-medium leading-tight text-primary sm:text-5xl">
-              {page.title}
-            </h1>
-            <p className="mt-4 text-base leading-7 text-muted-foreground">{page.body}</p>
-          </div>
-          <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
-            <p className="text-sm text-muted-foreground">SrediMe</p>
-            <p className="mt-1 text-3xl font-semibold text-primary">
-              {connectedCount}/{calendars.length}
-            </p>
-          </div>
+        <div className="mt-3 max-w-3xl">
+          <h1 className="font-serif text-4xl font-medium leading-tight text-primary sm:text-5xl">
+            {page.title}
+          </h1>
         </div>
       </section>
 
@@ -152,32 +143,52 @@ export function TherapistsManager({ calendars, dataError, dictionary, locale }: 
         </div>
       ) : null}
 
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="grid gap-4">
-          {calendars.map((calendar) => {
-            const state = statesByTherapist[calendar.therapistId] ?? { token: calendar.token };
-            const token = state.token;
-            const isActive = token?.status === "active";
-            const isWorking = isPending && pendingTherapistId === calendar.therapistId;
-            const calendarUrl = state.calendarUrl;
+      <section className="rounded-3xl border border-border/70 bg-card/64 p-5 shadow-soft sm:p-6">
+        <div className="flex flex-col gap-4 border-b border-border/60 pb-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-3 text-primary">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary/10">
+              <ShieldCheck aria-hidden className="size-5" />
+            </span>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">SrediMe</p>
+              <h2 className="text-2xl font-semibold">{copy.sectionTitle}</h2>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-border/70 bg-background/70 px-5 py-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{copy.connected}</p>
+            <p className="mt-1 text-3xl font-semibold leading-none text-primary">
+              {connectedCount}/{calendars.length}
+            </p>
+          </div>
+        </div>
 
-            return (
-              <article
-                key={calendar.therapistId}
-                className="rounded-3xl border border-border/70 bg-background/62 p-5 shadow-soft transition hover:border-primary/18 hover:bg-card/72"
-              >
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-2xl font-semibold text-primary">{calendar.displayName}</h2>
-                      {!calendar.active ? (
-                        <span className="rounded-full border border-border/70 bg-secondary/60 px-3 py-1 text-xs font-semibold text-muted-foreground">
-                          {copy.inactive}
-                        </span>
-                      ) : null}
+        <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="grid gap-4">
+            {calendars.map((calendar) => {
+              const state = statesByTherapist[calendar.therapistId] ?? { token: calendar.token };
+              const token = state.token;
+              const isActive = token?.status === "active";
+              const isWorking = isPending && pendingTherapistId === calendar.therapistId;
+              const calendarUrl = state.calendarUrl;
+
+              return (
+                <article
+                  key={calendar.therapistId}
+                  className="rounded-3xl border border-border/70 bg-background/70 p-5 shadow-soft transition hover:border-primary/18 hover:bg-card/78"
+                >
+                  <div className="grid gap-5 lg:grid-cols-[minmax(160px,0.7fr)_minmax(260px,1fr)] xl:grid-cols-[minmax(160px,0.65fr)_minmax(280px,1fr)_auto] xl:items-start">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-2xl font-semibold leading-tight text-primary">{calendar.displayName}</h3>
+                        {!calendar.active ? (
+                          <span className="rounded-full border border-border/70 bg-secondary/60 px-3 py-1 text-xs font-semibold text-muted-foreground">
+                            {copy.inactive}
+                          </span>
+                        ) : null}
+                      </div>
                       <span
                         className={cn(
-                          "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold",
+                          "mt-3 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold",
                           isActive
                             ? "border-primary/20 bg-primary/10 text-primary"
                             : "border-border/70 bg-secondary/55 text-muted-foreground"
@@ -188,102 +199,101 @@ export function TherapistsManager({ calendars, dataError, dictionary, locale }: 
                       </span>
                     </div>
 
-                    <dl className="mt-4 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
-                      <div>
-                        <dt className="font-semibold text-primary">{copy.createdAt}</dt>
-                        <dd>{formatDateTime(token?.createdAt ?? null, locale, "—")}</dd>
-                      </div>
-                      <div>
-                        <dt className="font-semibold text-primary">{copy.lastUsedAt}</dt>
-                        <dd>{formatDateTime(token?.lastUsedAt ?? null, locale, copy.neverUsed)}</dd>
-                      </div>
-                    </dl>
+                    <div className="space-y-4">
+                      <dl className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-2">
+                        <div className="rounded-2xl border border-border/60 bg-card/50 p-3">
+                          <dt className="font-semibold text-primary">{copy.createdAt}</dt>
+                          <dd className="mt-1 leading-6">{formatDateTime(token?.createdAt ?? null, locale, "—")}</dd>
+                        </div>
+                        <div className="rounded-2xl border border-border/60 bg-card/50 p-3">
+                          <dt className="font-semibold text-primary">{copy.lastUsedAt}</dt>
+                          <dd className="mt-1 leading-6">{formatDateTime(token?.lastUsedAt ?? null, locale, copy.neverUsed)}</dd>
+                        </div>
+                      </dl>
 
-                    {isActive && !calendarUrl ? (
-                      <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">
-                        {copy.linkHidden}
-                      </p>
-                    ) : null}
+                      {isActive && !calendarUrl ? (
+                        <p className="rounded-2xl border border-border/60 bg-secondary/35 px-4 py-3 text-sm leading-6 text-muted-foreground">
+                          {copy.linkHidden}
+                        </p>
+                      ) : null}
 
-                    {calendarUrl ? (
-                      <div className="mt-4 rounded-2xl border border-primary/15 bg-primary/5 p-4">
-                        <label className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                          {copy.generatedUrlLabel}
-                        </label>
-                        <p className="mt-2 break-all text-sm font-semibold text-primary">{calendarUrl}</p>
-                      </div>
-                    ) : null}
-                  </div>
+                      {calendarUrl ? (
+                        <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4">
+                          <label className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                            {copy.generatedUrlLabel}
+                          </label>
+                          <p className="mt-2 break-all text-sm font-semibold leading-6 text-primary">{calendarUrl}</p>
+                        </div>
+                      ) : null}
+                    </div>
 
-                  <div className="flex shrink-0 flex-wrap gap-2 lg:max-w-[320px] lg:justify-end">
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => generateLink(calendar.therapistId)}
-                      disabled={isWorking || !calendar.active}
-                    >
-                      <RefreshCw aria-hidden />
-                      {isWorking ? copy.actions.working : isActive ? copy.actions.regenerate : copy.actions.generate}
-                    </Button>
-                    {calendarUrl ? (
-                      <>
-                        <Button type="button" size="sm" variant="outline" onClick={() => copyLink(calendarUrl)}>
-                          <Clipboard aria-hidden />
-                          {copy.actions.copy}
-                        </Button>
-                        <Button asChild size="sm" variant="outline">
-                          <a href={calendarUrl} target="_blank" rel="noreferrer">
-                            <ExternalLink aria-hidden />
-                            {copy.actions.open}
-                          </a>
-                        </Button>
-                      </>
-                    ) : null}
-                    {isActive ? (
+                    <div className="flex flex-wrap gap-2 xl:w-[220px] xl:justify-end">
                       <Button
                         type="button"
                         size="sm"
-                        variant="ghost"
-                        className="text-muted-foreground hover:text-primary"
-                        onClick={() => revokeLink(calendar.therapistId)}
-                        disabled={isWorking}
+                        className="min-w-[160px]"
+                        onClick={() => generateLink(calendar.therapistId)}
+                        disabled={isWorking || !calendar.active}
                       >
-                        <Unlink aria-hidden />
-                        {copy.actions.revoke}
+                        <RefreshCw aria-hidden />
+                        {isWorking ? copy.actions.working : isActive ? copy.actions.regenerate : copy.actions.generate}
                       </Button>
-                    ) : null}
+                      {calendarUrl ? (
+                        <>
+                          <Button type="button" size="sm" variant="outline" onClick={() => copyLink(calendarUrl)}>
+                            <Clipboard aria-hidden />
+                            {copy.actions.copy}
+                          </Button>
+                          <Button asChild size="sm" variant="outline">
+                            <a href={calendarUrl} target="_blank" rel="noreferrer">
+                              <ExternalLink aria-hidden />
+                              {copy.actions.open}
+                            </a>
+                          </Button>
+                        </>
+                      ) : null}
+                      {isActive ? (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          className="text-muted-foreground hover:text-primary"
+                          onClick={() => revokeLink(calendar.therapistId)}
+                          disabled={isWorking}
+                        >
+                          <Unlink aria-hidden />
+                          {copy.actions.revoke}
+                        </Button>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-              </article>
-            );
-          })}
-        </div>
+                </article>
+              );
+            })}
+          </div>
 
-        <aside className="space-y-4">
-          <div className="rounded-3xl border border-border/70 bg-card/70 p-5 shadow-soft">
-            <div className="flex items-center gap-2 text-primary">
-              <ShieldCheck aria-hidden className="size-5" />
-              <h2 className="text-xl font-semibold">{copy.sectionTitle}</h2>
+          <aside className="space-y-4">
+            <div className="rounded-3xl border border-border/70 bg-background/70 p-5">
+              <p className="text-sm leading-6 text-muted-foreground">{copy.helper}</p>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">{copy.privacy}</p>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">{copy.oneWay}</p>
             </div>
-            <p className="mt-4 text-sm leading-6 text-muted-foreground">{copy.helper}</p>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">{copy.privacy}</p>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">{copy.oneWay}</p>
-          </div>
 
-          <div className="rounded-3xl border border-border/70 bg-background/60 p-5">
-            <h2 className="text-xl font-semibold text-primary">{copy.setupTitle}</h2>
-            <ol className="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
-              {copy.setupSteps.map((step, index) => (
-                <li key={step} className="flex gap-3">
-                  <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                    {index + 1}
-                  </span>
-                  <span>{step}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </aside>
+            <div className="rounded-3xl border border-border/70 bg-background/70 p-5">
+              <h2 className="text-xl font-semibold text-primary">{copy.setupTitle}</h2>
+              <ol className="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
+                {copy.setupSteps.map((step, index) => (
+                  <li key={step} className="flex gap-3">
+                    <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                      {index + 1}
+                    </span>
+                    <span>{step}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </aside>
+        </div>
       </section>
     </div>
   );
